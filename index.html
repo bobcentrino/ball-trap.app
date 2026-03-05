@@ -51,7 +51,7 @@
             position: absolute; bottom: 80px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
 
-        .section-title { font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 40px; color: var(--gold); text-transform: uppercase; text-align: center; }
+        .section-title { font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 25px; color: var(--gold); text-transform: uppercase; text-align: center; }
         .menu-list { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 15px; }
         
         .card-menu {
@@ -75,26 +75,35 @@
         }
 
         .info-bar { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; text-align: center; }
-        .btn-back { background: none; border: none; color: #666; font-size: 13px; text-transform: uppercase; padding: 15px; }
+        .btn-back { background: none; border: none; color: #666; font-size: 13px; text-transform: uppercase; padding: 15px; cursor: pointer; }
         
-        /* Grille Coaching */
+        /* --- HISTORIQUE --- */
+        #history-list { width: 100%; max-width: 360px; overflow-y: auto; flex: 1; }
+        .history-card { 
+            background: #1a1a1a; border-left: 4px solid var(--gold); 
+            padding: 15px; margin-bottom: 12px; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-info div { margin-bottom: 4px; }
+        .h-date { font-size: 10px; color: #666; }
+        .h-disc { font-size: 14px; font-weight: bold; color: var(--gold); }
+        .h-stand { font-size: 12px; color: #aaa; }
+        .history-score { text-align: right; }
+        .h-val { font-size: 18px; font-weight: bold; color: var(--btn-green); }
+        .btn-delete { background: none; border: none; color: #e74c3c; font-size: 18px; margin-left: 15px; padding: 10px; }
+
+        /* --- GRILLE --- */
         .score-main { font-size: 28px; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
         .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 320px; margin-bottom: 20px; }
         .cell { aspect-ratio: 1; background: #222; border: 1px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; }
-        
-        /* Couleurs des cases dans la grille */
         .cell.hit1 { background: var(--btn-green) !important; color: white !important; border-color: #fff !important; }
         .cell.hit2 { background: var(--btn-orange) !important; color: white !important; border-color: #fff !important; }
         .cell.miss { background: var(--btn-red) !important; color: white !important; border-color: #fff !important; }
-
-        /* Couleurs des boutons de contrôle */
         .controls { display: flex; gap: 12px; width: 100%; max-width: 340px; margin-top: auto; margin-bottom: 10px; }
         .control-btn { flex: 1; height: 80px; border: none; border-radius: 12px; color: white; font-weight: 800; font-size: 13px; text-transform: uppercase; }
-        
-        .btn-green { background-color: var(--btn-green) !important; color: white !important; }
-        .btn-orange { background-color: var(--btn-orange) !important; color: white !important; }
-        .btn-red { background-color: var(--btn-red) !important; color: white !important; }
-
+        .btn-green { background-color: var(--btn-green) !important; }
+        .btn-orange { background-color: var(--btn-orange) !important; }
+        .btn-red { background-color: var(--btn-red) !important; }
         #btn-save-final { display: none; background: var(--gold); color: black; border: none; padding: 20px; border-radius: 10px; font-weight: 900; width: 100%; max-width: 340px; margin-bottom: 10px; }
     </style>
 </head>
@@ -110,6 +119,7 @@
             <div class="card-menu" onclick="selectDisc('Fosse Universelle')">FOSSE UNIVERSELLE <span>→</span></div>
             <div class="card-menu" onclick="selectDisc('DTL')">DTL <span>→</span></div>
             <div class="card-menu" onclick="selectDisc('Trap 1')">TRAP 1 <span>→</span></div>
+            <div class="card-menu" onclick="openHistory()" style="margin-top:20px; border-color:var(--gold); color:var(--gold)">VOIR MES ARCHIVES <span>📊</span></div>
         </div>
         <button class="btn-back" onclick="showPage('page-home')">← Retour</button>
     </div>
@@ -127,11 +137,11 @@
         <div class="section-title">Détails</div>
         <div class="form-group">
             <label>Nom du Tireur</label>
-            <input type="text" id="input-tireur" placeholder="Moi ou Elève">
+            <input type="text" id="input-tireur">
         </div>
         <div class="form-group">
             <label>Stand de Tir</label>
-            <input type="text" id="input-stand" placeholder="Nom du stand">
+            <input type="text" id="input-stand">
         </div>
         <button class="btn-confirm" onclick="goToNextStep()">Continuer</button>
         <button class="btn-back" onclick="showPage('page-mode')">← Retour</button>
@@ -160,6 +170,13 @@
         </div>
         <button class="btn-undo" onclick="undoLast()" style="background:#333; color:#aaa; border:none; padding:10px 20px; border-radius:8px; font-size:12px; margin-top:10px;">⟲ Correction</button>
         <button class="btn-back" onclick="showPage('page-config')">← Retour</button>
+    </div>
+
+    <div id="page-history" class="page">
+        <div class="section-title">Mes Archives</div>
+        <div id="history-list">
+            </div>
+        <button class="btn-back" onclick="showPage('page-selection')">← Retour</button>
     </div>
 
     <script>
@@ -258,17 +275,56 @@
 
         function saveData(scoreFinal) {
             let archives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
-            archives.push({
+            archives.unshift({ // On ajoute au début pour voir les plus récents en premier
+                id: Date.now(),
                 date: new Date().toLocaleDateString('fr-FR'),
                 discipline: sessionData.disc,
                 tireur: sessionData.tireur,
                 stand: sessionData.stand,
-                score: scoreFinal,
-                timestamp: new Date().getTime()
+                score: scoreFinal
             });
             localStorage.setItem('bt_archives', JSON.stringify(archives));
-            alert("Planche enregistrée !");
+            alert("Série enregistrée !");
             showPage('page-selection');
+        }
+
+        /* --- LOGIQUE HISTORIQUE --- */
+        function openHistory() {
+            const list = document.getElementById('history-list');
+            const archives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
+            
+            list.innerHTML = '';
+            
+            if (archives.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#666; margin-top:50px;">Aucune série enregistrée</div>';
+            } else {
+                archives.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'history-card';
+                    card.innerHTML = `
+                        <div class="history-info">
+                            <div class="h-date">${item.date} • ${item.tireur}</div>
+                            <div class="h-disc">${item.discipline}</div>
+                            <div class="h-stand">${item.stand}</div>
+                        </div>
+                        <div class="history-score">
+                            <div class="h-val">${item.score}</div>
+                            <button class="btn-delete" onclick="deleteEntry(${item.id})">🗑️</button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            }
+            showPage('page-history');
+        }
+
+        function deleteEntry(id) {
+            if (confirm("Supprimer cette série définitivement ?")) {
+                let archives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
+                archives = archives.filter(a => a.id !== id);
+                localStorage.setItem('bt_archives', JSON.stringify(archives));
+                openHistory(); // Rafraîchir la liste
+            }
         }
     </script>
 </body>
