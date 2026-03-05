@@ -12,9 +12,9 @@
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
         .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 25px; box-sizing: border-box; }
         .active { display: flex; }
-        #page-home { justify-content: center; background: radial-gradient(circle, #222 0%, #000 100%); }
+        #p0 { justify-content: center; background: radial-gradient(circle, #222 0%, #000 100%); }
         .btn-main { background: var(--clay); color: white; border: none; padding: 20px 60px; border-radius: 10px; font-size: 20px; font-weight: bold; text-transform: uppercase; }
-        .section-title { color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-size: 18px; }
+        .section-title { color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-size: 18px; text-align: center; }
         .menu-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
         .card { background: var(--card); border: 1px solid #333; padding: 20px; border-radius: 12px; font-weight: bold; display: flex; justify-content: space-between; }
         .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 350px; text-transform: uppercase; }
@@ -27,7 +27,7 @@
         input { width: 100%; max-width: 350px; background: #222; border: 1px solid #444; padding: 15px; color: white; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
         .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .hit1 { background: var(--green); } .hit2 { background: #f39c12; } .miss { background: var(--red); }
+        .hit1 { background: var(--green) !important; color: white; } .hit2 { background: #f39c12 !important; color: white; } .miss { background: var(--red) !important; color: white; }
     </style>
 </head>
 <body>
@@ -71,13 +71,14 @@
     <div id="p5" class="page">
         <div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:10px">0 / 25</div>
         <div class="grid" id="grid"></div>
-        <div style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
+        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
             <button onclick="hit(1)" style="flex:1; background:var(--green); height:70px; border:none; border-radius:10px; color:white; font-weight:bold">1er</button>
             <button onclick="hit(2)" style="flex:1; background:#f39c12; height:70px; border:none; border-radius:10px; color:white; font-weight:bold">2ème</button>
             <button onclick="hit(0)" style="flex:1; background:var(--red); height:70px; border:none; border-radius:10px; color:white; font-weight:bold">ZÉRO</button>
         </div>
-        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Terminer</button>
-        <button class="btn-back" onclick="go('p3')">Annuler</button>
+        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Terminer l'enregistrement</button>
+        <button id="btn-close-view" class="btn-confirm" style="display:none; margin-top:15px; background:#444; color:white" onclick="go('p6')">Fermer la vue</button>
+        <button class="btn-back" id="btn-cancel-coach" onclick="go('p3')">Annuler</button>
     </div>
 
     <div id="p6" class="page">
@@ -100,7 +101,14 @@
         
         function startSérie() {
             if(curF === 'perso') go('p4');
-            else { pts = []; buildGrid(); go('p5'); }
+            else { 
+                pts = []; 
+                document.getElementById('coach-controls').style.display = 'flex';
+                document.getElementById('btn-close-view').style.display = 'none';
+                document.getElementById('btn-cancel-coach').style.display = 'block';
+                buildGrid(); 
+                go('p5'); 
+            }
         }
 
         function buildGrid() {
@@ -114,8 +122,11 @@
         function updateS() {
             let total = 0;
             pts.forEach((v, i) => {
-                document.getElementById('c'+i).className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
-                if(curD === 'Fosse Universelle') total += (v>0?1:0); else total += (v===1?3:v===2?2:0);
+                const el = document.getElementById('c'+i);
+                if(el) {
+                    el.className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
+                    if(curD === 'Fosse Universelle') total += (v>0?1:0); else total += (v===1?3:v===2?2:0);
+                }
             });
             document.getElementById('score-live').innerText = total + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
             document.getElementById('btn-save-coach').style.display = pts.length === 25 ? 'block' : 'none';
@@ -123,17 +134,18 @@
 
         function savePerso() { 
             let s = document.getElementById('in-score').value + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
-            finalSave(s);
+            finalSave(s, []);
         }
-        function saveCoach() { finalSave(document.getElementById('score-live').innerText); }
+        function saveCoach() { finalSave(document.getElementById('score-live').innerText, pts); }
 
-        function finalSave(score) {
+        function finalSave(score, detailPts) {
             let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
             db.unshift({
                 id: Date.now(), folder: curF, disc: curD,
                 name: document.getElementById('in-name').value,
                 stand: document.getElementById('in-stand').value,
-                score: score, date: new Date().toLocaleDateString('fr-FR')
+                score: score, date: new Date().toLocaleDateString('fr-FR'),
+                details: detailPts
             });
             localStorage.setItem('BT_DATA', JSON.stringify(db));
             alert("Enregistré !"); go('p1');
@@ -152,12 +164,32 @@
             const filtered = db.filter(a => a.folder === curF && a.disc === d);
             list.innerHTML = filtered.length ? '' : '<div style="text-align:center; padding:50px; color:#444">Aucune série</div>';
             filtered.forEach(a => {
+                let showBtn = (a.details && a.details.length > 0) ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:18px; margin-left:10px">👁️</button>` : '';
                 list.innerHTML += `<div class="history-item">
                     <div><div style="font-size:10px; color:#666">${a.date}</div><div style="font-weight:bold">${curF==='perso'?a.stand:a.name}</div></div>
-                    <div style="display:flex; align-items:center"><span class="h-val">${a.score}</span>
-                    <button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:18px; margin-left:10px">🗑️</button></div>
+                    <div style="display:flex; align-items:center">
+                        ${showBtn}
+                        <span class="h-val" style="margin-left:10px">${a.score}</span>
+                        <button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:18px; margin-left:10px">🗑️</button>
+                    </div>
                 </div>`;
             });
+        }
+
+        function showDetails(id) {
+            const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            const serie = db.find(a => a.id === id);
+            if(serie) {
+                pts = serie.details;
+                curD = serie.disc;
+                buildGrid();
+                // Masquer les contrôles d'édition pour ne montrer que le résultat
+                document.getElementById('coach-controls').style.display = 'none';
+                document.getElementById('btn-save-coach').style.display = 'none';
+                document.getElementById('btn-cancel-coach').style.display = 'none';
+                document.getElementById('btn-close-view').style.display = 'block';
+                go('p5');
+            }
         }
 
         function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
