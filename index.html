@@ -32,13 +32,13 @@
         .hit2 { background: #f39c12 !important; color: white !important; } 
         .miss { background: var(--red) !important; color: white !important; }
 
-        /* BOX STATS AMELIOREE */
+        /* BOX STATS - VISIBLE PAR DÉFAUT SI OUVERT VIA L'OEIL */
         #stats-area { 
-            width: 100%; max-width: 300px; background: #252525; padding: 15px; border-radius: 10px; 
-            border: 2px solid var(--gold); margin-top: 10px; display: none; 
+            width: 100%; max-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 10px; 
+            border: 2px solid var(--gold); margin-bottom: 20px; display: none; 
         }
-        .stat-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #fff; }
-        .stat-line b { color: var(--gold); font-size: 15px; }
+        .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: #fff; }
+        .stat-line b { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -81,28 +81,29 @@
 
     <div id="p5" class="page">
         <div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div>
-        <div class="grid" id="grid"></div>
         
         <div id="stats-area">
-            <div style="font-size:11px; font-weight:bold; color:var(--gold); margin-bottom:10px; text-transform:uppercase; text-align:center">--- BILAN PERFORMANCE ---</div>
-            <div class="stat-line">Début (5 prem.) : <b id="stat-start">0</b></div>
-            <div class="stat-line">Milieu (15 suiv.) : <b id="stat-mid">0</b></div>
-            <div class="stat-line">Fin (5 dern.) : <b id="stat-end">0</b></div>
-            <div class="stat-line" style="margin-top:10px; padding-top:10px; border-top:1px solid #444">Total Zéros : <b id="stat-zeros">0</b></div>
+            <div style="font-size:12px; font-weight:bold; color:var(--gold); margin-bottom:12px; text-align:center">BILAN DE SÉRIE</div>
+            <div class="stat-line">Début (5 prem.) : <b id="stat-start">-</b></div>
+            <div class="stat-line">Milieu (15 suiv.) : <b id="stat-mid">-</b></div>
+            <div class="stat-line">Fin (5 dern.) : <b id="stat-end">-</b></div>
+            <div class="stat-line" style="border-top:1px solid #333; padding-top:8px">Total Zéros : <b id="stat-zeros">-</b></div>
         </div>
 
+        <div class="grid" id="grid"></div>
+        
         <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
             <button onclick="hit(1)" style="flex:1; background:var(--green); height:75px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
             <button onclick="hit(2)" style="flex:1; background:#f39c12; height:75px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
             <button onclick="hit(0)" style="flex:1; background:var(--red); height:75px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
         </div>
-        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Enregistrer la séance</button>
+        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Terminer l'enregistrement</button>
         <button id="btn-close-view" class="btn-confirm" style="display:none; margin-top:15px; background:#444; color:white" onclick="go('p6')">Fermer la vue</button>
         <button class="btn-back" id="btn-cancel-coach" onclick="go('p3')">Annuler</button>
     </div>
 
     <div id="p6" class="page">
-        <div class="section-title" id="hist-title">Archives</div>
+        <div class="section-title">Archives</div>
         <div class="tabs">
             <div id="t1" class="tab" onclick="refreshH('Fosse Universelle')">FOSSE U.</div>
             <div id="t2" class="tab" onclick="refreshH('DTL')">DTL</div>
@@ -146,7 +147,7 @@
                 }
             });
             document.getElementById('score-live').innerText = total + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
-            document.getElementById('btn-save-coach').style.display = (pts.length === 25 ? 'block' : 'none');
+            document.getElementById('btn-save-coach').style.display = (pts.length >= 25 ? 'block' : 'none');
         }
 
         function savePerso() { finalSave(document.getElementById('in-score').value + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75'), []); }
@@ -172,7 +173,8 @@
             const filtered = db.filter(a => a.folder === curF && a.disc === d);
             list.innerHTML = filtered.length ? '' : '<div style="text-align:center; padding:50px; color:#444">Aucune série</div>';
             filtered.forEach(a => {
-                let showBtn = (a.details && a.details.length === 25) ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:22px; margin-left:10px">👁️</button>` : '';
+                // FORCE L'OEIL POUR TOUT LE DOSSIER COACH
+                let showBtn = (curF === 'coach') ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:22px; margin-left:10px">👁️</button>` : '';
                 list.innerHTML += `<div class="history-item"><div><div style="font-size:10px; color:#666">${a.date}</div><div style="font-weight:bold">${curF==='perso'?a.stand:a.name}</div></div><div style="display:flex; align-items:center">${showBtn}<span class="h-val" style="margin-left:10px">${a.score}</span><button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:22px; margin-left:10px">🗑️</button></div></div>`;
             });
         }
@@ -180,28 +182,10 @@
         function showDetails(id) {
             const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
             const serie = db.find(a => a.id === id);
-            if(serie && serie.details) {
-                pts = serie.details; curD = serie.disc; buildGrid();
+            if(serie) {
+                pts = serie.details || []; curD = serie.disc; buildGrid();
                 
-                let s1 = pts.slice(0, 5).filter(x => x > 0).length;
-                let s2 = pts.slice(5, 20).filter(x => x > 0).length;
-                let s3 = pts.slice(20, 25).filter(x => x > 0).length;
-                let sz = pts.filter(x => x === 0).length;
-
-                document.getElementById('stat-start').innerText = s1 + " / 5";
-                document.getElementById('stat-mid').innerText = s2 + " / 15";
-                document.getElementById('stat-end').innerText = s3 + " / 5";
-                document.getElementById('stat-zeros').innerText = sz;
-
-                document.getElementById('stats-area').style.display = 'block';
-                document.getElementById('coach-controls').style.display = 'none';
-                document.getElementById('btn-save-coach').style.display = 'none';
-                document.getElementById('btn-cancel-coach').style.display = 'none';
-                document.getElementById('btn-close-view').style.display = 'block';
-                go('p5');
-            }
-        }
-        function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
-    </script>
-</body>
-</html>
+                // CALCULS SIMPLIFIÉS AU MAXIMUM
+                let s1=0, s2=0, s3=0, sz=0;
+                pts.forEach((v, i) => {
+                    if(v > 0) { if(i<5) s1++; else if(i<20) s
