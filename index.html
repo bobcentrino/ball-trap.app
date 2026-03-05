@@ -188,4 +188,24 @@
                 // CALCULS SIMPLIFIÉS AU MAXIMUM
                 let s1=0, s2=0, s3=0, sz=0;
                 pts.forEach((v, i) => {
-                    if(v > 0) { if(i<5) s1++; else if(i<20) s
+                    if(v > 0) { if(i<5) s1++; else if(i<20) s2++; else s3++; }
+                    else { sz++; }
+                });
+
+                document.getElementById('stat-start').innerText = s1 + " / 5";
+                document.getElementById('stat-mid').innerText = s2 + " / 15";
+                document.getElementById('stat-end').innerText = s3 + " / 5";
+                document.getElementById('stat-zeros').innerText = sz;
+
+                document.getElementById('stats-area').style.display = 'block';
+                document.getElementById('coach-controls').style.display = 'none';
+                document.getElementById('btn-save-coach').style.display = 'none';
+                document.getElementById('btn-cancel-coach').style.display = 'none';
+                document.getElementById('btn-close-view').style.display = 'block';
+                go('p5');
+            }
+        }
+        function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
+    </script>
+</body>
+</html>
