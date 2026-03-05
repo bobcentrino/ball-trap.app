@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ball-Trap Scores & Coaching</title>
+    <style>
+        :root {
+            --clay-orange: #ff5f00;
+            --gold: #c5a059;
+            --bg-neutral: #121212;
+            --text-light: #f0f0f0;
+            --btn-green: #2ecc71;
+            --btn-orange: #f39c12;
+            --btn-red: #e74c3c;
+            --input-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background: var(--bg-neutral);
+            color: var(--text-light);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        #page-home {
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('fond.jpg');
+            background-size: cover; background-position: center;
+            justify-content: center;
+        }
+
+        .active { display: flex; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .btn-start {
+            background: var(--clay-orange); color: white; border: none;
+            padding: 22px 70px; border-radius: 6px;
+            font-size: 18px; font-weight: bold; text-transform: uppercase;
+            position: absolute; bottom: 80px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        }
+
+        .section-title { font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 40px; color: var(--gold); text-transform: uppercase; text-align: center; }
+        .menu-list { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 15px; }
+        
+        .card-menu {
+            background: #1e1e1e; border: 1px solid rgba(197, 160, 89, 0.3);
+            padding: 25px 20px; border-radius: 12px; color: white; font-size: 15px; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .form-group { width: 100%; max-width: 340px; margin-bottom: 25px; }
+        .form-group label { display: block; color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; font-weight: bold; }
+        .form-group input { 
+            width: 100%; background: var(--input-bg); border: 1px solid #333; 
+            padding: 15px; border-radius: 8px; color: white; font-size: 22px; box-sizing: border-box;
+            text-align: center;
+        }
+
+        .btn-confirm { 
+            background: var(--gold); color: black; border: none; 
+            padding: 18px 40px; border-radius: 8px; font-weight: bold; 
+            text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 340px;
+        }
+
+        .info-bar { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; text-align: center; }
+        .btn-back { background: none; border: none; color: #666; font-size: 13px; text-transform: uppercase; padding: 15px; }
+        
+        /* Grille Coaching */
+        .score-main { font-size: 28px; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
+        .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 320px; margin-bottom: 20px; }
+        .cell { aspect-ratio: 1; background: #222; border: 1px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; }
+        
+        /* Couleurs des cases dans la grille */
+        .cell.hit1 { background: var(--btn-green) !important; color: white !important; border-color: #fff !important; }
+        .cell.hit2 { background: var(--btn-orange) !important; color: white !important; border-color: #fff !important; }
+        .cell.miss { background: var(--btn-red) !important; color: white !important; border-color: #fff !important; }
+
+        /* Couleurs des boutons de contrôle */
+        .controls { display: flex; gap: 12px; width: 100%; max-width: 340px; margin-top: auto; margin-bottom: 10px; }
+        .control-btn { flex: 1; height: 80px; border: none; border-radius: 12px; color: white; font-weight: 800; font-size: 13px; text-transform: uppercase; }
+        
+        .btn-green { background-color: var(--btn-green) !important; color: white !important; }
+        .btn-orange { background-color: var(--btn-orange) !important; color: white !important; }
+        .btn-red { background-color: var(--btn-red) !important; color: white !important; }
+
+        #btn-save-final { display: none; background: var(--gold); color: black; border: none; padding: 20px; border-radius: 10px; font-weight: 900; width: 100%; max-width: 340px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="page-home" class="page active">
+        <button class="btn-start" onclick="showPage('page-selection')">Entrer</button>
+    </div>
+
+    <div id="page-selection" class="page">
+        <div class="section-title">Disciplines</div>
+        <div class="menu-list">
+            <div class="card-menu" onclick="selectDisc('Fosse Universelle')">FOSSE UNIVERSELLE <span>→</span></div>
+            <div class="card-menu" onclick="selectDisc('DTL')">DTL <span>→</span></div>
+            <div class="card-menu" onclick="selectDisc('Trap 1')">TRAP 1 <span>→</span></div>
+        </div>
+        <button class="btn-back" onclick="showPage('page-home')">← Retour</button>
+    </div>
+
+    <div id="page-mode" class="page">
+        <div class="section-title" id="mode-title-disc">Discipline</div>
+        <div class="menu-list">
+            <div class="card-menu" onclick="setMode('entrainement')">MES SCORES <br><small style="font-weight:normal; opacity:0.6">Saisie rapide après le tir</small> <span>→</span></div>
+            <div class="card-menu" onclick="setMode('coaching')">COACHING ÉLÈVE <br><small style="font-weight:normal; opacity:0.6">Grille détaillée plateau par plateau</small> <span>→</span></div>
+        </div>
+        <button class="btn-back" onclick="showPage('page-selection')">← Retour</button>
+    </div>
+
+    <div id="page-config" class="page">
+        <div class="section-title">Détails</div>
+        <div class="form-group">
+            <label>Nom du Tireur</label>
+            <input type="text" id="input-tireur" placeholder="Moi ou Elève">
+        </div>
+        <div class="form-group">
+            <label>Stand de Tir</label>
+            <input type="text" id="input-stand" placeholder="Nom du stand">
+        </div>
+        <button class="btn-confirm" onclick="goToNextStep()">Continuer</button>
+        <button class="btn-back" onclick="showPage('page-mode')">← Retour</button>
+    </div>
+
+    <div id="page-entrainement-simple" class="page">
+        <div class="section-title">Score Final</div>
+        <div class="info-bar" id="simple-info">FU • STAND</div>
+        <div class="form-group" style="margin-top:20px">
+            <label id="label-score-simple">Ton score final</label>
+            <input type="number" id="input-score-simple" placeholder="0">
+        </div>
+        <button class="btn-confirm" onclick="saveSimpleScore()">Enregistrer ma planche</button>
+        <button class="btn-back" onclick="showPage('page-config')">← Retour</button>
+    </div>
+
+    <div id="page-coaching" class="page">
+        <div class="info-bar" id="coaching-info">COACHING</div>
+        <div class="score-main" id="score-display">0 / 25</div>
+        <div class="grid-25" id="grid"></div>
+        <button id="btn-save-final" onclick="confirmSaveCoaching()">Enregistrer la séance</button>
+        <div class="controls" id="input-controls">
+            <button class="control-btn btn-green" onclick="recordHit(1)">1er</button>
+            <button class="control-btn btn-orange" onclick="recordHit(2)">2ème</button>
+            <button class="control-btn btn-red" onclick="recordHit(0)">ZÉRO</button>
+        </div>
+        <button class="btn-undo" onclick="undoLast()" style="background:#333; color:#aaa; border:none; padding:10px 20px; border-radius:8px; font-size:12px; margin-top:10px;">⟲ Correction</button>
+        <button class="btn-back" onclick="showPage('page-config')">← Retour</button>
+    </div>
+
+    <script>
+        let sessionData = { disc: '', tireur: '', stand: '', mode: '', plateaux: [] };
+
+        window.onload = () => {
+            if(localStorage.getItem('lastTireur')) document.getElementById('input-tireur').value = localStorage.getItem('lastTireur');
+            if(localStorage.getItem('lastStand')) document.getElementById('input-stand').value = localStorage.getItem('lastStand');
+        };
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function selectDisc(name) {
+            sessionData.disc = name;
+            document.getElementById('mode-title-disc').innerText = name;
+            showPage('page-mode');
+        }
+
+        function setMode(mode) {
+            sessionData.mode = mode;
+            showPage('page-config');
+        }
+
+        function goToNextStep() {
+            sessionData.tireur = document.getElementById('input-tireur').value || 'Moi';
+            sessionData.stand = document.getElementById('input-stand').value || 'Stand';
+            localStorage.setItem('lastTireur', sessionData.tireur);
+            localStorage.setItem('lastStand', sessionData.stand);
+
+            if(sessionData.mode === 'entrainement') {
+                let max = (sessionData.disc === 'Fosse Universelle' ? 25 : 75);
+                document.getElementById('simple-info').innerText = `${sessionData.disc} • ${sessionData.stand}`;
+                document.getElementById('label-score-simple').innerText = `Tes points (/${max})`;
+                document.getElementById('input-score-simple').value = '';
+                showPage('page-entrainement-simple');
+            } else {
+                document.getElementById('coaching-info').innerText = `${sessionData.disc} • ${sessionData.tireur} • ${sessionData.stand}`;
+                sessionData.plateaux = [];
+                initGrid();
+                showPage('page-coaching');
+            }
+        }
+
+        function saveSimpleScore() {
+            const scoreVal = document.getElementById('input-score-simple').value || 0;
+            const max = (sessionData.disc === 'Fosse Universelle' ? 25 : 75);
+            saveData(`${scoreVal} / ${max}`);
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('grid'); grid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell'; cell.id = 'cell-' + i; cell.innerText = i + 1;
+                grid.appendChild(cell);
+            }
+            updateDisplay();
+        }
+
+        function recordHit(status) {
+            if (sessionData.plateaux.length < 25) {
+                sessionData.plateaux.push(status);
+                updateDisplay();
+            }
+        }
+
+        function undoLast() { sessionData.plateaux.pop(); updateDisplay(); }
+
+        function updateDisplay() {
+            let pts = 0;
+            sessionData.plateaux.forEach(val => {
+                if(sessionData.disc === 'Fosse Universelle') pts += (val > 0 ? 1 : 0);
+                else pts += (val === 1 ? 3 : (val === 2 ? 2 : 0));
+            });
+            let max = (sessionData.disc === 'Fosse Universelle' ? 25 : 75);
+            document.getElementById('score-display').innerText = `${pts} / ${max}`;
+            
+            for (let i = 0; i < 25; i++) {
+                const cell = document.getElementById('cell-' + i); if(!cell) return;
+                cell.className = 'cell';
+                let v = sessionData.plateaux[i];
+                if (v === 1) cell.classList.add('hit1');
+                if (v === 2) cell.classList.add('hit2');
+                if (v === 0) cell.classList.add('miss');
+            }
+            document.getElementById('btn-save-final').style.display = (sessionData.plateaux.length === 25) ? 'block' : 'none';
+            document.getElementById('input-controls').style.display = (sessionData.plateaux.length === 25) ? 'none' : 'flex';
+        }
+
+        function confirmSaveCoaching() {
+            saveData(document.getElementById('score-display').innerText);
+        }
+
+        function saveData(scoreFinal) {
+            let archives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
+            archives.push({
+                date: new Date().toLocaleDateString('fr-FR'),
+                discipline: sessionData.disc,
+                tireur: sessionData.tireur,
+                stand: sessionData.stand,
+                score: scoreFinal,
+                timestamp: new Date().getTime()
+            });
+            localStorage.setItem('bt_archives', JSON.stringify(archives));
+            alert("Planche enregistrée !");
+            showPage('page-selection');
+        }
+    </script>
+</body>
+</html>
