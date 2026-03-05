@@ -6,119 +6,44 @@
     <title>Ball-Trap Pro</title>
     <style>
         :root {
-            --clay-orange: #ff5f00;
-            --gold: #c5a059;
-            --bg-neutral: #121212;
-            --text-light: #f0f0f0;
-            --btn-green: #2ecc71;
-            --btn-orange: #f39c12;
-            --btn-red: #e74c3c;
-            --input-bg: #1e1e1e;
+            --clay-orange: #ff5f00; --gold: #c5a059; --bg-neutral: #121212; --text-light: #f0f0f0;
+            --btn-green: #2ecc71; --btn-orange: #f39c12; --btn-red: #e74c3c; --input-bg: #1e1e1e;
         }
-
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 0; padding: 0;
-            background: var(--bg-neutral);
-            color: var(--text-light);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .page {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            width: 100%;
-            padding: 30px 20px;
-            box-sizing: border-box;
-        }
-
-        #page-home {
-            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('fond.jpg');
-            background-size: cover; background-position: center;
-            justify-content: center;
-        }
-
+        body { font-family: sans-serif; margin: 0; background: var(--bg-neutral); color: var(--text-light); height: 100vh; overflow: hidden; }
+        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 30px 20px; box-sizing: border-box; }
         .active { display: flex; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .btn-start {
-            background: var(--clay-orange); color: white; border: none;
-            padding: 22px 70px; border-radius: 6px;
-            font-size: 18px; font-weight: bold; text-transform: uppercase;
-            position: absolute; bottom: 80px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
-        }
-
-        .section-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; margin-bottom: 25px; color: var(--gold); text-transform: uppercase; text-align: center; }
+        #page-home { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
+        .btn-start { background: var(--clay-orange); color: white; border: none; padding: 22px 70px; border-radius: 6px; font-size: 18px; font-weight: bold; position: absolute; bottom: 80px; }
+        .section-title { font-size: 18px; font-weight: bold; color: var(--gold); text-transform: uppercase; margin-bottom: 25px; }
         .menu-list { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
-        
-        .card-menu {
-            background: #1e1e1e; border: 1px solid rgba(197, 160, 89, 0.3);
-            padding: 22px; border-radius: 12px; color: white; font-size: 14px; font-weight: bold;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .folder-btn {
-            background: #252525; border: 1px solid var(--gold);
-            padding: 25px; border-radius: 15px; margin-bottom: 15px;
-            width: 100%; max-width: 340px; text-align: left;
-        }
-
-        .form-group { width: 100%; max-width: 340px; margin-bottom: 20px; }
-        .form-group label { display: block; color: var(--gold); font-size: 11px; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
-        .form-group input { 
-            width: 100%; background: var(--input-bg); border: 1px solid #333; 
-            padding: 15px; border-radius: 8px; color: white; font-size: 18px; box-sizing: border-box;
-        }
-
-        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; text-transform: uppercase; width: 100%; max-width: 340px; }
-        .btn-back { background: none; border: none; color: #666; font-size: 12px; text-transform: uppercase; padding: 20px; cursor: pointer; margin-top: auto; }
-        
-        /* Archives Styles */
+        .folder-btn { background: #252525; border: 1px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; box-sizing: border-box; }
+        .card-menu { background: #1e1e1e; border: 1px solid rgba(197,160,89,0.3); padding: 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 340px; }
+        .btn-back { background: none; border: none; color: #666; font-size: 12px; text-transform: uppercase; padding: 20px; margin-top: auto; }
         .tabs { display: flex; gap: 5px; width: 100%; max-width: 380px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px 2px; background: #222; border: 1px solid #333; color: #666; font-size: 10px; font-weight: bold; border-radius: 6px; text-transform: uppercase; }
-        .tab-btn.active { background: var(--gold); color: black; border-color: var(--gold); }
-
+        .tab-btn { flex: 1; padding: 12px 2px; background: #222; border: 1px solid #333; color: #666; font-size: 10px; border-radius: 6px; }
+        .tab-btn.active { background: var(--gold); color: black; }
         .history-container { width: 100%; max-width: 380px; overflow-y: auto; flex: 1; }
-        .history-card { 
-            background: #1a1a1a; border-left: 4px solid var(--gold); 
-            padding: 15px; margin-bottom: 10px; border-radius: 6px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .h-main { font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 3px; }
-        .h-sub { font-size: 11px; color: #777; }
+        .history-card { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
         .h-val { font-size: 18px; font-weight: 800; color: var(--btn-green); }
-        .btn-delete { background: none; border: none; color: #e74c3c; font-size: 18px; padding: 5px; margin-left: 10px; }
-
-        /* Grille Coaching */
+        .btn-delete { background: none; border: none; color: #e74c3c; font-size: 18px; padding: 10px; }
         .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
-        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #555; }
-        .cell.hit1 { background: var(--btn-green) !important; color: white !important; }
-        .cell.hit2 { background: var(--btn-orange) !important; color: white !important; }
-        .cell.miss { background: var(--btn-red) !important; color: white !important; }
+        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+        .cell.hit1 { background: var(--btn-green); color: white; } .cell.hit2 { background: var(--btn-orange); color: white; } .cell.miss { background: var(--btn-red); color: white; }
         .controls { display: flex; gap: 10px; width: 100%; max-width: 340px; margin-top: auto; }
-        .control-btn { flex: 1; height: 75px; border: none; border-radius: 12px; color: white; font-weight: bold; font-size: 12px; }
+        .control-btn { flex: 1; height: 75px; border: none; border-radius: 12px; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="page-home" class="page active">
-        <button class="btn-start" onclick="showPage('page-main-folders')">Entrer</button>
-    </div>
+    <div id="page-home" class="page active"><button class="btn-start" onclick="showPage('page-main-folders')">Entrer</button></div>
 
     <div id="page-main-folders" class="page">
         <div class="section-title">Mes Dossiers</div>
         <div class="menu-list">
-            <div class="folder-btn" onclick="openFolder('perso')">
-                <div style="font-size: 18px; font-weight: bold; color: var(--gold);">👤 MES SCORES PERSO</div>
-                <div style="font-size: 11px; color: #666; margin-top: 5px;">Suivi de mes entraînements</div>
-            </div>
-            <div class="folder-btn" onclick="openFolder('coach')">
-                <div style="font-size: 18px; font-weight: bold; color: var(--gold);">🎓 DOSSIER ÉLÈVES</div>
-                <div style="font-size: 11px; color: #666; margin-top: 5px;">Gestion et suivi des séances</div>
-            </div>
+            <div class="folder-btn" onclick="openFolder('perso')"><div style="font-weight:bold; color:var(--gold);">👤 MES SCORES PERSO</div></div>
+            <div class="folder-btn" onclick="openFolder('coach')"><div style="font-weight:bold; color:var(--gold);">🎓 DOSSIER ÉLÈVES</div></div>
         </div>
         <button class="btn-back" onclick="showPage('page-home')">← Quitter</button>
     </div>
@@ -131,44 +56,32 @@
             <div class="card-menu" onclick="selectDisc('Trap 1')">TRAP 1 <span>→</span></div>
             <div class="card-menu" onclick="goToHistory()" style="margin-top:20px; border-color:var(--gold); color:var(--gold)">📂 VOIR LES ARCHIVES</div>
         </div>
-        <button class="btn-back" onclick="showPage('page-main-folders')">← Retour Dossiers</button>
+        <button class="btn-back" onclick="showPage('page-main-folders')">← Dossiers</button>
     </div>
 
     <div id="page-config" class="page">
-        <div class="section-title">Nouvelle Série</div>
-        <div class="form-group">
-            <label id="label-nom">Nom du Tireur</label>
-            <input type="text" id="input-tireur">
-        </div>
-        <div class="form-group">
-            <label>Stand de Tir</label>
-            <input type="text" id="input-stand">
-        </div>
+        <div class="section-title">Détails</div>
+        <input type="text" id="input-tireur" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:15px; color:white; border-radius:8px; margin-bottom:15px;" placeholder="Nom">
+        <input type="text" id="input-stand" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:15px; color:white; border-radius:8px; margin-bottom:15px;" placeholder="Stand">
         <button class="btn-confirm" onclick="goToNextStep()">Démarrer</button>
         <button class="btn-back" onclick="showPage('page-selection')">← Retour</button>
     </div>
 
     <div id="page-score-perso" class="page">
         <div class="section-title">Score Final</div>
-        <div class="form-group" style="margin-top:20px">
-            <label id="label-score-simple">Points marqués</label>
-            <input type="number" id="input-score-simple" placeholder="0">
-        </div>
-        <button class="btn-confirm" onclick="saveSimpleScore()">Enregistrer ma série</button>
-        <button class="btn-back" onclick="showPage('page-config')">← Retour</button>
+        <input type="number" id="input-score-simple" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:20px; color:white; border-radius:8px; font-size:30px; text-align:center;" placeholder="0">
+        <button class="btn-confirm" style="margin-top:20px" onclick="saveSimpleScore()">Enregistrer</button>
     </div>
 
     <div id="page-coaching" class="page">
-        <div class="section-title" id="coaching-title" style="font-size:12px">Coaching</div>
-        <div style="font-size:30px; color:var(--gold); font-weight:800; margin-bottom:15px" id="score-display">0 / 25</div>
+        <div id="score-display" style="font-size:30px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div>
         <div class="grid-25" id="grid"></div>
-        <button id="btn-save-final" class="btn-confirm" style="display:none; margin-bottom:10px" onclick="confirmSaveCoaching()">Terminer la séance</button>
+        <button id="btn-save-final" class="btn-confirm" style="display:none; margin-bottom:10px" onclick="confirmSaveCoaching()">Enregistrer</button>
         <div class="controls" id="input-controls">
             <button class="control-btn" style="background:var(--btn-green)" onclick="recordHit(1)">1er</button>
             <button class="control-btn" style="background:var(--btn-orange)" onclick="recordHit(2)">2ème</button>
             <button class="control-btn" style="background:var(--btn-red)" onclick="recordHit(0)">ZÉRO</button>
         </div>
-        <button class="btn-back" onclick="showPage('page-config')">← Retour</button>
     </div>
 
     <div id="page-history" class="page">
@@ -183,149 +96,53 @@
     </div>
 
     <script>
-        let currentFolder = '';
-        let sessionData = { disc: '', tireur: '', stand: '', plateaux: [] };
+        let currentFolder = ''; let sessionData = { disc: '', tireur: '', stand: '', plateaux: [] };
 
-        // --- ROBOT DE DÉMÉNAGEMENT DES ANCIENNES SÉRIES ---
         window.onload = function() {
-            let oldArchives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
-            if (oldArchives.length > 0) {
-                let newArchives = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-                
-                // On transforme les vieux scores pour le nouveau format dossier
-                oldArchives.forEach(old => {
-                    newArchives.push({
-                        id: old.id || Date.now() + Math.random(),
-                        folder: 'perso', // On met tout dans "perso" par défaut
-                        date: old.date,
-                        disc: old.discipline || old.disc,
-                        tireur: old.tireur,
-                        stand: old.stand,
-                        score: old.score
-                    });
-                });
-                
-                // On enregistre dans la nouvelle base et on vide l'ancienne
-                localStorage.setItem('bt_archives_v2', JSON.stringify(newArchives));
-                localStorage.removeItem('bt_archives');
-                console.log("Migration terminée !");
+            // RECHERCHE AGRESSIVE DES DONNÉES
+            let b1 = JSON.parse(localStorage.getItem('bt_archives') || '[]');
+            let b2 = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
+            let total = [...b1, ...b2];
+            
+            if (total.length > 0) {
+                // On normalise tout dans la V2 et on marque en 'perso' si le dossier est inconnu
+                let final = total.map(a => ({
+                    id: a.id || Date.now() + Math.random(),
+                    folder: a.folder || (a.mode === 'coaching' ? 'coach' : 'perso'),
+                    date: a.date || 'Ancien',
+                    disc: a.disc || a.discipline || 'Fosse Universelle',
+                    tireur: a.tireur || 'Moi',
+                    stand: a.stand || 'Stand',
+                    score: a.score || '0'
+                }));
+                localStorage.setItem('bt_archives_v2', JSON.stringify(final));
+                localStorage.removeItem('bt_archives'); // Nettoyage
             }
         };
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-        }
-
-        function openFolder(type) {
-            currentFolder = type;
-            document.getElementById('selection-title').innerText = (type === 'perso' ? 'Mes Scores' : 'Dossier Élèves');
-            showPage('page-selection');
-        }
-
-        function selectDisc(name) {
-            sessionData.disc = name;
-            document.getElementById('input-tireur').value = (currentFolder === 'perso' ? 'Moi' : '');
-            document.getElementById('label-nom').innerText = (currentFolder === 'perso' ? 'Tireur' : 'Nom de l\'Élève');
-            showPage('page-config');
-        }
-
+        function showPage(p) { document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active')); document.getElementById(p).classList.add('active'); }
+        function openFolder(t) { currentFolder = t; showPage('page-selection'); }
+        function selectDisc(n) { sessionData.disc = n; showPage('page-config'); }
         function goToNextStep() {
-            sessionData.tireur = document.getElementById('input-tireur').value || 'Sans nom';
-            sessionData.stand = document.getElementById('input-stand').value || 'Stand inconnu';
+            sessionData.tireur = document.getElementById('input-tireur').value || 'Moi';
+            sessionData.stand = document.getElementById('input-stand').value || 'Stand';
             if(currentFolder === 'perso') showPage('page-score-perso');
             else { sessionData.plateaux = []; initGrid(); showPage('page-coaching'); }
         }
-
-        function saveSimpleScore() {
-            const pts = document.getElementById('input-score-simple').value || 0;
-            const max = (sessionData.disc === 'Fosse Universelle' ? 25 : 75);
-            saveData(pts + ' / ' + max);
-        }
-
+        function saveSimpleScore() { saveData(document.getElementById('input-score-simple').value + (sessionData.disc === 'Fosse Universelle' ? ' / 25' : ' / 75')); }
         function initGrid() {
-            const grid = document.getElementById('grid'); grid.innerHTML = '';
-            for (let i = 0; i < 25; i++) {
-                const cell = document.createElement('div'); cell.className = 'cell'; cell.innerText = i + 1; cell.id = 'cell-'+i;
-                grid.appendChild(cell);
-            }
-            updateGridDisplay();
+            const g = document.getElementById('grid'); g.innerHTML = '';
+            for (let i = 0; i < 25; i++) { const c = document.createElement('div'); c.className = 'cell'; c.innerText = i + 1; c.id = 'cell-'+i; g.appendChild(c); }
+            updateGrid();
         }
-
-        function recordHit(s) { if(sessionData.plateaux.length < 25) { sessionData.plateaux.push(s); updateGridDisplay(); } }
-
-        function updateGridDisplay() {
+        function recordHit(s) { if(sessionData.plateaux.length < 25) { sessionData.plateaux.push(s); updateGrid(); } }
+        function updateGrid() {
             let pts = 0;
             sessionData.plateaux.forEach((v, i) => {
-                const c = document.getElementById('cell-'+i);
-                c.className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
-                if(sessionData.disc === 'Fosse Universelle') pts += (v > 0 ? 1 : 0);
-                else pts += (v===1?3:v===2?2:0);
+                document.getElementById('cell-'+i).className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
+                if(sessionData.disc==='Fosse Universelle') pts += (v>0?1:0); else pts += (v===1?3:v===2?2:0);
             });
-            const max = (sessionData.disc === 'Fosse Universelle' ? 25 : 75);
-            document.getElementById('score-display').innerText = pts + ' / ' + max;
+            document.getElementById('score-display').innerText = pts + (sessionData.disc==='Fosse Universelle' ? ' / 25' : ' / 75');
             document.getElementById('btn-save-final').style.display = (sessionData.plateaux.length === 25 ? 'block' : 'none');
         }
-
-        function confirmSaveCoaching() { saveData(document.getElementById('score-display').innerText); }
-
-        function saveData(scoreFinal) {
-            let archives = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-            archives.unshift({
-                id: Date.now(),
-                folder: currentFolder,
-                date: new Date().toLocaleDateString('fr-FR'),
-                disc: sessionData.disc,
-                tireur: sessionData.tireur,
-                stand: sessionData.stand,
-                score: scoreFinal
-            });
-            localStorage.setItem('bt_archives_v2', JSON.stringify(archives));
-            alert("Série enregistrée !");
-            showPage('page-main-folders');
-        }
-
-        function goToHistory() {
-            document.getElementById('history-title').innerText = (currentFolder === 'perso' ? 'Mes Scores' : 'Archives Élèves');
-            refreshHistory('Fosse Universelle');
-            showPage('page-history');
-        }
-
-        function refreshHistory(disc) {
-            const list = document.getElementById('history-list');
-            const archives = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if(disc === 'Fosse Universelle') document.getElementById('tab-fu').classList.add('active');
-            if(disc === 'DTL') document.getElementById('tab-dtl').classList.add('active');
-            if(disc === 'Trap 1') document.getElementById('tab-trap1').classList.add('active');
-
-            const filtered = archives.filter(a => a.folder === currentFolder && a.disc === disc);
-            list.innerHTML = filtered.length ? '' : '<div style="text-align:center;color:#444;margin-top:50px">Dossier vide</div>';
-            
-            filtered.forEach(a => {
-                const card = document.createElement('div');
-                card.className = 'history-card';
-                card.innerHTML = `<div>
-                    <div class="h-sub">${a.date}</div>
-                    <div class="h-main">${currentFolder === 'perso' ? a.stand : a.tireur}</div>
-                    <div class="h-sub">${currentFolder === 'perso' ? '' : a.stand}</div>
-                </div>
-                <div style="display:flex;align-items:center">
-                    <div class="h-val">${a.score}</div>
-                    <button class="btn-delete" onclick="deleteEntry(${a.id},'${disc}')">🗑️</button>
-                </div>`;
-                list.appendChild(card);
-            });
-        }
-
-        function deleteEntry(id, disc) {
-            if(confirm("Supprimer ?")) {
-                let arc = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-                arc = arc.filter(a => a.id !== id);
-                localStorage.setItem('bt_archives_v2', JSON.stringify(arc));
-                refreshHistory(disc);
-            }
-        }
-    </script>
-</body>
-</html>
+        function confirmSaveCo
