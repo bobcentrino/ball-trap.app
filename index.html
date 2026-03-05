@@ -10,39 +10,35 @@
             --green: #2ecc71; --red: #e74c3c; --card: #1e1e1e;
         }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
-        
         .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 30px 20px; box-sizing: border-box; }
         .active { display: flex; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         #p0 { background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
         .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 8px; font-size: 18px; font-weight: bold; text-transform: uppercase; position: absolute; bottom: 80px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-
         .section-title { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; font-size: 18px; font-weight: bold; text-align: center; }
         .menu-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
         .card { background: var(--card); border: 1px solid rgba(197, 160, 89, 0.3); padding: 22px; border-radius: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-
         .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 350px; text-transform: uppercase; margin-top: 10px; }
         .btn-back { background: none; border: none; color: #666; font-size: 13px; margin-top: auto; padding: 20px; text-transform: uppercase; }
         input { width: 100%; max-width: 350px; background: #1e1e1e; border: 1px solid #333; padding: 15px; color: white; border-radius: 8px; margin-bottom: 15px; font-size: 18px; box-sizing: border-box; text-align: center; }
-
         .tabs { display: flex; gap: 5px; width: 100%; max-width: 350px; margin-bottom: 15px; }
         .tab { flex: 1; padding: 12px 5px; background: #222; border: 1px solid #333; color: #777; font-size: 10px; border-radius: 6px; text-align: center; font-weight: bold; }
         .tab.active { background: var(--gold); color: black; }
-        
         .history-item { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
         .h-val { font-size: 18px; font-weight: 900; color: var(--green); }
-        
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
         .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #444; }
         .hit1 { background: var(--green) !important; color: white !important; } 
         .hit2 { background: #f39c12 !important; color: white !important; } 
         .miss { background: var(--red) !important; color: white !important; }
 
-        /* NOUVEAU : STYLE STATS */
-        .stats-box { width: 100%; max-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px dashed #333; margin-top: 10px; }
-        .stat-line { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: #aaa; }
-        .stat-line b { color: var(--gold); }
+        /* BOX STATS AMELIOREE */
+        #stats-area { 
+            width: 100%; max-width: 300px; background: #252525; padding: 15px; border-radius: 10px; 
+            border: 2px solid var(--gold); margin-top: 10px; display: none; 
+        }
+        .stat-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #fff; }
+        .stat-line b { color: var(--gold); font-size: 15px; }
     </style>
 </head>
 <body>
@@ -70,7 +66,7 @@
     </div>
 
     <div id="p3" class="page">
-        <div class="section-title">Nouvelle Série</div>
+        <div class="section-title">Infos</div>
         <input type="text" id="in-name" placeholder="Nom du tireur">
         <input type="text" id="in-stand" placeholder="Stand de tir">
         <button class="btn-confirm" onclick="startSérie()">Démarrer</button>
@@ -80,19 +76,19 @@
     <div id="p4" class="page">
         <div class="section-title">Score Final</div>
         <input type="number" id="in-score" placeholder="0" style="font-size:40px;">
-        <button class="btn-confirm" onclick="savePerso()">Enregistrer ma série</button>
+        <button class="btn-confirm" onclick="savePerso()">Enregistrer</button>
     </div>
 
     <div id="p5" class="page">
         <div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div>
         <div class="grid" id="grid"></div>
         
-        <div id="stats-area" class="stats-box" style="display:none">
-            <div style="font-size:10px; font-weight:bold; color:var(--gold); margin-bottom:10px; text-transform:uppercase">Analyse de Performance</div>
-            <div class="stat-line">Début (5 prem.) : <b id="stat-start">-</b></div>
-            <div class="stat-line">Milieu (15 suiv.) : <b id="stat-mid">-</b></div>
-            <div class="stat-line">Fin (5 dern.) : <b id="stat-end">-</b></div>
-            <div class="stat-line" style="margin-top:10px; padding-top:10px; border-top:1px solid #333">Points perdus (Zéros) : <b id="stat-zeros">-</b></div>
+        <div id="stats-area">
+            <div style="font-size:11px; font-weight:bold; color:var(--gold); margin-bottom:10px; text-transform:uppercase; text-align:center">--- BILAN PERFORMANCE ---</div>
+            <div class="stat-line">Début (5 prem.) : <b id="stat-start">0</b></div>
+            <div class="stat-line">Milieu (15 suiv.) : <b id="stat-mid">0</b></div>
+            <div class="stat-line">Fin (5 dern.) : <b id="stat-end">0</b></div>
+            <div class="stat-line" style="margin-top:10px; padding-top:10px; border-top:1px solid #444">Total Zéros : <b id="stat-zeros">0</b></div>
         </div>
 
         <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
@@ -120,29 +116,16 @@
         let curF = ''; let curD = ''; let pts = [];
         const go = (id) => { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); };
         
-        window.onload = function() {
-            let data1 = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
-            let data2 = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-            if(data2.length > 0) {
-                let combined = [...data1, ...data2];
-                let unique = combined.filter((v,i,a)=>a.findIndex(t=>(t.id===v.id))===i);
-                localStorage.setItem('BT_DATA', JSON.stringify(unique));
-            }
-        };
-
         function setFolder(f) { curF = f; document.getElementById('folder-name').innerText = f === 'perso' ? 'Mes Scores' : 'Coaching'; go('p2'); }
         function setDisc(d) { curD = d; document.getElementById('in-name').value = curF === 'perso' ? 'Moi' : ''; go('p3'); }
         
         function startSérie() {
-            if(curF === 'perso') go('p4');
-            else { 
-                pts = []; 
-                document.getElementById('stats-area').style.display = 'none';
-                document.getElementById('coach-controls').style.display = 'flex';
-                document.getElementById('btn-close-view').style.display = 'none';
-                document.getElementById('btn-cancel-coach').style.display = 'block';
-                buildGrid(); go('p5'); 
-            }
+            pts = []; 
+            document.getElementById('stats-area').style.display = 'none';
+            document.getElementById('coach-controls').style.display = (curF === 'coach' ? 'flex' : 'none');
+            document.getElementById('btn-close-view').style.display = 'none';
+            document.getElementById('btn-cancel-coach').style.display = 'block';
+            if(curF === 'perso') go('p4'); else { buildGrid(); go('p5'); }
         }
 
         function buildGrid() {
@@ -163,7 +146,7 @@
                 }
             });
             document.getElementById('score-live').innerText = total + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
-            document.getElementById('btn-save-coach').style.display = pts.length === 25 ? 'block' : 'none';
+            document.getElementById('btn-save-coach').style.display = (pts.length === 25 ? 'block' : 'none');
         }
 
         function savePerso() { finalSave(document.getElementById('in-score').value + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75'), []); }
@@ -189,7 +172,7 @@
             const filtered = db.filter(a => a.folder === curF && a.disc === d);
             list.innerHTML = filtered.length ? '' : '<div style="text-align:center; padding:50px; color:#444">Aucune série</div>';
             filtered.forEach(a => {
-                let showBtn = (a.details && a.details.length > 0) ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:22px; margin-left:10px">👁️</button>` : '';
+                let showBtn = (a.details && a.details.length === 25) ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:22px; margin-left:10px">👁️</button>` : '';
                 list.innerHTML += `<div class="history-item"><div><div style="font-size:10px; color:#666">${a.date}</div><div style="font-weight:bold">${curF==='perso'?a.stand:a.name}</div></div><div style="display:flex; align-items:center">${showBtn}<span class="h-val" style="margin-left:10px">${a.score}</span><button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:22px; margin-left:10px">🗑️</button></div></div>`;
             });
         }
@@ -197,19 +180,18 @@
         function showDetails(id) {
             const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
             const serie = db.find(a => a.id === id);
-            if(serie) {
+            if(serie && serie.details) {
                 pts = serie.details; curD = serie.disc; buildGrid();
                 
-                // CALCUL DES STATS
-                let start = pts.slice(0, 5).filter(x => x > 0).length;
-                let mid = pts.slice(5, 20).filter(x => x > 0).length;
-                let end = pts.slice(20, 25).filter(x => x > 0).length;
-                let zeros = pts.filter(x => x === 0).length;
+                let s1 = pts.slice(0, 5).filter(x => x > 0).length;
+                let s2 = pts.slice(5, 20).filter(x => x > 0).length;
+                let s3 = pts.slice(20, 25).filter(x => x > 0).length;
+                let sz = pts.filter(x => x === 0).length;
 
-                document.getElementById('stat-start').innerText = start + " / 5";
-                document.getElementById('stat-mid').innerText = mid + " / 15";
-                document.getElementById('stat-end').innerText = end + " / 5";
-                document.getElementById('stat-zeros').innerText = zeros;
+                document.getElementById('stat-start').innerText = s1 + " / 5";
+                document.getElementById('stat-mid').innerText = s2 + " / 15";
+                document.getElementById('stat-end').innerText = s3 + " / 5";
+                document.getElementById('stat-zeros').innerText = sz;
 
                 document.getElementById('stats-area').style.display = 'block';
                 document.getElementById('coach-controls').style.display = 'none';
@@ -219,7 +201,6 @@
                 go('p5');
             }
         }
-
         function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
     </script>
 </body>
