@@ -6,143 +6,161 @@
     <title>Ball-Trap Pro</title>
     <style>
         :root {
-            --clay-orange: #ff5f00; --gold: #c5a059; --bg-neutral: #121212; --text-light: #f0f0f0;
-            --btn-green: #2ecc71; --btn-orange: #f39c12; --btn-red: #e74c3c; --input-bg: #1e1e1e;
+            --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0;
+            --green: #2ecc71; --red: #e74c3c; --card: #1e1e1e;
         }
-        body { font-family: sans-serif; margin: 0; background: var(--bg-neutral); color: var(--text-light); height: 100vh; overflow: hidden; }
-        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 30px 20px; box-sizing: border-box; }
-        .active { display: flex; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #page-home { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
-        .btn-start { background: var(--clay-orange); color: white; border: none; padding: 22px 70px; border-radius: 6px; font-size: 18px; font-weight: bold; position: absolute; bottom: 80px; }
-        .section-title { font-size: 18px; font-weight: bold; color: var(--gold); text-transform: uppercase; margin-bottom: 25px; }
-        .menu-list { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
-        .folder-btn { background: #252525; border: 1px solid var(--gold); padding: 25px; border-radius: 15px; width: 100%; box-sizing: border-box; }
-        .card-menu { background: #1e1e1e; border: 1px solid rgba(197,160,89,0.3); padding: 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 340px; }
-        .btn-back { background: none; border: none; color: #666; font-size: 12px; text-transform: uppercase; padding: 20px; margin-top: auto; }
-        .tabs { display: flex; gap: 5px; width: 100%; max-width: 380px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px 2px; background: #222; border: 1px solid #333; color: #666; font-size: 10px; border-radius: 6px; }
-        .tab-btn.active { background: var(--gold); color: black; }
-        .history-container { width: 100%; max-width: 380px; overflow-y: auto; flex: 1; }
-        .history-card { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .h-val { font-size: 18px; font-weight: 800; color: var(--btn-green); }
-        .btn-delete { background: none; border: none; color: #e74c3c; font-size: 18px; padding: 10px; }
-        .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
+        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 25px; box-sizing: border-box; }
+        .active { display: flex; }
+        #page-home { justify-content: center; background: radial-gradient(circle, #222 0%, #000 100%); }
+        .btn-main { background: var(--clay); color: white; border: none; padding: 20px 60px; border-radius: 10px; font-size: 20px; font-weight: bold; text-transform: uppercase; }
+        .section-title { color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; font-size: 18px; }
+        .menu-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
+        .card { background: var(--card); border: 1px solid #333; padding: 20px; border-radius: 12px; font-weight: bold; display: flex; justify-content: space-between; }
+        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 350px; text-transform: uppercase; }
+        .btn-back { background: none; border: none; color: #666; font-size: 13px; margin-top: auto; padding: 20px; text-transform: uppercase; }
+        .tabs { display: flex; gap: 5px; width: 100%; max-width: 350px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 12px 5px; background: #222; border: 1px solid #333; color: #777; font-size: 11px; border-radius: 6px; text-align: center; }
+        .tab.active { background: var(--gold); color: black; font-weight: bold; }
+        .history-item { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+        .h-val { font-size: 18px; font-weight: 900; color: var(--green); }
+        input { width: 100%; max-width: 350px; background: #222; border: 1px solid #444; padding: 15px; color: white; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
         .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-        .cell.hit1 { background: var(--btn-green); color: white; } .cell.hit2 { background: var(--btn-orange); color: white; } .cell.miss { background: var(--btn-red); color: white; }
-        .controls { display: flex; gap: 10px; width: 100%; max-width: 340px; margin-top: auto; }
-        .control-btn { flex: 1; height: 75px; border: none; border-radius: 12px; color: white; font-weight: bold; }
+        .hit1 { background: var(--green); } .hit2 { background: #f39c12; } .miss { background: var(--red); }
     </style>
 </head>
 <body>
 
-    <div id="page-home" class="page active"><button class="btn-start" onclick="showPage('page-main-folders')">Entrer</button></div>
+    <div id="p0" class="page active"><button class="btn-main" onclick="go('p1')">Démarrer</button></div>
 
-    <div id="page-main-folders" class="page">
-        <div class="section-title">Mes Dossiers</div>
+    <div id="p1" class="page">
+        <div class="section-title">Choisir Dossier</div>
         <div class="menu-list">
-            <div class="folder-btn" onclick="openFolder('perso')"><div style="font-weight:bold; color:var(--gold);">👤 MES SCORES PERSO</div></div>
-            <div class="folder-btn" onclick="openFolder('coach')"><div style="font-weight:bold; color:var(--gold);">🎓 DOSSIER ÉLÈVES</div></div>
+            <div class="card" onclick="setFolder('perso')">👤 MES SCORES PERSO <span>→</span></div>
+            <div class="card" onclick="setFolder('coach')">🎓 DOSSIER ÉLÈVES <span>→</span></div>
         </div>
-        <button class="btn-back" onclick="showPage('page-home')">← Quitter</button>
+        <button class="btn-back" onclick="go('p0')">Quitter</button>
     </div>
 
-    <div id="page-selection" class="page">
-        <div class="section-title" id="selection-title">Discipline</div>
+    <div id="p2" class="page">
+        <div class="section-title" id="folder-name">Discipline</div>
         <div class="menu-list">
-            <div class="card-menu" onclick="selectDisc('Fosse Universelle')">FOSSE UNIVERSELLE <span>→</span></div>
-            <div class="card-menu" onclick="selectDisc('DTL')">DTL <span>→</span></div>
-            <div class="card-menu" onclick="selectDisc('Trap 1')">TRAP 1 <span>→</span></div>
-            <div class="card-menu" onclick="goToHistory()" style="margin-top:20px; border-color:var(--gold); color:var(--gold)">📂 VOIR LES ARCHIVES</div>
+            <div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE</div>
+            <div class="card" onclick="setDisc('DTL')">DTL</div>
+            <div class="card" onclick="setDisc('Trap 1')">TRAP 1</div>
+            <div class="card" onclick="viewHistory()" style="margin-top:20px; border-color:var(--gold); color:var(--gold)">📂 VOIR ARCHIVES</div>
         </div>
-        <button class="btn-back" onclick="showPage('page-main-folders')">← Dossiers</button>
+        <button class="btn-back" onclick="go('p1')">Retour</button>
     </div>
 
-    <div id="page-config" class="page">
-        <div class="section-title">Détails</div>
-        <input type="text" id="input-tireur" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:15px; color:white; border-radius:8px; margin-bottom:15px;" placeholder="Nom">
-        <input type="text" id="input-stand" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:15px; color:white; border-radius:8px; margin-bottom:15px;" placeholder="Stand">
-        <button class="btn-confirm" onclick="goToNextStep()">Démarrer</button>
-        <button class="btn-back" onclick="showPage('page-selection')">← Retour</button>
+    <div id="p3" class="page">
+        <div class="section-title">Infos</div>
+        <input type="text" id="in-name" placeholder="Nom">
+        <input type="text" id="in-stand" placeholder="Stand">
+        <button class="btn-confirm" onclick="startSérie()">Démarrer</button>
+        <button class="btn-back" onclick="go('p2')">Retour</button>
     </div>
 
-    <div id="page-score-perso" class="page">
-        <div class="section-title">Score Final</div>
-        <input type="number" id="input-score-simple" style="width:100%; max-width:340px; background:#1e1e1e; border:1px solid #333; padding:20px; color:white; border-radius:8px; font-size:30px; text-align:center;" placeholder="0">
-        <button class="btn-confirm" style="margin-top:20px" onclick="saveSimpleScore()">Enregistrer</button>
+    <div id="p4" class="page">
+        <div class="section-title">Score Rapide</div>
+        <input type="number" id="in-score" placeholder="Points" style="font-size:32px; text-align:center">
+        <button class="btn-confirm" onclick="savePerso()">Enregistrer</button>
     </div>
 
-    <div id="page-coaching" class="page">
-        <div id="score-display" style="font-size:30px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div>
-        <div class="grid-25" id="grid"></div>
-        <button id="btn-save-final" class="btn-confirm" style="display:none; margin-bottom:10px" onclick="confirmSaveCoaching()">Enregistrer</button>
-        <div class="controls" id="input-controls">
-            <button class="control-btn" style="background:var(--btn-green)" onclick="recordHit(1)">1er</button>
-            <button class="control-btn" style="background:var(--btn-orange)" onclick="recordHit(2)">2ème</button>
-            <button class="control-btn" style="background:var(--btn-red)" onclick="recordHit(0)">ZÉRO</button>
+    <div id="p5" class="page">
+        <div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:10px">0 / 25</div>
+        <div class="grid" id="grid"></div>
+        <div style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
+            <button onclick="hit(1)" style="flex:1; background:var(--green); height:70px; border:none; border-radius:10px; color:white; font-weight:bold">1er</button>
+            <button onclick="hit(2)" style="flex:1; background:#f39c12; height:70px; border:none; border-radius:10px; color:white; font-weight:bold">2ème</button>
+            <button onclick="hit(0)" style="flex:1; background:var(--red); height:70px; border:none; border-radius:10px; color:white; font-weight:bold">ZÉRO</button>
         </div>
+        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Terminer</button>
+        <button class="btn-back" onclick="go('p3')">Annuler</button>
     </div>
 
-    <div id="page-history" class="page">
-        <div class="section-title" id="history-title">Archives</div>
+    <div id="p6" class="page">
+        <div class="section-title">Archives</div>
         <div class="tabs">
-            <button class="tab-btn" id="tab-fu" onclick="refreshHistory('Fosse Universelle')">FU</button>
-            <button class="tab-btn" id="tab-dtl" onclick="refreshHistory('DTL')">DTL</button>
-            <button class="tab-btn" id="tab-trap1" onclick="refreshHistory('Trap 1')">Trap 1</button>
+            <div id="t1" class="tab" onclick="refreshH('Fosse Universelle')">FU</div>
+            <div id="t2" class="tab" onclick="refreshH('DTL')">DTL</div>
+            <div id="t3" class="tab" onclick="refreshH('Trap 1')">Trap 1</div>
         </div>
-        <div class="history-container" id="history-list"></div>
-        <button class="btn-back" onclick="showPage('page-selection')">← Retour</button>
+        <div id="hist-list" style="width:100%; overflow-y:auto; flex:1"></div>
+        <button class="btn-back" onclick="go('p2')">Retour</button>
     </div>
 
     <script>
-        let currentFolder = ''; let sessionData = { disc: '', tireur: '', stand: '', plateaux: [] };
-
-        window.onload = function() {
-            // RECHERCHE AGRESSIVE DES DONNÉES
-            let b1 = JSON.parse(localStorage.getItem('bt_archives') || '[]');
-            let b2 = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
-            let total = [...b1, ...b2];
-            
-            if (total.length > 0) {
-                // On normalise tout dans la V2 et on marque en 'perso' si le dossier est inconnu
-                let final = total.map(a => ({
-                    id: a.id || Date.now() + Math.random(),
-                    folder: a.folder || (a.mode === 'coaching' ? 'coach' : 'perso'),
-                    date: a.date || 'Ancien',
-                    disc: a.disc || a.discipline || 'Fosse Universelle',
-                    tireur: a.tireur || 'Moi',
-                    stand: a.stand || 'Stand',
-                    score: a.score || '0'
-                }));
-                localStorage.setItem('bt_archives_v2', JSON.stringify(final));
-                localStorage.removeItem('bt_archives'); // Nettoyage
-            }
-        };
-
-        function showPage(p) { document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active')); document.getElementById(p).classList.add('active'); }
-        function openFolder(t) { currentFolder = t; showPage('page-selection'); }
-        function selectDisc(n) { sessionData.disc = n; showPage('page-config'); }
-        function goToNextStep() {
-            sessionData.tireur = document.getElementById('input-tireur').value || 'Moi';
-            sessionData.stand = document.getElementById('input-stand').value || 'Stand';
-            if(currentFolder === 'perso') showPage('page-score-perso');
-            else { sessionData.plateaux = []; initGrid(); showPage('page-coaching'); }
+        let curF = ''; let curD = ''; let pts = [];
+        const go = (id) => { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+        
+        function setFolder(f) { curF = f; document.getElementById('folder-name').innerText = f === 'perso' ? 'Mes Scores' : 'Coaching'; go('p2'); }
+        function setDisc(d) { curD = d; document.getElementById('in-name').value = curF === 'perso' ? 'Moi' : ''; go('p3'); }
+        
+        function startSérie() {
+            if(curF === 'perso') go('p4');
+            else { pts = []; buildGrid(); go('p5'); }
         }
-        function saveSimpleScore() { saveData(document.getElementById('input-score-simple').value + (sessionData.disc === 'Fosse Universelle' ? ' / 25' : ' / 75')); }
-        function initGrid() {
+
+        function buildGrid() {
             const g = document.getElementById('grid'); g.innerHTML = '';
-            for (let i = 0; i < 25; i++) { const c = document.createElement('div'); c.className = 'cell'; c.innerText = i + 1; c.id = 'cell-'+i; g.appendChild(c); }
-            updateGrid();
+            for(let i=0; i<25; i++) g.innerHTML += `<div class="cell" id="c${i}">${i+1}</div>`;
+            updateS();
         }
-        function recordHit(s) { if(sessionData.plateaux.length < 25) { sessionData.plateaux.push(s); updateGrid(); } }
-        function updateGrid() {
-            let pts = 0;
-            sessionData.plateaux.forEach((v, i) => {
-                document.getElementById('cell-'+i).className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
-                if(sessionData.disc==='Fosse Universelle') pts += (v>0?1:0); else pts += (v===1?3:v===2?2:0);
+
+        function hit(v) { if(pts.length < 25) { pts.push(v); updateS(); } }
+        
+        function updateS() {
+            let total = 0;
+            pts.forEach((v, i) => {
+                document.getElementById('c'+i).className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
+                if(curD === 'Fosse Universelle') total += (v>0?1:0); else total += (v===1?3:v===2?2:0);
             });
-            document.getElementById('score-display').innerText = pts + (sessionData.disc==='Fosse Universelle' ? ' / 25' : ' / 75');
-            document.getElementById('btn-save-final').style.display = (sessionData.plateaux.length === 25 ? 'block' : 'none');
+            document.getElementById('score-live').innerText = total + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
+            document.getElementById('btn-save-coach').style.display = pts.length === 25 ? 'block' : 'none';
         }
-        function confirmSaveCo
+
+        function savePerso() { 
+            let s = document.getElementById('in-score').value + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
+            finalSave(s);
+        }
+        function saveCoach() { finalSave(document.getElementById('score-live').innerText); }
+
+        function finalSave(score) {
+            let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            db.unshift({
+                id: Date.now(), folder: curF, disc: curD,
+                name: document.getElementById('in-name').value,
+                stand: document.getElementById('in-stand').value,
+                score: score, date: new Date().toLocaleDateString('fr-FR')
+            });
+            localStorage.setItem('BT_DATA', JSON.stringify(db));
+            alert("Enregistré !"); go('p1');
+        }
+
+        function viewHistory() { refreshH('Fosse Universelle'); go('p6'); }
+
+        function refreshH(d) {
+            const list = document.getElementById('hist-list');
+            const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            if(d==='Fosse Universelle') document.getElementById('t1').classList.add('active');
+            if(d==='DTL') document.getElementById('t2').classList.add('active');
+            if(d==='Trap 1') document.getElementById('t3').classList.add('active');
+
+            const filtered = db.filter(a => a.folder === curF && a.disc === d);
+            list.innerHTML = filtered.length ? '' : '<div style="text-align:center; padding:50px; color:#444">Aucune série</div>';
+            filtered.forEach(a => {
+                list.innerHTML += `<div class="history-item">
+                    <div><div style="font-size:10px; color:#666">${a.date}</div><div style="font-weight:bold">${curF==='perso'?a.stand:a.name}</div></div>
+                    <div style="display:flex; align-items:center"><span class="h-val">${a.score}</span>
+                    <button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:18px; margin-left:10px">🗑️</button></div>
+                </div>`;
+            });
+        }
+
+        function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
+    </script>
+</body>
+</html>
