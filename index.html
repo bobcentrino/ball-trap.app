@@ -183,8 +183,34 @@
     </div>
 
     <script>
-        let currentFolder = ''; // 'perso' ou 'coach'
+        let currentFolder = '';
         let sessionData = { disc: '', tireur: '', stand: '', plateaux: [] };
+
+        // --- ROBOT DE DÉMÉNAGEMENT DES ANCIENNES SÉRIES ---
+        window.onload = function() {
+            let oldArchives = JSON.parse(localStorage.getItem('bt_archives') || '[]');
+            if (oldArchives.length > 0) {
+                let newArchives = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
+                
+                // On transforme les vieux scores pour le nouveau format dossier
+                oldArchives.forEach(old => {
+                    newArchives.push({
+                        id: old.id || Date.now() + Math.random(),
+                        folder: 'perso', // On met tout dans "perso" par défaut
+                        date: old.date,
+                        disc: old.discipline || old.disc,
+                        tireur: old.tireur,
+                        stand: old.stand,
+                        score: old.score
+                    });
+                });
+                
+                // On enregistre dans la nouvelle base et on vide l'ancienne
+                localStorage.setItem('bt_archives_v2', JSON.stringify(newArchives));
+                localStorage.removeItem('bt_archives');
+                console.log("Migration terminée !");
+            }
+        };
 
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -207,12 +233,8 @@
         function goToNextStep() {
             sessionData.tireur = document.getElementById('input-tireur').value || 'Sans nom';
             sessionData.stand = document.getElementById('input-stand').value || 'Stand inconnu';
-            if(currentFolder === 'perso') {
-                document.getElementById('label-score-simple').innerText = "Points (/" + (sessionData.disc === 'Fosse Universelle' ? '25' : '75') + ")";
-                showPage('page-score-perso');
-            } else {
-                sessionData.plateaux = []; initGrid(); showPage('page-coaching');
-            }
+            if(currentFolder === 'perso') showPage('page-score-perso');
+            else { sessionData.plateaux = []; initGrid(); showPage('page-coaching'); }
         }
 
         function saveSimpleScore() {
@@ -297,7 +319,7 @@
         }
 
         function deleteEntry(id, disc) {
-            if(confirm("Supprimer cette archive ?")) {
+            if(confirm("Supprimer ?")) {
                 let arc = JSON.parse(localStorage.getItem('bt_archives_v2') || '[]');
                 arc = arc.filter(a => a.id !== id);
                 localStorage.setItem('bt_archives_v2', JSON.stringify(arc));
