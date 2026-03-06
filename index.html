@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v4.2</title>
+    <title>Ball-Trap Pro v4.3</title>
     <style>
         :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
-        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 25px; box-sizing: border-box; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; box-sizing: border-box; }
+        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .active { display: flex; }
         #p0 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
         .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; position: absolute; bottom: 80px; }
-        .section-title { color: var(--gold); text-transform: uppercase; margin-bottom: 20px; font-weight: bold; text-align: center;}
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 350px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; }
-        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 350px; text-transform: uppercase; margin-top: 10px; }
+        .section-title { color: var(--gold); text-transform: uppercase; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; }
+        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 320px; text-transform: uppercase; margin-top: 10px; box-sizing: border-box; }
         .btn-back { background: none; border: none; color: #666; padding: 20px; text-transform: uppercase; font-size: 12px; margin-top: auto; }
         
-        /* GRILLE ET GRAPH */
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 10px; }
-        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
+        /* GRILLE ET GRAPH - LARGEUR CONTRAINTE */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 10px; box-sizing: border-box; }
+        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; box-sizing: border-box; }
         .hit1 { background: var(--green) !important; } 
         .hit2 { background: var(--orange) !important; } 
         .miss { background: var(--red) !important; }
         
         #graph-box { width: 100%; max-width: 320px; background: #111; border: 1px solid var(--gold); border-radius: 12px; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        canvas { width: 100%; height: 150px; display: block; }
+        canvas { width: 100%; height: 150px; display: block; box-sizing: border-box; }
 
-        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 350px; border-left: 5px solid var(--gold); cursor: pointer; }
-        .tabs { display: flex; gap: 5px; width: 100%; max-width: 350px; margin-bottom: 15px; }
+        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 320px; border-left: 5px solid var(--gold); cursor: pointer; box-sizing: border-box; }
+        .tabs { display: flex; gap: 5px; width: 100%; max-width: 320px; margin-bottom: 15px; box-sizing: border-box; }
         .tab { flex: 1; padding: 12px 5px; background: #222; font-size: 10px; text-align: center; border-radius: 6px; color: #777; font-weight: bold; }
         .tab.active { background: var(--gold); color: black; }
-        input { width: 100%; max-width: 350px; background: #1e1e1e; border: 1px solid #333; padding: 16px; color: white; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 16px; box-sizing: border-box; }
+        input { width: 100%; max-width: 320px; background: #1e1e1e; border: 1px solid #333; padding: 16px; color: white; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 16px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -42,17 +42,14 @@
     
     <div id="p5" class="page">
         <div id="score-live" style="font-size:28px; color:var(--gold); font-weight:bold; margin-bottom:10px">0 / 25</div>
-        
         <div id="graph-box">
             <canvas id="cvs"></canvas>
             <div style="display:flex; justify-content:space-around; font-size:9px; margin-top:8px; color:#888;">
                 <span><b style="color:var(--green)">—</b> 1er</span><span><b style="color:var(--orange)">—</b> 2è</span><span><b style="color:var(--red)">—</b> Zéro</span>
             </div>
         </div>
-
         <div class="grid" id="grid"></div>
-        
-        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
+        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:320px; margin-top:auto">
             <button onclick="hit(1)" style="flex:1; background:var(--green); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
             <button onclick="hit(2)" style="flex:1; background:var(--orange); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
             <button onclick="hit(0)" style="flex:1; background:var(--red); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
@@ -91,7 +88,6 @@
             const f=db.filter(a=>a.folder===curF&&a.disc===d);
             list.innerHTML=f.length?'':'<div style="padding:20px; text-align:center">Vide</div>';
             f.forEach(a=>{
-                // On rend TOUTE la carte cliquable si détails présents
                 let action = (a.details && a.details.length>0) ? `onclick="showDetails(${a.id})"` : '';
                 list.innerHTML+=`<div class="history-item" ${action}>
                     <div><small>${a.date}</small><br>${curF==='perso'?a.stand:a.name}</div>
@@ -118,8 +114,9 @@
 
         function drawGraph(data) {
             const canvas = document.getElementById('cvs'); const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth * 2; canvas.height = canvas.offsetHeight * 2; ctx.scale(2, 2);
-            const m = 20, w = canvas.offsetWidth, h = canvas.offsetHeight;
+            const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
+            canvas.width = cw * 2; canvas.height = ch * 2; ctx.scale(2, 2);
+            const m = 20, w = cw, h = ch;
             const stepX = (w - m*2)/24, stepY = (h - m*2)/25;
             let curS = 0, lastX = m, lastY = h - m;
             ctx.clearRect(0,0,w,h);
@@ -132,6 +129,8 @@
                 ctx.beginPath(); ctx.moveTo(oldX, oldY); ctx.lineTo(nX, nY); ctx.stroke();
                 lastX = nX; lastY = nY;
             });
+            let dotS = 0; ctx.fillStyle = "white";
+            data.forEach((val, i) => { if(val > 0) dotS++; ctx.beginPath(); ctx.arc(m + (i * stepX), (h - m) - (dotS * stepY), 2, 0, 7); ctx.fill(); });
         }
         function del(id,d){if(confirm("Supprimer ?")){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db=db.filter(a=>a.id!==id);localStorage.setItem('BT_DATA',JSON.stringify(db));refreshH(d);}}
     </script>
