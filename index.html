@@ -3,57 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v3.0</title>
+    <title>Ball-Trap Pro</title>
     <style>
-        :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --red: #e74c3c; }
+        :root {
+            --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0;
+            --green: #2ecc71; --red: #e74c3c; --card: #1e1e1e;
+        }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
-        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 25px; box-sizing: border-box; }
-        .active { display: flex; }
-        #p0 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
-        .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; position: absolute; bottom: 80px; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 350px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; }
+        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 30px 20px; box-sizing: border-box; }
+        .active { display: flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #p0 { background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
+        .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 8px; font-size: 18px; font-weight: bold; text-transform: uppercase; position: absolute; bottom: 80px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .section-title { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; font-size: 18px; font-weight: bold; text-align: center; }
+        .menu-list { width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
+        .card { background: var(--card); border: 1px solid rgba(197, 160, 89, 0.3); padding: 22px; border-radius: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 350px; text-transform: uppercase; margin-top: 10px; }
-        .btn-back { background: none; border: none; color: #666; padding: 20px; text-transform: uppercase; font-size: 12px; margin-top: auto; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 10px; }
-        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
-        .hit1 { background: var(--green) !important; color: white; } 
-        .hit2 { background: #f39c12 !important; color: white; } 
-        .miss { background: var(--red) !important; color: white; }
-        #res-box { width: 100%; max-width: 300px; background: #222; border: 2px solid var(--gold); padding: 15px; border-radius: 10px; margin-bottom: 15px; display: none; }
-        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 350px; box-sizing: border-box; border-left: 5px solid var(--gold); }
+        .btn-back { background: none; border: none; color: #666; font-size: 13px; margin-top: auto; padding: 20px; text-transform: uppercase; }
+        input { width: 100%; max-width: 350px; background: #1e1e1e; border: 1px solid #333; padding: 15px; color: white; border-radius: 8px; margin-bottom: 15px; font-size: 18px; box-sizing: border-box; text-align: center; }
         .tabs { display: flex; gap: 5px; width: 100%; max-width: 350px; margin-bottom: 15px; }
-        .tab { flex: 1; padding: 12px 5px; background: #222; font-size: 10px; text-align: center; border-radius: 6px; color: #777; font-weight: bold; }
+        .tab { flex: 1; padding: 12px 5px; background: #222; border: 1px solid #333; color: #777; font-size: 10px; border-radius: 6px; text-align: center; font-weight: bold; }
         .tab.active { background: var(--gold); color: black; }
-        input { width: 100%; max-width: 350px; background: #1e1e1e; border: 1px solid #333; padding: 16px; color: white; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 16px; }
+        .history-item { background: #1a1a1a; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+        .h-val { font-size: 18px; font-weight: 900; color: var(--green); }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 15px; }
+        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #444; }
+        .hit1 { background: var(--green) !important; color: white !important; } 
+        .hit2 { background: #f39c12 !important; color: white !important; } 
+        .miss { background: var(--red) !important; color: white !important; }
+
+        /* BOX STATS - VISIBLE PAR DÉFAUT SI OUVERT VIA L'OEIL */
+        #stats-area { 
+            width: 100%; max-width: 300px; background: #1a1a1a; padding: 15px; border-radius: 10px; 
+            border: 2px solid var(--gold); margin-bottom: 20px; display: none; 
+        }
+        .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: #fff; }
+        .stat-line b { color: var(--gold); }
     </style>
 </head>
 <body>
+
     <div id="p0" class="page active"><button class="btn-entrer" onclick="go('p1')">Entrer</button></div>
-    <div id="p1" class="page"><div class="card" onclick="setFolder('perso')">MES SCORES PERSO</div><div class="card" onclick="setFolder('coach')">DOSSIER ÉLÈVES</div></div>
-    <div id="p2" class="page"><div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE</div><div class="card" onclick="setDisc('DTL')">DTL</div><div class="card" onclick="setDisc('Trap 1')">TRAP 1</div><button class="btn-confirm" onclick="viewHistory()">📂 ARCHIVES</button><button class="btn-back" onclick="go('p1')">Retour</button></div>
-    <div id="p3" class="page"><input type="text" id="in-name" placeholder="Nom"><input type="text" id="in-stand" placeholder="Stand"><button class="btn-confirm" onclick="startSérie()">Démarrer</button><button class="btn-back" onclick="go('p2')">Retour</button></div>
-    <div id="p4" class="page"><input type="number" id="in-score" placeholder="Score"><button class="btn-confirm" onclick="savePerso()">Sauver</button></div>
-    <div id="p5" class="page"><div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div><div id="res-box"><div id="st1"></div><div id="st2"></div><div id="st3"></div><div id="stz"></div></div><div class="grid" id="grid"></div><div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto"><button onclick="hit(1)" style="flex:1; background:var(--green); height:70px; border:none; border-radius:12px; color:white">1er</button><button onclick="hit(2)" style="flex:1; background:#f39c12; height:70px; border:none; border-radius:12px; color:white">2ème</button><button onclick="hit(0)" style="flex:1; background:var(--red); height:70px; border:none; border-radius:12px; color:white">ZÉRO</button></div><button id="btn-save-coach" class="btn-confirm" style="display:none" onclick="saveCoach()">Enregistrer</button><button id="btn-close-view" class="btn-confirm" style="display:none; background:#444" onclick="go('p6')">Fermer</button></div>
-    <div id="p6" class="page"><div class="tabs"><div id="t1" class="tab" onclick="refreshH('Fosse Universelle')">FOSSE U.</div><div id="t2" class="tab" onclick="refreshH('DTL')">DTL</div><div id="t3" class="tab" onclick="refreshH('Trap 1')">TRAP 1</div></div><div id="hist-list" style="width:100%; overflow-y:auto; flex:1"></div><button class="btn-back" onclick="go('p2')">Retour</button></div>
+
+    <div id="p1" class="page">
+        <div class="section-title">Mes Dossiers</div>
+        <div class="menu-list">
+            <div class="card" onclick="setFolder('perso')">👤 MES SCORES PERSO <span>→</span></div>
+            <div class="card" onclick="setFolder('coach')">🎓 DOSSIER ÉLÈVES <span>→</span></div>
+        </div>
+        <button class="btn-back" onclick="go('p0')">Quitter</button>
+    </div>
+
+    <div id="p2" class="page">
+        <div class="section-title" id="folder-name">Discipline</div>
+        <div class="menu-list">
+            <div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE <span>→</span></div>
+            <div class="card" onclick="setDisc('DTL')">DTL <span>→</span></div>
+            <div class="card" onclick="setDisc('Trap 1')">TRAP 1 <span>→</span></div>
+            <div class="card" onclick="viewHistory()" style="margin-top:20px; border-color:var(--gold); color:var(--gold)">📂 VOIR ARCHIVES</div>
+        </div>
+        <button class="btn-back" onclick="go('p1')">Retour</button>
+    </div>
+
+    <div id="p3" class="page">
+        <div class="section-title">Infos</div>
+        <input type="text" id="in-name" placeholder="Nom du tireur">
+        <input type="text" id="in-stand" placeholder="Stand de tir">
+        <button class="btn-confirm" onclick="startSérie()">Démarrer</button>
+        <button class="btn-back" onclick="go('p2')">Retour</button>
+    </div>
+
+    <div id="p4" class="page">
+        <div class="section-title">Score Final</div>
+        <input type="number" id="in-score" placeholder="0" style="font-size:40px;">
+        <button class="btn-confirm" onclick="savePerso()">Enregistrer</button>
+    </div>
+
+    <div id="p5" class="page">
+        <div id="score-live" style="font-size:32px; color:var(--gold); font-weight:bold; margin-bottom:15px">0 / 25</div>
+        
+        <div id="stats-area">
+            <div style="font-size:12px; font-weight:bold; color:var(--gold); margin-bottom:12px; text-align:center">BILAN DE SÉRIE</div>
+            <div class="stat-line">Début (5 prem.) : <b id="stat-start">-</b></div>
+            <div class="stat-line">Milieu (15 suiv.) : <b id="stat-mid">-</b></div>
+            <div class="stat-line">Fin (5 dern.) : <b id="stat-end">-</b></div>
+            <div class="stat-line" style="border-top:1px solid #333; padding-top:8px">Total Zéros : <b id="stat-zeros">-</b></div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+        
+        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:350px; margin-top:auto">
+            <button onclick="hit(1)" style="flex:1; background:var(--green); height:75px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
+            <button onclick="hit(2)" style="flex:1; background:#f39c12; height:75px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
+            <button onclick="hit(0)" style="flex:1; background:var(--red); height:75px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
+        </div>
+        <button id="btn-save-coach" class="btn-confirm" style="display:none; margin-top:15px" onclick="saveCoach()">Terminer l'enregistrement</button>
+        <button id="btn-close-view" class="btn-confirm" style="display:none; margin-top:15px; background:#444; color:white" onclick="go('p6')">Fermer la vue</button>
+        <button class="btn-back" id="btn-cancel-coach" onclick="go('p3')">Annuler</button>
+    </div>
+
+    <div id="p6" class="page">
+        <div class="section-title">Archives</div>
+        <div class="tabs">
+            <div id="t1" class="tab" onclick="refreshH('Fosse Universelle')">FOSSE U.</div>
+            <div id="t2" class="tab" onclick="refreshH('DTL')">DTL</div>
+            <div id="t3" class="tab" onclick="refreshH('Trap 1')">TRAP 1</div>
+        </div>
+        <div id="hist-list" style="width:100%; overflow-y:auto; flex:1"></div>
+        <button class="btn-back" onclick="go('p2')">Retour</button>
+    </div>
 
     <script>
-        let curF='', curD='', pts=[];
-        const go=(id)=>{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');};
-        function setFolder(f){curF=f;go('p2');}
-        function setDisc(d){curD=d;document.getElementById('in-name').value=(curF==='perso'?'Moi':'');go('p3');}
-        function startSérie(){pts=[];document.getElementById('res-box').style.display='none';if(curF==='perso')go('p4');else{buildGrid();go('p5');document.getElementById('coach-controls').style.display='flex';document.getElementById('btn-close-view').style.display='none';}}
-        function buildGrid(){const g=document.getElementById('grid');g.innerHTML='';for(let i=0;i<25;i++)g.innerHTML+=`<div class="cell" id="c${i}">${i+1}</div>`;updateS();}
-        function hit(v){if(pts.length<25){pts.push(v);updateS();}}
-        function updateS(){let t=0;pts.forEach((v,i)=>{const el=document.getElementById('c'+i);if(el)el.className='cell '+(v===1?'hit1':v===2?'hit2':v===0?'miss':'');if(curD==='Fosse Universelle')t+=(v>0?1:0);else t+=(v===1?3:v===2?2:0);});document.getElementById('score-live').innerText=t+(curD==='Fosse Universelle'?' / 25':' / 75');document.getElementById('btn-save-coach').style.display=(pts.length>=25?'block':'none');}
-        function saveCoach(){finalSave(document.getElementById('score-live').innerText,pts);}
-        function savePerso(){finalSave(document.getElementById('in-score').value+(curD==='Fosse Universelle'?' / 25':' / 75'),[]);}
-        function finalSave(s,p){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db.unshift({id:Date.now(),folder:curF,disc:curD,name:document.getElementById('in-name').value,stand:document.getElementById('in-stand').value,score:s,date:new Date().toLocaleDateString('fr-FR'),details:p});localStorage.setItem('BT_DATA',JSON.stringify(db));alert("Enregistré !");go('p1');}
-        function viewHistory(){refreshH('Fosse Universelle');go('p6');}
-        function refreshH(d){const list=document.getElementById('hist-list');const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(d==='Fosse Universelle')document.getElementById('t1').classList.add('active');if(d==='DTL')document.getElementById('t2').classList.add('active');if(d==='Trap 1')document.getElementById('t3').classList.add('active');const f=db.filter(a=>a.folder===curF&&a.disc===d);list.innerHTML=f.length?'':'<div style="padding:20px">Vide</div>';f.forEach(a=>{let b=(a.details&&a.details.length>0)?`<button onclick="showDetails(${a.id})" style="background:none;border:none;color:var(--gold);font-size:24px">👁️</button>`:'';list.innerHTML+=`<div class="history-item"><div><small>${a.date}</small><br>${curF==='perso'?a.stand:a.name}</div><div style="display:flex;align-items:center">${b}<span style="font-weight:900;color:var(--green);margin-left:10px">${a.score}</span><button onclick="del(${a.id},'${d}')" style="background:none;border:none;color:var(--red);font-size:20px;margin-left:10px">🗑️</button></div></div>`;});}
-        function showDetails(id){const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');const s=db.find(a=>a.id===id);if(s){pts=s.details;buildGrid();let v1=0,v2=0,v3=0,vz=0;pts.forEach((v,i)=>{if(v>0){if(i<5)v1++;else if(i<20)v2++;else v3++;}else vz++;});
-        alert("ANALYSE :\nDébut: "+v1+"/5\nMilieu: "+v2+"/15\nFin: "+v3+"/5\nZéros: "+vz);
-        go('p5');document.getElementById('coach-controls').style.display='none';document.getElementById('btn-save-coach').style.display='none';document.getElementById('btn-close-view').style.display='block';}}
-        function del(id,d){if(confirm("Supprimer ?")){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db=db.filter(a=>a.id!==id);localStorage.setItem('BT_DATA',JSON.stringify(db));refreshH(d);}}
+        let curF = ''; let curD = ''; let pts = [];
+        const go = (id) => { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+        
+        function setFolder(f) { curF = f; document.getElementById('folder-name').innerText = f === 'perso' ? 'Mes Scores' : 'Coaching'; go('p2'); }
+        function setDisc(d) { curD = d; document.getElementById('in-name').value = curF === 'perso' ? 'Moi' : ''; go('p3'); }
+        
+        function startSérie() {
+            pts = []; 
+            document.getElementById('stats-area').style.display = 'none';
+            document.getElementById('coach-controls').style.display = (curF === 'coach' ? 'flex' : 'none');
+            document.getElementById('btn-close-view').style.display = 'none';
+            document.getElementById('btn-cancel-coach').style.display = 'block';
+            if(curF === 'perso') go('p4'); else { buildGrid(); go('p5'); }
+        }
+
+        function buildGrid() {
+            const g = document.getElementById('grid'); g.innerHTML = '';
+            for(let i=0; i<25; i++) g.innerHTML += `<div class="cell" id="c${i}">${i+1}</div>`;
+            updateS();
+        }
+
+        function hit(v) { if(pts.length < 25) { pts.push(v); updateS(); } }
+        
+        function updateS() {
+            let total = 0;
+            pts.forEach((v, i) => {
+                const el = document.getElementById('c'+i);
+                if(el) {
+                    el.className = 'cell ' + (v===1?'hit1':v===2?'hit2':v===0?'miss':'');
+                    if(curD === 'Fosse Universelle') total += (v>0?1:0); else total += (v===1?3:v===2?2:0);
+                }
+            });
+            document.getElementById('score-live').innerText = total + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75');
+            document.getElementById('btn-save-coach').style.display = (pts.length >= 25 ? 'block' : 'none');
+        }
+
+        function savePerso() { finalSave(document.getElementById('in-score').value + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75'), []); }
+        function saveCoach() { finalSave(document.getElementById('score-live').innerText, pts); }
+
+        function finalSave(score, detailPts) {
+            let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            db.unshift({ id: Date.now(), folder: curF, disc: curD, name: document.getElementById('in-name').value, stand: document.getElementById('in-stand').value, score: score, date: new Date().toLocaleDateString('fr-FR'), details: detailPts });
+            localStorage.setItem('BT_DATA', JSON.stringify(db));
+            alert("Enregistré !"); go('p1');
+        }
+
+        function viewHistory() { refreshH('Fosse Universelle'); go('p6'); }
+
+        function refreshH(d) {
+            const list = document.getElementById('hist-list');
+            const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            if(d==='Fosse Universelle') document.getElementById('t1').classList.add('active');
+            if(d==='DTL') document.getElementById('t2').classList.add('active');
+            if(d==='Trap 1') document.getElementById('t3').classList.add('active');
+
+            const filtered = db.filter(a => a.folder === curF && a.disc === d);
+            list.innerHTML = filtered.length ? '' : '<div style="text-align:center; padding:50px; color:#444">Aucune série</div>';
+            filtered.forEach(a => {
+                // FORCE L'OEIL POUR TOUT LE DOSSIER COACH
+                let showBtn = (curF === 'coach') ? `<button onclick="showDetails(${a.id})" style="background:none; border:none; color:var(--gold); font-size:22px; margin-left:10px">👁️</button>` : '';
+                list.innerHTML += `<div class="history-item"><div><div style="font-size:10px; color:#666">${a.date}</div><div style="font-weight:bold">${curF==='perso'?a.stand:a.name}</div></div><div style="display:flex; align-items:center">${showBtn}<span class="h-val" style="margin-left:10px">${a.score}</span><button onclick="del(${a.id},'${d}')" style="background:none; border:none; color:var(--red); font-size:22px; margin-left:10px">🗑️</button></div></div>`;
+            });
+        }
+
+        function showDetails(id) {
+            const db = JSON.parse(localStorage.getItem('BT_DATA') || '[]');
+            const serie = db.find(a => a.id === id);
+            if(serie) {
+                pts = serie.details || []; curD = serie.disc; buildGrid();
+                
+                // CALCULS SIMPLIFIÉS AU MAXIMUM
+                let s1=0, s2=0, s3=0, sz=0;
+                pts.forEach((v, i) => {
+                    if(v > 0) { if(i<5) s1++; else if(i<20) s2++; else s3++; }
+                    else { sz++; }
+                });
+
+                document.getElementById('stat-start').innerText = s1 + " / 5";
+                document.getElementById('stat-mid').innerText = s2 + " / 15";
+                document.getElementById('stat-end').innerText = s3 + " / 5";
+                document.getElementById('stat-zeros').innerText = sz;
+
+                document.getElementById('stats-area').style.display = 'block';
+                document.getElementById('coach-controls').style.display = 'none';
+                document.getElementById('btn-save-coach').style.display = 'none';
+                document.getElementById('btn-cancel-coach').style.display = 'none';
+                document.getElementById('btn-close-view').style.display = 'block';
+                go('p5');
+            }
+        }
+        function del(id, d) { if(confirm("Supprimer ?")) { let db = JSON.parse(localStorage.getItem('BT_DATA') || '[]'); db = db.filter(a=>a.id!==id); localStorage.setItem('BT_DATA', JSON.stringify(db)); refreshH(d); } }
     </script>
 </body>
 </html>
