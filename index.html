@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v5.9.6</title>
+    <title>Ball-Trap Pro v5.9.7</title>
     <style>
         :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --btn-back: #4a4a4a; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; box-sizing: border-box; }
@@ -67,7 +67,12 @@
         function undoHit(){pts.pop();updateS();}
         function updateS(){let t=0;pts.forEach((v,i)=>{const el=document.getElementById('c'+i);if(el)el.className='cell '+(v===1?'hit1':v===2?'hit2':v===0?'miss':'');if(curD==='Fosse Universelle')t+=(v>0?1:0);else t+=(v===1?3:v===2?2:0);});document.getElementById('score-live').innerText=t+(curD==='Fosse Universelle'?' / 25':' / 75');document.getElementById('btn-save-coach').style.display=(pts.length>=25?'block':'none');document.getElementById('edit-controls').style.display=(pts.length>=25?'none':'flex');}
         function saveCoach(){finalSave(document.getElementById('score-live').innerText,pts);}
-        function savePerso(){finalSave(document.getElementById('in-score').value+(curD==='Fosse Universelle'?' / 25':' / 75'),[]);}
+        function savePerso(){
+            let val = parseInt(document.getElementById('in-score').value);
+            let max = (curD === 'Fosse Universelle') ? 25 : 75;
+            if(isNaN(val) || val < 0 || val > max){ alert("Score invalide ! Max: " + max); return; }
+            finalSave(val + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75'), []);
+        }
         function finalSave(s,p){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db.unshift({id:Date.now(),folder:curF,disc:curD,name:document.getElementById('in-name').value,stand:document.getElementById('in-stand').value,score:s,date:new Date().toLocaleDateString('fr-FR'),details:p});localStorage.setItem('BT_DATA',JSON.stringify(db));alert("Enregistré !");go('p1');}
         function viewHistory(){
             const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
@@ -106,7 +111,7 @@
                 document.getElementById('btn-close-view').style.display='block'; go('p5');
             }
         }
-        function drawGraph(data){const canvas=document.getElementById('cvs');const ctx=canvas.getContext('2d');const cw=canvas.offsetWidth, ch=canvas.offsetHeight;canvas.width=cw*2;canvas.height=ch*2;ctx.scale(2,2);const m=20, w=cw, h=ch;const stepX=(w-m*2)/24, stepY=(h-m*2)/25;let curS=0, lastX=m, lastY=h-m;ctx.clearRect(0,0,w,h);ctx.lineWidth=3;ctx.lineCap="round";data.forEach((val,i)=>{let oldX=lastX, lastY=lastY;if(val>0)curS++;const nX=m+(i*stepX), nY=(h-m)-(curS*stepY);ctx.strokeStyle=(val===1?'#2ecc71':(val===2?'#f39c12':'#e74c3c'));ctx.beginPath();ctx.moveTo(oldX,oldY);ctx.lineTo(nX,nY);ctx.stroke();lastX=nX;lastY=nY;});}
+        function drawGraph(data){const canvas=document.getElementById('cvs');const ctx=canvas.getContext('2d');const cw=canvas.offsetWidth, ch=canvas.offsetHeight;canvas.width=cw*2;canvas.height=ch*2;ctx.scale(2,2);const m=20, w=cw, h=ch;const stepX=(w-m*2)/24, stepY=(h-m*2)/25;let curS=0, lastX=m, lastY=h-m;ctx.clearRect(0,0,w,h);ctx.lineWidth=3;ctx.lineCap="round";data.forEach((val,i)=>{let oldX=lastX, oldY=lastY;if(val>0)curS++;const nX=m+(i*stepX), nY=(h-m)-(curS*stepY);ctx.strokeStyle=(val===1?'#2ecc71':(val===2?'#f39c12':'#e74c3c'));ctx.beginPath();ctx.moveTo(oldX,oldY);ctx.lineTo(nX,nY);ctx.stroke();lastX=nX;lastY=nY;});}
         function exportData(){const data=localStorage.getItem('BT_DATA');if(!data){alert("Rien à exporter !");return;}const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download="backup_balltrap.json";a.click();}
         function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{localStorage.setItem('BT_DATA',e.target.result);alert("Données importées !");location.reload();}catch(err){alert("Fichier invalide");}};r.readAsText(f);}
     </script>
