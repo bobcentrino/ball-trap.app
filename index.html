@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v5.9.3</title>
+    <title>Ball-Trap Pro v5.9.4</title>
     <style>
         :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --btn-back: #4a4a4a; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; box-sizing: border-box; }
         .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .active { display: flex; }
-        #p0 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
+        
+        /* Correction ici : positionnement du bouton en bas */
+        #p0 { 
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); 
+            background-size: cover; 
+            background-position: center; 
+            justify-content: flex-end; 
+            padding-bottom: 60px;
+        }
+        
         .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; }
         .section-title { color: var(--gold); text-transform: uppercase; margin: 20px 0; font-weight: bold; text-align: center; }
         .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; cursor: pointer; }
