@@ -111,7 +111,69 @@
                 document.getElementById('btn-close-view').style.display='block'; go('p5');
             }
         }
-        function drawGraph(data){const canvas=document.getElementById('cvs');const ctx=canvas.getContext('2d');const cw=canvas.offsetWidth, ch=canvas.offsetHeight;canvas.width=cw*2;canvas.height=ch*2;ctx.scale(2,2);const m=20, w=cw, h=ch;const stepX=(w-m*2)/24, stepY=(h-m*2)/25;let curS=0, lastX=m, lastY=h-m;ctx.clearRect(0,0,w,h);ctx.lineWidth=3;ctx.lineCap="round";data.forEach((val,i)=>{let oldX=lastX, oldY=lastY;if(val>0)curS++;const nX=m+(i*stepX), nY=(h-m)-(curS*stepY);ctx.strokeStyle=(val===1?'#2ecc71':(val===2?'#f39c12':'#e74c3c'));ctx.beginPath();ctx.moveTo(oldX,oldY);ctx.lineTo(nX,nY);ctx.stroke();lastX=nX;lastY=nY;});}
+        function drawGraph(data) {
+    const canvas = document.getElementById('cvs');
+    const ctx = canvas.getContext('2d');
+    const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
+    canvas.width = cw * 2; canvas.height = ch * 2;
+    ctx.scale(2, 2);
+    
+    const m = 35; 
+    const w = cw, h = ch;
+    const stepX = (w - m * 2) / 24; 
+    const stepY = (h - m * 2) / 25;
+
+    ctx.clearRect(0, 0, w, h);
+    
+    // 1. Quadrillage intérieur
+    ctx.strokeStyle = "#444"; 
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let i=4; i<25; i+=5) { let x = m + (i * stepX); ctx.moveTo(x, m); ctx.lineTo(x, h-m); }
+    for(let i=5; i<=25; i+=5) { let y = (h - m) - (i * stepY); ctx.moveTo(m, y); ctx.lineTo(w-m, y); }
+    ctx.stroke();
+
+    // 2. Axes principaux
+    ctx.strokeStyle = "#888"; 
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(m, m); ctx.lineTo(m, h - m); 
+    ctx.lineTo(w - m, h - m); 
+    ctx.stroke();
+
+    // 3. Graduations
+    ctx.fillStyle = "#bbb"; 
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "center";
+    for(let i=4; i<25; i+=5) { ctx.fillText(i + 1, m + (i * stepX), h - 10); }
+    ctx.textAlign = "right";
+    for(let i=5; i<=25; i+=5) { ctx.fillText(i, m - 5, (h - m) - (i * stepY) + 5); }
+
+    // 4. Courbe et points
+    let curS = 0, lastX = m, lastY = h - m;
+    data.forEach((val, i) => {
+        let oldX = lastX, oldY = lastY;
+        if(val > 0) curS++;
+        const nX = m + (i * stepX);
+        const nY = (h - m) - (curS * stepY);
+        
+        // Tracer la ligne
+        ctx.strokeStyle = (val === 1 ? '#2ecc71' : (val === 2 ? '#f39c12' : '#e74c3c'));
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(oldX, oldY); ctx.lineTo(nX, nY); ctx.stroke();
+        
+        // Ajouter le petit point blanc (cercle)
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(nX, nY, 3, 0, Math.PI * 2); // Rayon de 3 pixels
+        ctx.fill();
+        ctx.strokeStyle = "#333"; // Petit contour pour mieux voir le point
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        lastX = nX; lastY = nY;
+    });
+}
         function exportData(){const data=localStorage.getItem('BT_DATA');if(!data){alert("Rien à exporter !");return;}const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download="backup_balltrap.json";a.click();}
         function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{localStorage.setItem('BT_DATA',e.target.result);alert("Données importées !");location.reload();}catch(err){alert("Fichier invalide");}};r.readAsText(f);}
     </script>
