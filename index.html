@@ -3,75 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v4.7</title>
+    <title>Ball-Trap Pro v5.9.3</title>
     <style>
-        :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; }
+        :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --btn-back: #4a4a4a; }
         body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; box-sizing: border-box; }
         .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .active { display: flex; }
         #p0 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: center; }
-        .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; position: absolute; bottom: 80px; }
-        
-        .section-title { color: var(--gold); text-transform: uppercase; margin-top: 20px; margin-bottom: 20px; font-weight: bold; text-align: center; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; }
-        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 320px; text-transform: uppercase; margin-top: 10px; box-sizing: border-box; }
-        .btn-back { background: none; border: none; color: #666; padding: 20px; text-transform: uppercase; font-size: 12px; margin-top: 20px; }
-        
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 10px; box-sizing: border-box; }
-        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; box-sizing: border-box; }
+        .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; }
+        .section-title { color: var(--gold); text-transform: uppercase; margin: 20px 0; font-weight: bold; text-align: center; }
+        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; cursor: pointer; }
+        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 320px; text-transform: uppercase; margin-top: 10px; box-sizing: border-box; display: block; margin-left: auto; margin-right: auto; }
+        .btn-back { background: var(--btn-back); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; max-width: 320px; margin-top: 15px; text-transform: uppercase; font-weight: bold; font-size: 14px; display: block; margin-left: auto; margin-right: auto; }
+        input, select { width: 100%; max-width: 320px; background: #1e1e1e; border: 1px solid #444; padding: 14px; color: white; border-radius: 8px; margin-bottom: 8px; text-align: center; font-size: 16px; box-sizing: border-box; display: block; margin-left: auto; margin-right: auto; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 20px; box-sizing: border-box; }
+        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
         .hit1 { background: var(--green) !important; } .hit2 { background: var(--orange) !important; } .miss { background: var(--red) !important; }
-        
-        #graph-box { width: 100%; max-width: 320px; background: #111; border: 1px solid var(--gold); border-radius: 12px; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        canvas { width: 100%; height: 150px; display: block; box-sizing: border-box; }
-
-        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 320px; border-left: 5px solid var(--gold); cursor: pointer; box-sizing: border-box; }
-        .tabs { display: flex; gap: 5px; width: 100%; max-width: 320px; margin-bottom: 15px; box-sizing: border-box; }
-        .tab { flex: 1; padding: 12px 5px; background: #222; font-size: 10px; text-align: center; border-radius: 6px; color: #777; font-weight: bold; }
-        .tab.active { background: var(--gold); color: black; }
-        input { width: 100%; max-width: 320px; background: #1e1e1e; border: 1px solid #333; padding: 16px; color: white; border-radius: 8px; margin-bottom: 12px; text-align: center; font-size: 16px; box-sizing: border-box; }
+        #graph-box { width: 100%; max-width: 320px; background: #111; border: 1px solid var(--gold); border-radius: 12px; padding: 10px; margin-bottom: 15px; display: none; box-sizing: border-box; }
+        canvas { width: 100%; height: 150px; display: block; }
+        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 320px; border-left: 5px solid var(--gold); box-sizing: border-box; }
     </style>
 </head>
 <body>
     <div id="p0" class="page active"><button class="btn-entrer" onclick="go('p1')">Entrer</button></div>
-    
-    <div id="p1" class="page"><div class="section-title">Dossiers</div><div class="card" onclick="setFolder('perso')">MES SCORES PERSO</div><div class="card" onclick="setFolder('coach')">DOSSIER ÉLÈVES</div><button class="btn-back" style="color:var(--red)" onclick="go('p0')">SORTIR</button></div>
-    
-    <div id="p2" class="page"><div class="section-title" id="folder-name">Discipline</div><div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE</div><div class="card" onclick="setDisc('DTL')">DTL</div><div class="card" onclick="setDisc('Trap 1')">TRAP 1</div><button class="btn-confirm" onclick="viewHistory()">📂 ARCHIVES</button><button class="btn-back" style="color:var(--red)" onclick="go('p0')">SORTIR</button></div>
-    
-    <div id="p3" class="page"><div class="section-title">Infos</div><input type="text" id="in-name" placeholder="Nom"><input type="text" id="in-stand" placeholder="Stand"><button class="btn-confirm" onclick="startSérie()">Démarrer</button><button class="btn-back" onclick="go('p2')">Retour</button></div>
-    
-    <div id="p4" class="page"><div class="section-title">Score Rapide</div><input type="number" id="in-score" placeholder="Points"><button class="btn-confirm" onclick="savePerso()">Sauver</button><button class="btn-back" onclick="go('p1')">Retour</button></div>
-    
+    <div id="p1" class="page"><div class="section-title">Dossiers</div><div class="card" onclick="setFolder('perso')">MES SCORES PERSO</div><div class="card" onclick="setFolder('coach')">DOSSIER ÉLÈVES</div><button class="btn-back" style="background:var(--red)" onclick="go('p0')">SORTIR</button></div>
+    <div id="p2" class="page"><div class="section-title">Discipline</div><div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE</div><div class="card" onclick="setDisc('DTL')">DTL</div><div class="card" onclick="setDisc('Trap 1')">TRAP 1</div><button class="btn-confirm" onclick="viewHistory()">📂 ARCHIVES</button><button class="btn-back" onclick="go('p1')">RETOUR</button></div>
+    <div id="p3" class="page"><div class="section-title">Infos</div><input type="text" id="in-name" placeholder="Nom"><input type="text" id="in-stand" placeholder="Stand"><button class="btn-confirm" style="background:var(--clay); color:white" onclick="startSérie()">DÉMARRER</button><button class="btn-back" onclick="go('p2')">RETOUR</button></div>
+    <div id="p4" class="page"><div class="section-title">Score Rapide</div><input type="number" id="in-score" placeholder="Points"><button class="btn-confirm" onclick="savePerso()">SAUVER</button><button class="btn-back" onclick="go('p1')">RETOUR</button></div>
     <div id="p5" class="page">
-        <div id="score-live" style="font-size:28px; color:var(--gold); font-weight:bold; margin-bottom:10px; margin-top:20px">0 / 25</div>
-        <div id="graph-box">
-            <canvas id="cvs"></canvas>
-            <div style="display:flex; justify-content:space-around; font-size:9px; margin-top:8px; color:#888;">
-                <span><b style="color:var(--green)">—</b> 1er</span><span><b style="color:var(--orange)">—</b> 2è</span><span><b style="color:var(--red)">—</b> Zéro</span>
-            </div>
-        </div>
+        <div id="score-live" style="font-size:28px; color:var(--gold); font-weight:bold; margin:20px 0;">0 / 25</div>
+        <div id="graph-box"><canvas id="cvs"></canvas></div>
         <div class="grid" id="grid"></div>
-        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:320px; margin-top:auto">
-            <button onclick="hit(1)" style="flex:1; background:var(--green); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
-            <button onclick="hit(2)" style="flex:1; background:var(--orange); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
-            <button onclick="hit(0)" style="flex:1; background:var(--red); height:70px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
+        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:320px;">
+            <button onclick="hit(1)" style="flex:1; background:var(--green); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
+            <button onclick="hit(2)" style="flex:1; background:var(--orange); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
+            <button onclick="hit(0)" style="flex:1; background:var(--red); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
         </div>
-        
         <div id="edit-controls" style="display:flex; gap:10px; width:100%; max-width:320px; margin-top:10px">
-            <button onclick="undoHit()" style="flex:1; background:#444; border:none; padding:10px; border-radius:8px; color:white">⟲ Corriger</button>
-            <button onclick="go('p1')" style="flex:1; background:#800; border:none; padding:10px; border-radius:8px; color:white">⨉ Quitter</button>
+            <button onclick="undoHit()" style="flex:1; background:#444; border:none; padding:12px; border-radius:8px; color:white">⟲ Corriger</button>
+            <button onclick="if(confirm('Arrêter ?')) go('p1')" style="flex:1; background:#800; border:none; padding:12px; border-radius:8px; color:white">⨉ Quitter</button>
         </div>
-        
-        <button id="btn-save-coach" class="btn-confirm" style="display:none" onclick="saveCoach()">Enregistrer</button>
-        <button id="btn-close-view" class="btn-confirm" style="display:none; background:#444; color:white" onclick="go('p6')">Retour Archives</button>
+        <button id="btn-save-coach" class="btn-confirm" style="display:none; background:var(--clay); color:white" onclick="saveCoach()">ENREGISTRER</button>
+        <button id="btn-close-view" class="btn-back" onclick="viewHistory()">RETOUR ARCHIVES</button>
     </div>
-
-    <div id="p6" class="page"><div class="section-title">Archives</div>
-        <div class="tabs"><div id="t1" class="tab" onclick="refreshH('Fosse Universelle')">FOSSE U.</div><div id="t2" class="tab" onclick="refreshH('DTL')">DTL</div><div id="t3" class="tab" onclick="refreshH('Trap 1')">TRAP 1</div></div>
-        <div id="hist-list" style="width:100%; overflow-y:auto; flex:1"></div>
-        <button class="btn-back" onclick="go('p2')">Retour</button>
-    </div>
-
+    <div id="p6" class="page"><div class="section-title">Archives</div><div id="hist-list" style="width:100%; max-width:320px;"></div><button class="btn-back" onclick="go('p2')">RETOUR</button></div>
     <script>
         let curF='', curD='', pts=[];
         const go=(id)=>{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');};
@@ -85,11 +60,45 @@
         function saveCoach(){finalSave(document.getElementById('score-live').innerText,pts);}
         function savePerso(){finalSave(document.getElementById('in-score').value+(curD==='Fosse Universelle'?' / 25':' / 75'),[]);}
         function finalSave(s,p){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db.unshift({id:Date.now(),folder:curF,disc:curD,name:document.getElementById('in-name').value,stand:document.getElementById('in-stand').value,score:s,date:new Date().toLocaleDateString('fr-FR'),details:p});localStorage.setItem('BT_DATA',JSON.stringify(db));alert("Enregistré !");go('p1');}
-        function viewHistory(){refreshH('Fosse Universelle');go('p6');}
-        function refreshH(d){const list=document.getElementById('hist-list'); const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(d==='Fosse Universelle') document.getElementById('t1').classList.add('active');if(d==='DTL') document.getElementById('t2').classList.add('active');if(d==='Trap 1') document.getElementById('t3').classList.add('active');const f=db.filter(a=>a.folder===curF&&a.disc===d);list.innerHTML=f.length?'':'<div style="padding:20px; text-align:center">Vide</div>';f.forEach(a=>{let action = (a.details && a.details.length>0) ? `onclick="showDetails(${a.id})"` : '';list.innerHTML+=`<div class="history-item" ${action}><div><small>${a.date}</small><br>${curF==='perso'?a.stand:a.name}</div><div style="display:flex;align-items:center"><span style="font-weight:900;color:var(--green);margin-right:15px">${a.score}</span><button onclick="event.stopPropagation(); del(${a.id},'${d}')" style="background:none;border:none;color:var(--red);font-size:20px">🗑️</button></div></div>`;});}
-        function showDetails(id){const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]'); const s=db.find(a=>a.id===id);if(s){pts=s.details; buildGrid(); document.getElementById('graph-box').style.display='block';setTimeout(() => { drawGraph(pts); }, 100);document.getElementById('coach-controls').style.display='none';document.getElementById('edit-controls').style.display='none';document.getElementById('btn-save-coach').style.display='none';document.getElementById('btn-close-view').style.display='block';go('p5');}}
-        function drawGraph(data){const canvas = document.getElementById('cvs'); const ctx = canvas.getContext('2d');const cw = canvas.offsetWidth, ch = canvas.offsetHeight;canvas.width = cw * 2; canvas.height = ch * 2; ctx.scale(2, 2);const m = 20, w = cw, h = ch;const stepX = (w - m*2)/24, stepY = (h - m*2)/25;let curS = 0, lastX = m, lastY = h - m;ctx.clearRect(0,0,w,h);ctx.lineWidth = 3; ctx.lineCap = "round";data.forEach((val, i) => {let oldX = lastX, oldY = lastY;if (val > 0) curS++;const nX = m + (i * stepX), nY = (h - m) - (curS * stepY);ctx.strokeStyle = (val===1?'#2ecc71':(val===2?'#f39c12':'#e74c3c'));ctx.beginPath(); ctx.moveTo(oldX, oldY); ctx.lineTo(nX, nY); ctx.stroke();lastX = nX; lastY = nY;});let dotS = 0; ctx.fillStyle = "white";data.forEach((val, i) => { if(val > 0) dotS++; ctx.beginPath(); ctx.arc(m + (i * stepX), (h - m) - (dotS * stepY), 2, 0, 7); ctx.fill(); });}
-        function del(id,d){if(confirm("Supprimer ?")){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db=db.filter(a=>a.id!==id);localStorage.setItem('BT_DATA',JSON.stringify(db));refreshH(d);}}
+        
+        function viewHistory(){
+            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
+            const studs=[...new Set(db.filter(a=>a.folder===curF).map(a=>a.name||'Inconnu'))];
+            const discs=[...new Set(db.filter(a=>a.folder===curF).map(a=>a.disc))];
+            const list=document.getElementById('hist-list');
+            let html=`<div style="margin-bottom:15px">
+                <select id="s-stud" onchange="applyFilters()" style="width:100%"><option value="all">Tous les élèves</option>`;
+            studs.forEach(s=>html+=`<option value="${s}">${s}</option>`);
+            html+=`</select><select id="s-disc" onchange="applyFilters()" style="width:100%"><option value="all">Toutes disciplines</option>`;
+            discs.forEach(d=>html+=`<option value="${d}">${d}</option>`);
+            html+=`</select></div><div id="filtered-container"></div>`;
+            list.innerHTML=html;
+            applyFilters();
+            go('p6');
+        }
+        function applyFilters(){
+            const n=document.getElementById('s-stud').value;
+            const d=document.getElementById('s-disc').value;
+            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
+            const cont=document.getElementById('filtered-container');
+            cont.innerHTML='';
+            db.filter(a=>a.folder===curF && (n==='all' || a.name===n) && (d==='all' || a.disc===d)).forEach(a=>{
+                cont.innerHTML+=`<div class="history-item" onclick="showDetails(${a.id})"><div><small>${a.date} | ${a.disc}</small><br>${a.name||'Score'}</div><div style="font-weight:900;color:var(--green)">${a.score}<button onclick="event.stopPropagation(); del(${a.id})" style="background:none;border:none;color:var(--red);margin-left:10px">🗑️</button></div></div>`;
+            });
+        }
+        function del(id){if(confirm("Supprimer ?")){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db=db.filter(a=>a.id!==id);localStorage.setItem('BT_DATA',JSON.stringify(db));viewHistory();}}
+        function showDetails(id){
+            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
+            const s=db.find(a=>a.id!==undefined && a.id===id);
+            if(s){
+                if(s.folder==='perso'){ alert("Score : "+s.score); return; }
+                pts=s.details; buildGrid(); document.getElementById('graph-box').style.display='block';
+                setTimeout(()=>{drawGraph(pts);},100); document.getElementById('coach-controls').style.display='none';
+                document.getElementById('edit-controls').style.display='none'; document.getElementById('btn-save-coach').style.display='none';
+                document.getElementById('btn-close-view').style.display='block'; go('p5');
+            }
+        }
+        function drawGraph(data){const canvas=document.getElementById('cvs');const ctx=canvas.getContext('2d');const cw=canvas.offsetWidth, ch=canvas.offsetHeight;canvas.width=cw*2;canvas.height=ch*2;ctx.scale(2,2);const m=20, w=cw, h=ch;const stepX=(w-m*2)/24, stepY=(h-m*2)/25;let curS=0, lastX=m, lastY=h-m;ctx.clearRect(0,0,w,h);ctx.lineWidth=3;ctx.lineCap="round";data.forEach((val,i)=>{let oldX=lastX, oldY=lastY;if(val>0)curS++;const nX=m+(i*stepX), nY=(h-m)-(curS*stepY);ctx.strokeStyle=(val===1?'#2ecc71':(val===2?'#f39c12':'#e74c3c'));ctx.beginPath();ctx.moveTo(oldX,oldY);ctx.lineTo(nX,nY);ctx.stroke();lastX=nX;lastY=nY;});}
     </script>
 </body>
 </html>
