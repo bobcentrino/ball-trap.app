@@ -3,179 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ball-Trap Pro v5.9.7</title>
+    <title>Ball-Trap Pro V6.6</title>
     <style>
-        :root { --clay: #ff5f00; --gold: #c5a059; --bg: #121212; --txt: #f0f0f0; --green: #2ecc71; --orange: #f39c12; --red: #e74c3c; --btn-back: #4a4a4a; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; box-sizing: border-box; }
-        .page { display: none; flex-direction: column; align-items: center; height: 100%; width: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .active { display: flex; }
-        #p0 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('fond.jpg'); background-size: cover; background-position: center; justify-content: flex-end; padding-bottom: 60px; }
-        .btn-entrer { background: var(--clay); color: white; border: none; padding: 22px 70px; border-radius: 10px; font-size: 18px; font-weight: bold; text-transform: uppercase; }
-        .section-title { color: var(--gold); text-transform: uppercase; margin: 20px 0; font-weight: bold; text-align: center; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 20px; border-radius: 12px; margin-bottom: 12px; width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; font-weight: bold; cursor: pointer; }
-        .btn-confirm { background: var(--gold); color: black; border: none; padding: 18px; border-radius: 8px; font-weight: bold; width: 100%; max-width: 320px; text-transform: uppercase; margin-top: 10px; box-sizing: border-box; display: block; margin-left: auto; margin-right: auto; }
-        .btn-back { background: var(--btn-back); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; max-width: 320px; margin-top: 15px; text-transform: uppercase; font-weight: bold; font-size: 14px; display: block; margin-left: auto; margin-right: auto; }
-        input, select { width: 100%; max-width: 320px; background: #1e1e1e; border: 1px solid #444; padding: 14px; color: white; border-radius: 8px; margin-bottom: 8px; text-align: center; font-size: 16px; box-sizing: border-box; display: block; margin-left: auto; margin-right: auto; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 100%; max-width: 300px; margin-bottom: 20px; box-sizing: border-box; }
-        .cell { aspect-ratio: 1; background: #222; border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
-        .hit1 { background: var(--green) !important; } .hit2 { background: var(--orange) !important; } .miss { background: var(--red) !important; }
-        #graph-box { width: 100%; max-width: 320px; background: #111; border: 1px solid var(--gold); border-radius: 12px; padding: 10px; margin-bottom: 15px; display: none; box-sizing: border-box; }
-        canvas { width: 100%; height: 150px; display: block; }
-        .history-item { background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 320px; border-left: 5px solid var(--gold); box-sizing: border-box; }
+        :root {
+            --primary: #007AFF; --success: #34C759; --warning: #FF9500; --danger: #FF3B30;
+            --bg-light: #F2F2F7; --card-bg: #FFFFFF; --text-main: #1C1C1E; --text-sec: #8E8E93;
+        }
+        body, html { margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg-light); height: 100vh; width: 100%; overflow: hidden; }
+        
+        /* STRUCTURE FLEXIBLE */
+        .flex-page { display: none; flex-direction: column; height: 100vh; padding: 15px; box-sizing: border-box; }
+        .header { flex-shrink: 0; margin-bottom: 10px; }
+        .content { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .footer { flex-shrink: 0; padding-top: 10px; }
+
+        #page-accueil { background: #1c1c1e url('fond.jpg') center/cover; justify-content: center; align-items: center; text-align: center; color: white; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .btn-menu { width: 100%; background: white; border: none; padding: 20px; border-radius: 15px; margin-bottom: 10px; font-size: 1.1rem; font-weight: 600; text-align: left; display: flex; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-action { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
+        
+        /* GRILLE & GRAPH */
+        .grid-trap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .tile { aspect-ratio: 1; border-radius: 6px; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+        .v { background: var(--success); color: white; } .o { background: var(--warning); color: white; } .r { background: var(--danger); color: white; }
+        
+        .graph-container { height: 180px; position: relative; margin: 25px 0 10px 30px; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+        .y-axis { position: absolute; left: -25px; height: 100%; display: flex; flex-direction: column-reverse; justify-content: space-between; font-size: 0.7rem; color: var(--text-sec); }
+        .dot { width: 6px; height: 6px; background: white; border: 2px solid var(--primary); border-radius: 50%; position: absolute; transform: translate(-50%, 50%); }
+
+        /* SAISIE BASSE */
+        .saisie-bottom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .btn-saisie { height: 70px; border-radius: 15px; border: none; color: white; font-size: 1.5rem; font-weight: 800; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
     </style>
 </head>
 <body>
-    <div id="p0" class="page active"><button class="btn-entrer" onclick="go('p1')">Entrer</button></div>
-    <div id="p1" class="page"><div class="section-title">Dossiers</div><div class="card" onclick="setFolder('perso')">MES SCORES PERSO</div><div class="card" onclick="setFolder('coach')">DOSSIER ÉLÈVES</div><button class="btn-back" style="background:var(--red)" onclick="go('p0')">SORTIR</button></div>
-    <div id="p2" class="page"><div class="section-title">Discipline</div><div class="card" onclick="setDisc('Fosse Universelle')">FOSSE UNIVERSELLE</div><div class="card" onclick="setDisc('DTL')">DTL</div><div class="card" onclick="setDisc('Trap 1')">TRAP 1</div><button class="btn-confirm" onclick="viewHistory()">📂 ARCHIVES</button><button class="btn-back" onclick="go('p1')">RETOUR</button></div>
-    <div id="p3" class="page"><div class="section-title">Infos</div><input type="text" id="in-name" placeholder="Nom"><input type="text" id="in-stand" placeholder="Stand"><button class="btn-confirm" style="background:var(--clay); color:white" onclick="startSérie()">DÉMARRER</button><button class="btn-back" onclick="go('p2')">RETOUR</button></div>
-    <div id="p4" class="page"><div class="section-title">Score Rapide</div><input type="number" id="in-score" placeholder="Points"><button class="btn-confirm" onclick="savePerso()">SAUVER</button><button class="btn-back" onclick="go('p1')">RETOUR</button></div>
-    <div id="p5" class="page">
-        <div id="score-live" style="font-size:28px; color:var(--gold); font-weight:bold; margin:20px 0;">0 / 25</div>
-        <div id="graph-box"><canvas id="cvs"></canvas></div>
-        <div class="grid" id="grid"></div>
-        <div id="coach-controls" style="display:flex; gap:10px; width:100%; max-width:320px;">
-            <button onclick="hit(1)" style="flex:1; background:var(--green); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">1er</button>
-            <button onclick="hit(2)" style="flex:1; background:var(--orange); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">2ème</button>
-            <button onclick="hit(0)" style="flex:1; background:var(--red); height:60px; border:none; border-radius:12px; color:white; font-weight:bold">ZÉRO</button>
-        </div>
-        <div id="edit-controls" style="display:flex; gap:10px; width:100%; max-width:320px; margin-top:10px">
-            <button onclick="undoHit()" style="flex:1; background:#444; border:none; padding:12px; border-radius:8px; color:white">⟲ Corriger</button>
-            <button onclick="if(confirm('Arrêter ?')) go('p1')" style="flex:1; background:#800; border:none; padding:12px; border-radius:8px; color:white">⨉ Quitter</button>
-        </div>
-        <button id="btn-save-coach" class="btn-confirm" style="display:none; background:var(--clay); color:white" onclick="saveCoach()">ENREGISTRER</button>
-        <button id="btn-close-view" class="btn-back" onclick="viewHistory()">RETOUR ARCHIVES</button>
+
+    <div id="page-accueil" class="flex-page" style="display: flex;">
+        <h1 style="font-size: 2.5rem; margin: 0;">BALL-TRAP PRO</h1>
+        <button class="btn-action" style="width: auto; padding: 15px 50px; border-radius: 40px; background: rgba(255,255,255,0.2); color:white; border:1px solid white; margin-top:30px;" onclick="nav('page-menu')">ENTRER</button>
     </div>
-    <div id="p6" class="page">
-        <div class="section-title">Archives</div>
-        <div id="hist-list" style="width:100%; max-width:320px;"></div>
-        <button class="btn-confirm" style="background:#333; color:white" onclick="exportData()">💾 EXPORTER DONNÉES</button>
-        <label class="btn-confirm" style="background:#333; color:white; cursor:pointer; text-align:center;">
-            📂 IMPORTER DONNÉES
-            <input type="file" id="file-input" style="display:none" onchange="importData(event)">
-        </label>
-        <button class="btn-back" onclick="go('p2')">RETOUR</button>
+
+    <div id="page-menu" class="flex-page">
+        <div class="header"><h2>Dossiers</h2></div>
+        <div class="content">
+            <button class="btn-menu" onclick="prepSaisie('perso')">👤 Mes Scores Perso<span>❯</span></button>
+            <button class="btn-menu" onclick="prepSaisie('eleve')">🎓 Suivi mes Élèves<span>❯</span></button>
+            <button class="btn-menu" onclick="nav('page-archives-choix')">📁 Archives<span>❯</span></button>
+        </div>
+        <div class="footer"><button class="btn-action" style="background:var(--danger); color:white;" onclick="nav('page-accueil')">Sortie</button></div>
     </div>
+
+    <div id="page-config" class="flex-page">
+        <div class="header"><h2>Configuration</h2></div>
+        <div class="content">
+            <div class="card">
+                <input type="text" id="cfg-nom" placeholder="Nom">
+                <select id="cfg-disc">
+                    <option value="FU">Fosse Universelle (25 pts)</option>
+                    <option value="DTL">DTL / Trap 1 (75 pts)</option>
+                </select>
+                <div id="zone-perso-direct" style="display:none;">
+                    <input type="number" id="cfg-score-final" placeholder="Score Final">
+                </div>
+                <button class="btn-action" style="background:var(--primary); color:white; margin-top:10px;" onclick="validerConfig()">LANCER</button>
+                <button class="btn-action" style="background:none; color:var(--text-sec);" onclick="nav('page-menu')">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-coaching" class="flex-page">
+        <div class="header" style="text-align:center;">
+            <b id="coach-titre">Élève</b>
+            <div id="coach-score" style="font-size:2rem; font-weight:900; color:var(--primary);">0</div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="grid-trap" id="coach-grid"></div>
+                <button class="btn-action" style="background:#eee; margin-top:10px; font-size:0.8rem;" onclick="corriger()">CORRECTION</button>
+            </div>
+        </div>
+        <div class="footer">
+            <button id="btn-save-coach" class="btn-action" style="display:none; background:var(--success); color:white; height:60px; margin-bottom:10px;" onclick="sauverEleve()">ENREGISTRER</button>
+            <div class="saisie-bottom" id="touches-coach">
+                <button class="btn-saisie" style="background:var(--success)" onclick="touch(1)">V</button>
+                <button class="btn-saisie" style="background:var(--warning)" onclick="touch(2)">O</button>
+                <button class="btn-saisie" style="background:var(--danger)" onclick="touch(0)">R</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-archives-choix" class="flex-page">
+        <div class="header"><button onclick="nav('page-menu')" style="background:none; border:none; color:var(--primary);">❮ Retour</button><h2>Archives</h2></div>
+        <div class="content">
+            <button class="btn-menu" onclick="ouvrirArchiveListe('perso')">📂 Mes Scores Perso<span>❯</span></button>
+            <button class="btn-menu" onclick="ouvrirArchiveListe('eleve')">📂 Scores Élèves<span>❯</span></button>
+        </div>
+    </div>
+
+    <div id="page-archives-liste" class="flex-page">
+        <div class="header"><button onclick="nav('page-archives-choix')" style="background:none; border:none; color:var(--primary);">❮ Dossiers</button><h2 id="arch-liste-titre">Liste</h2></div>
+        <div class="content" id="container-liste"></div>
+    </div>
+
+    <div id="page-detail" class="flex-page">
+        <div class="header"><button onclick="nav('page-archives-liste')" style="background:none; border:none; color:var(--primary);">❮ Retour</button><h2>Détail</h2></div>
+        <div class="content" id="detail-content"></div>
+    </div>
+
     <script>
-        let curF='', curD='', pts=[];
-        const go=(id)=>{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');};
-        function setFolder(f){curF=f;go('p2');}
-        function setDisc(d){curD=d;document.getElementById('in-name').value=(curF==='perso'?'Moi':'');go('p3');}
-        function startSérie(){pts=[];document.getElementById('graph-box').style.display='none';if(curF==='perso')go('p4');else{buildGrid();go('p5');document.getElementById('coach-controls').style.display='flex';document.getElementById('edit-controls').style.display='flex';document.getElementById('btn-save-coach').style.display='none';document.getElementById('btn-close-view').style.display='none';}}
-        function buildGrid(){const g=document.getElementById('grid');g.innerHTML='';for(let i=0;i<25;i++)g.innerHTML+=`<div class="cell" id="c${i}">${i+1}</div>`;updateS();}
-        function hit(v){if(pts.length<25){pts.push(v);updateS();}}
-        function undoHit(){pts.pop();updateS();}
-        function updateS(){let t=0;pts.forEach((v,i)=>{const el=document.getElementById('c'+i);if(el)el.className='cell '+(v===1?'hit1':v===2?'hit2':v===0?'miss':'');if(curD==='Fosse Universelle')t+=(v>0?1:0);else t+=(v===1?3:v===2?2:0);});document.getElementById('score-live').innerText=t+(curD==='Fosse Universelle'?' / 25':' / 75');document.getElementById('btn-save-coach').style.display=(pts.length>=25?'block':'none');document.getElementById('edit-controls').style.display=(pts.length>=25?'none':'flex');}
-        function saveCoach(){finalSave(document.getElementById('score-live').innerText,pts);}
-        function savePerso(){
-            let val = parseInt(document.getElementById('in-score').value);
-            let max = (curD === 'Fosse Universelle') ? 25 : 75;
-            if(isNaN(val) || val < 0 || val > max){ alert("Score invalide ! Max: " + max); return; }
-            finalSave(val + (curD === 'Fosse Universelle' ? ' / 25' : ' / 75'), []);
+        let data = JSON.parse(localStorage.getItem('trap_master_db')) || { perso: [], eleve: [] };
+        let cur = { mode: '', scores: [] };
+
+        function nav(id) {
+            document.querySelectorAll('.flex-page').forEach(p => p.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
         }
-        function finalSave(s,p){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db.unshift({id:Date.now(),folder:curF,disc:curD,name:document.getElementById('in-name').value,stand:document.getElementById('in-stand').value,score:s,date:new Date().toLocaleDateString('fr-FR'),details:p});localStorage.setItem('BT_DATA',JSON.stringify(db));alert("Enregistré !");go('p1');}
-        function viewHistory(){
-            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
-            const studs=[...new Set(db.filter(a=>a.folder===curF).map(a=>a.name||'Inconnu'))];
-            const discs=[...new Set(db.filter(a=>a.folder===curF).map(a=>a.disc))];
-            const list=document.getElementById('hist-list');
-            let html=`<div style="margin-bottom:15px">
-                <select id="s-stud" onchange="applyFilters()" style="width:100%"><option value="all">Tous les élèves</option>`;
-            studs.forEach(s=>html+=`<option value="${s}">${s}</option>`);
-            html+=`</select><select id="s-disc" onchange="applyFilters()" style="width:100%"><option value="all">Toutes disciplines</option>`;
-            discs.forEach(d=>html+=`<option value="${d}">${d}</option>`);
-            html+=`</select></div><div id="filtered-container"></div>`;
-            list.innerHTML=html;
-            applyFilters();
-            go('p6');
+
+        function prepSaisie(mode) {
+            cur.mode = mode;
+            document.getElementById('zone-perso-direct').style.display = (mode === 'perso') ? 'block' : 'none';
+            document.getElementById('cfg-nom').placeholder = (mode === 'perso') ? 'Lieu / Stand' : 'Nom de l\'élève';
+            nav('page-config');
         }
-        function applyFilters(){
-            const n=document.getElementById('s-stud').value;
-            const d=document.getElementById('s-disc').value;
-            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
-            const cont=document.getElementById('filtered-container');
-            cont.innerHTML='';
-            db.filter(a=>a.folder===curF && (n==='all' || a.name===n) && (d==='all' || a.disc===d)).forEach(a=>{
-                cont.innerHTML+=`<div class="history-item" onclick="showDetails(${a.id})"><div><small>${a.date} | ${a.disc}</small><br>${a.name||'Score'}</div><div style="font-weight:900;color:var(--green)">${a.score}<button onclick="event.stopPropagation(); del(${a.id})" style="background:none;border:none;color:var(--red);margin-left:10px">🗑️</button></div></div>`;
-            });
-        }
-        function del(id){if(confirm("Supprimer ?")){let db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');db=db.filter(a=>a.id!==id);localStorage.setItem('BT_DATA',JSON.stringify(db));viewHistory();}}
-        function showDetails(id){
-            const db=JSON.parse(localStorage.getItem('BT_DATA')||'[]');
-            const s=db.find(a=>a.id!==undefined && a.id===id);
-            if(s){
-                if(s.folder==='perso'){ alert("Score : "+s.score); return; }
-                pts=s.details; buildGrid(); document.getElementById('graph-box').style.display='block';
-                setTimeout(()=>{drawGraph(pts);},100); document.getElementById('coach-controls').style.display='none';
-                document.getElementById('edit-controls').style.display='none'; document.getElementById('btn-save-coach').style.display='none';
-                document.getElementById('btn-close-view').style.display='block'; go('p5');
+
+        function validerConfig() {
+            cur.nom = document.getElementById('cfg-nom').value || "Inconnu";
+            cur.disc = document.getElementById('cfg-disc').value;
+            if(cur.mode === 'perso') {
+                const s = parseInt(document.getElementById('cfg-score-final').value);
+                data.perso.push({ nom: cur.nom, disc: cur.disc, total: s, date: new Date().toISOString() });
+                save(); nav('page-menu');
+            } else {
+                cur.scores = []; document.getElementById('coach-titre').innerText = cur.nom;
+                document.getElementById('btn-save-coach').style.display='none';
+                document.getElementById('touches-coach').style.display='grid';
+                refreshGrid(); nav('page-coaching');
             }
         }
-        function drawGraph(data) {
-    const canvas = document.getElementById('cvs');
-    const ctx = canvas.getContext('2d');
-    const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
-    canvas.width = cw * 2; canvas.height = ch * 2;
-    ctx.scale(2, 2);
-    
-    const m = 35; 
-    const w = cw, h = ch;
-    const stepX = (w - m * 2) / 24; 
-    const stepY = (h - m * 2) / 25;
 
-    ctx.clearRect(0, 0, w, h);
-    
-    // 1. Quadrillage intérieur
-    ctx.strokeStyle = "#444"; 
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for(let i=4; i<25; i+=5) { let x = m + (i * stepX); ctx.moveTo(x, m); ctx.lineTo(x, h-m); }
-    for(let i=5; i<=25; i+=5) { let y = (h - m) - (i * stepY); ctx.moveTo(m, y); ctx.lineTo(w-m, y); }
-    ctx.stroke();
+        function touch(c) {
+            if(cur.scores.length >= 25) return;
+            let p = (cur.disc === 'FU') ? (c > 0 ? 1 : 0) : (c === 1 ? 3 : (c === 2 ? 2 : 0));
+            cur.scores.push({c, p}); refreshGrid();
+            if(cur.scores.length === 25) {
+                document.getElementById('btn-save-coach').style.display='block';
+                document.getElementById('touches-coach').style.display='none';
+            }
+        }
 
-    // 2. Axes principaux
-    ctx.strokeStyle = "#888"; 
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(m, m); ctx.lineTo(m, h - m); 
-    ctx.lineTo(w - m, h - m); 
-    ctx.stroke();
+        function refreshGrid() {
+            const g = document.getElementById('coach-grid'); g.innerHTML = '';
+            for(let i=0; i<25; i++) {
+                const t = document.createElement('div'); t.className = 'tile'; t.innerText = i+1;
+                if(cur.scores[i]) {
+                    const s = cur.scores[i];
+                    if(s.c === 1) t.classList.add('v'); else if(s.c === 2) t.classList.add('o'); else if(s.c === 0) t.classList.add('r');
+                }
+                g.appendChild(t);
+            }
+            document.getElementById('coach-score').innerText = cur.scores.reduce((a,b)=>a+b.p,0);
+        }
 
-    // 3. Graduations
-    ctx.fillStyle = "#bbb"; 
-    ctx.font = "bold 12px Arial";
-    ctx.textAlign = "center";
-    for(let i=4; i<25; i+=5) { ctx.fillText(i + 1, m + (i * stepX), h - 10); }
-    ctx.textAlign = "right";
-    for(let i=5; i<=25; i+=5) { ctx.fillText(i, m - 5, (h - m) - (i * stepY) + 5); }
+        function corriger() { 
+            cur.scores.pop(); 
+            document.getElementById('btn-save-coach').style.display='none';
+            document.getElementById('touches-coach').style.display='grid';
+            refreshGrid(); 
+        }
 
-    // 4. Courbe et points
-    let curS = 0, lastX = m, lastY = h - m;
-    data.forEach((val, i) => {
-        let oldX = lastX, oldY = lastY;
-        if(val > 0) curS++;
-        const nX = m + (i * stepX);
-        const nY = (h - m) - (curS * stepY);
-        
-        // Tracer la ligne
-        ctx.strokeStyle = (val === 1 ? '#2ecc71' : (val === 2 ? '#f39c12' : '#e74c3c'));
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(oldX, oldY); ctx.lineTo(nX, nY); ctx.stroke();
-        
-        // Ajouter le petit point blanc (cercle)
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(nX, nY, 3, 0, Math.PI * 2); // Rayon de 3 pixels
-        ctx.fill();
-        ctx.strokeStyle = "#333"; // Petit contour pour mieux voir le point
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        
-        lastX = nX; lastY = nY;
-    });
-}
-        function exportData(){const data=localStorage.getItem('BT_DATA');if(!data){alert("Rien à exporter !");return;}const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download="backup_balltrap.json";a.click();}
-        function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{localStorage.setItem('BT_DATA',e.target.result);alert("Données importées !");location.reload();}catch(err){alert("Fichier invalide");}};r.readAsText(f);}
+        function sauverEleve() {
+            data.eleve.push({ nom: cur.nom, disc: cur.disc, scores: cur.scores, total: cur.scores.reduce((a,b)=>a+b.p,0), date: new Date().toISOString() });
+            save(); nav('page-menu');
+        }
+
+        function ouvrirArchiveListe(mode) {
+            cur.mode = mode;
+            document.getElementById('arch-liste-titre').innerText = (mode === 'perso') ? "Mes Scores" : "Élèves";
+            const cont = document.getElementById('container-liste'); cont.innerHTML = '';
+            data[mode].slice().reverse().forEach((s, i) => {
+                const b = document.createElement('button'); b.className = 'btn-menu';
+                b.innerHTML = `<div><b>${s.nom}</b><br><small>${s.disc} - ${new Date(s.date).toLocaleDateString()}</small></div><b>${s.total}</b>`;
+                b.onclick = () => voirDetail(s, mode);
+                cont.appendChild(b);
+            });
+            nav('page-archives-liste');
+        }
+
+        function voirDetail(s, mode) {
+            const cont = document.getElementById('detail-content');
+            let html = `<div class="card" style="text-align:center;"><h3>${s.nom}</h3><p>${s.disc} - ${new Date(s.date).toLocaleString()}</p><h1 style="color:var(--warning); font-size:3rem;">${s.total}</h1></div>`;
+            if(mode === 'eleve') {
+                html += `<div class="card"><div class="grid-trap">`;
+                s.scores.forEach((p, i) => {
+                    let cl = p.c === 1 ? 'v' : (p.c === 2 ? 'o' : 'r');
+                    html += `<div class="tile ${cl}">${i+1}</div>`;
+                });
+                html += `</div></div><div class="card"><div class="graph-container"><div class="y-axis"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span></div><div id="graph-body"></div></div></div>`;
+            }
+            html += `<button class="btn-action" style="background:var(--danger); color:white;" onclick="supprimer('${s.date}', '${mode}')">SUPPRIMER CETTE FICHE</button>`;
+            cont.innerHTML = html; nav('page-detail');
+            if(mode === 'eleve') setTimeout(() => drawGraph(s.scores), 50);
+        }
+
+        function drawGraph(sc) {
+            const b = document.getElementById('graph-body'); let cum = 0;
+            sc.forEach((s, i) => {
+                if(s.p > 0) cum++;
+                const d = document.createElement('div'); d.className = 'dot';
+                d.style.left = `${(i+1)*4}%`; d.style.bottom = `${cum*4}%`;
+                b.appendChild(d);
+            });
+        }
+
+        function supprimer(date, mode) {
+            if(confirm("Supprimer ?")) {
+                data[mode] = data[mode].filter(s => s.date !== date);
+                save(); ouvrirArchiveListe(mode);
+            }
+        }
+
+        function save() { localStorage.setItem('trap_master_db', JSON.stringify(data)); }
     </script>
 </body>
 </html>
