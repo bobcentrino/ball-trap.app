@@ -6,6 +6,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Ball-Trap Master V8.8</title>
+    <link rel="apple-touch-icon" href="icon.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --bg: #0a0a0a; --card: #161616; --text: #ffffff; --accent: #f39c12;
@@ -38,7 +42,16 @@
         .graph-frame { border: 2px solid var(--accent); border-radius: 15px; padding: 20px; background: var(--card); margin-bottom: 20px; }
         .graph-area { height: 180px; position: relative; border-left: 1px solid #777; border-bottom: 1px solid #777; margin-left: 30px; margin-bottom: 25px; }
         .y-labels { position: absolute; left: -30px; height: 100%; display: flex; flex-direction: column-reverse; justify-content: space-between; font-size: 0.8rem; color: #888; }
-        .dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; position: absolute; z-index: 10; transform: translate(-50%, 50%); box-shadow: 0 0 3px #000; }
+        .dot { 
+    width: 3.5px; 
+    height: 3.5px; 
+    background: #fff; 
+    border-radius: 50%; 
+    position: absolute; 
+    z-index: 10; 
+    transform: translate(-50%, 50%); 
+    box-shadow: 0 0 2px rgba(0,0,0,0.5); 
+}
         svg { position: absolute; width: 100%; height: 100%; overflow: visible; }
         .l-v { stroke: var(--success); stroke-width: 3; }
         .l-o { stroke: var(--warning); stroke-width: 3; }
