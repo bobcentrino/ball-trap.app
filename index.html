@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Ball-Trap Master V8.8</title>
     <link rel="apple-touch-icon" href="icon.png">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Ball-Trap Master V9.2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg: #0a0a0a; --card: #161616; --text: #ffffff; --accent: #f39c12;
@@ -17,71 +15,48 @@
         }
         body, html { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100dvh; width: 100%; overflow: hidden; }
         .flex-page { display: none; flex-direction: column; height: 100dvh; box-sizing: border-box; }
-        .content { flex-grow: 1; overflow-y: auto; padding: 20px; padding-top: 40px; -webkit-overflow-scrolling: touch; }
+        .content { flex-grow: 1; overflow-y: auto; padding: 20px; padding-top: 55px; -webkit-overflow-scrolling: touch; }
         .footer { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); flex-shrink: 0; }
 
-        /* ACCUEIL */
-        #page-accueil { background: #000 url('fond.jpg') center no-repeat; background-size: contain; justify-content: flex-end; align-items: center; padding-bottom: 80px; }
-        .btn-entrer { background: #ff6600; color: white; border: none; padding: 18px 80px; border-radius: 12px; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; box-shadow: 0 4px 15px rgba(255,102,0,0.3); }
+        .gold-title { color: var(--accent); text-align: center; font-weight: 800; text-transform: uppercase; margin: 10px 0; }
+        .score-header { font-size: 3.5rem; font-weight: 900; text-align: center; color: var(--accent); margin-bottom: 15px; }
 
-        .gold-title { color: var(--accent); text-align: center; font-weight: 800; text-transform: uppercase; margin: 15px 0; }
-        .score-header { font-size: 3rem; font-weight: 900; text-align: center; color: var(--accent); margin-bottom: 20px; }
-
-        /* GRILLE */
-        .grid-trap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 450px; margin: 0 auto 20px auto; }
-        .tile { aspect-ratio: 1; background: var(--gray); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; color: #444; }
+        .grid-trap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 450px; margin: 0 auto 15px auto; }
+        .tile { aspect-ratio: 1; background: var(--gray); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: #444; }
         .v { background: var(--success) !important; color: white !important; }
         .o { background: var(--warning) !important; color: white !important; }
         .r { background: var(--danger) !important; color: white !important; }
 
-        /* SAISIE */
         .saisie-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .btn-s { height: 90px; border-radius: 15px; border: none; color: white; font-size: 1.4rem; font-weight: 900; box-shadow: 0 4px 0 rgba(0,0,0,0.3); }
+        .btn-s { height: 85px; border-radius: 15px; border: none; color: white; font-size: 1.5rem; font-weight: 900; }
 
-        /* GRAPHIQUE */
-        .graph-frame { border: 2px solid var(--accent); border-radius: 15px; padding: 20px; background: var(--card); margin-bottom: 20px; }
-        .graph-area { height: 180px; position: relative; border-left: 1px solid #777; border-bottom: 1px solid #777; margin-left: 30px; margin-bottom: 25px; }
-        .y-labels { position: absolute; left: -30px; height: 100%; display: flex; flex-direction: column-reverse; justify-content: space-between; font-size: 0.8rem; color: #888; }
-        .dot { 
-    width: 3.5px; 
-    height: 3.5px; 
-    background: #fff; 
-    border-radius: 50%; 
-    position: absolute; 
-    z-index: 10; 
-    transform: translate(-50%, 50%); 
-    box-shadow: 0 0 2px rgba(0,0,0,0.5); 
-}
+        .graph-frame { border: 1.5px solid var(--accent); border-radius: 15px; padding: 15px; background: var(--card); margin-bottom: 15px; }
+        .graph-area { height: 160px; position: relative; border-left: 1px solid #555; border-bottom: 1px solid #555; margin-left: 25px; margin-bottom: 20px; }
+        .y-labels { position: absolute; left: -25px; height: 100%; display: flex; flex-direction: column-reverse; justify-content: space-between; font-size: 0.7rem; color: #777; }
+        .dot { width: 3.5px; height: 3.5px; background: #fff; border-radius: 50%; position: absolute; z-index: 10; transform: translate(-50%, 50%); }
         svg { position: absolute; width: 100%; height: 100%; overflow: visible; }
-        .l-v { stroke: var(--success); stroke-width: 3; }
-        .l-o { stroke: var(--warning); stroke-width: 3; }
-        .l-r { stroke: var(--danger); stroke-width: 3; }
+        
+        .analysis-box { background: rgba(243, 156, 18, 0.15); border-left: 4px solid var(--accent); padding: 12px; border-radius: 4px; margin-bottom: 15px; font-style: italic; font-size: 0.9rem; line-height: 1.3; }
+        textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box; }
 
-        /* ARCHIVES */
         .arch-card { background: var(--card); padding: 18px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
-        select, input { width: 100%; padding: 16px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 10px; margin-bottom: 12px; font-size: 1.1rem; box-sizing: border-box; -webkit-appearance: none; }
-        .btn-full { width: 100%; padding: 20px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; background: #2c2c2c; color: white; text-transform: uppercase; font-size: 1rem; }
+        .btn-full { width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: 800; background: #2c2c2c; color: white; text-transform: uppercase; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="page-accueil" class="flex-page" style="display: flex;"><button class="btn-entrer" onclick="nav('page-menu')">ENTRER</button></div>
+    <div id="page-accueil" class="flex-page" style="display: flex; background: #000 url('fond.jpg') center no-repeat; background-size: contain; justify-content: flex-end; align-items: center; padding-bottom: 80px;">
+        <button class="btn-full" style="background:#ff6600; width: auto; padding: 18px 60px;" onclick="nav('page-menu')">ENTRER</button>
+    </div>
 
     <div id="page-menu" class="flex-page">
         <div class="content">
             <h2 class="gold-title">Tableau de Bord</h2>
-            <button class="btn-full" style="background:var(--accent); color:black; margin-bottom:15px;" onclick="prep('perso')">👤 Nouveau Score Perso</button>
-            <button class="btn-full" style="background:var(--accent); color:black;" onclick="prep('eleve')">🎓 Nouveau Suivi Élève</button>
-            
+            <button class="btn-full" style="background:var(--accent); color:black; margin-bottom:15px;" onclick="prep('perso')">👤 Score Perso</button>
+            <button class="btn-full" style="background:var(--accent); color:black;" onclick="prep('eleve')">🎓 Suivi Élève</button>
             <div style="margin-top: 40px; display: grid; gap: 10px;">
-                <button class="btn-full" onclick="navArch('perso')">📁 Dossier Mes Scores</button>
-                <button class="btn-full" onclick="navArch('eleve')">📁 Dossier mes Élèves</button>
-            </div>
-
-            <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 20px; display: grid; gap: 10px;">
-                <button class="btn-full" style="background:#444;" onclick="exportJ()">💾 Exporter Sauvegarde</button>
-                <button class="btn-full" style="background:#444;" onclick="document.getElementById('imp').click()">📂 Importer Sauvegarde</button>
-                <input type="file" id="imp" style="display:none" onchange="importJ(event)">
+                <button class="btn-full" onclick="navArch('perso')">📁 Dossier Perso</button>
+                <button class="btn-full" onclick="navArch('eleve')">📁 Dossier Élèves</button>
             </div>
         </div>
         <div class="footer"><button class="btn-full" onclick="nav('page-accueil')">Sortie</button></div>
@@ -90,14 +65,14 @@
     <div id="page-config" class="flex-page">
         <div class="content">
             <h2 class="gold-title">Configuration</h2>
-            <input type="text" id="cfg-nom" placeholder="Nom">
-            <select id="cfg-disc">
+            <input type="text" id="cfg-nom" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:none;" placeholder="Nom du tireur">
+            <select id="cfg-disc" style="width:100%; padding:15px; border-radius:10px; border:none;">
                 <option value="FU">Fosse Universelle</option>
                 <option value="DTL">DTL</option>
                 <option value="Trap 1">Trap 1</option>
             </select>
-            <div id="zone-p" style="display:none;"><input type="number" id="cfg-total" placeholder="Total Score Final"></div>
-            <button class="btn-full" style="background:var(--success); color:white; margin-top:20px;" onclick="lancer()">VALIDER</button>
+            <div id="zone-p" style="display:none; margin-top:10px;"><input type="number" id="cfg-total" style="width:100%; padding:15px; border-radius:10px; border:none;" placeholder="Total points"></div>
+            <button class="btn-full" style="background:var(--success); margin-top:25px;" onclick="lancer()">VALIDER</button>
         </div>
         <div class="footer"><button class="btn-full" onclick="nav('page-menu')">ANNULER</button></div>
     </div>
@@ -106,6 +81,7 @@
         <div class="content">
             <div id="s-score" class="score-header">0</div>
             <div class="grid-trap" id="s-grid"></div>
+            <textarea id="s-notes" placeholder="Note de coaching rapide..."></textarea>
         </div>
         <div class="footer">
             <div class="saisie-controls">
@@ -113,55 +89,66 @@
                 <button class="btn-s" style="background:var(--warning)" onclick="hit(2)">O</button>
                 <button class="btn-s" style="background:var(--danger)" onclick="hit(0)">R</button>
             </div>
-            <button id="btn-save" class="btn-full" style="display:none; background:var(--accent); color:black; margin-top:15px;" onclick="save()">ENREGISTRER</button>
-            <button class="btn-full" style="background:none; margin-top:10px; color:#888;" onclick="undo()">⟲ Correction</button>
+            <button id="btn-save" class="btn-full" style="display:none; background:var(--accent); color:black; margin-top:15px;" onclick="save()">ENREGISTRER LA SÉRIE</button>
+            <button class="btn-full" style="background:none; margin-top:10px; color:#555;" onclick="undo()">⟲ Correction</button>
         </div>
     </div>
 
     <div id="page-archives" class="flex-page">
         <div class="content">
             <h2 class="gold-title" id="arch-title">Archives</h2>
-            <select id="f-nom" onchange="drawList()"><option value="Tous">Tous les noms</option></select>
-            <select id="f-disc" onchange="drawList()"><option value="Toutes">Toutes disciplines</option></select>
             <div id="arch-list"></div>
         </div>
         <div class="footer"><button class="btn-full" onclick="nav('page-menu')">RETOUR</button></div>
     </div>
 
     <div id="page-detail" class="flex-page">
-        <div class="content">
+        <div class="content" id="capture-zone">
+            <h3 id="d-title" style="text-align:center; margin-top:0;">Bilan</h3>
             <div id="d-total" class="score-header">0</div>
-            <div class="graph-frame" id="d-graph-frame">
+            <div class="graph-frame">
                 <div class="graph-area" id="g-body">
                     <div class="y-labels"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span></div>
                     <svg id="g-svg"></svg>
                 </div>
             </div>
-            <div class="grid-trap" id="d-grid"></div>
+            <div id="d-analysis" class="analysis-box"></div>
+            <div id="d-notes" style="color:#aaa; font-size:0.9rem; padding:5px 10px;"></div>
+            <div class="grid-trap" id="d-grid" style="margin-top:15px;"></div>
         </div>
-        <div class="footer"><button class="btn-full" onclick="nav('page-archives')">RETOUR LISTE</button></div>
+        <div class="footer">
+            <button class="btn-full" style="background:var(--accent); color:black; margin-bottom:10px;" onclick="shareBilan()">📤 PARTAGER LE BILAN</button>
+            <button class="btn-full" onclick="navArch(currentMode)">RETOUR LISTE</button>
+        </div>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('trap_db_v88')) || { perso: [], eleve: [] };
+        let db = JSON.parse(localStorage.getItem('trap_db_v92')) || { perso: [], eleve: [] };
         let cur = { scores: [] };
         let currentMode = 'eleve';
 
+        // Fix CodePen / GitHub Startup
+        document.addEventListener("DOMContentLoaded", () => {
+            nav('page-accueil');
+        });
+
         function nav(id) {
             document.querySelectorAll('.flex-page').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'flex';
+            const target = document.getElementById(id);
+            if(target) target.style.display = 'flex';
         }
 
         function navArch(mode) {
             currentMode = mode;
-            document.getElementById('arch-title').innerText = (mode === 'perso') ? "Dossier Perso" : "Dossier Élèves";
-            updateFilters(); drawList(); nav('page-archives');
+            document.getElementById('arch-title').innerText = (mode === 'perso') ? "Mes Scores" : "Dossier Élèves";
+            drawList(); nav('page-archives');
         }
 
         function prep(m) {
             cur = { mode: m, scores: [] };
             document.getElementById('zone-p').style.display = (m === 'perso') ? 'block' : 'none';
             document.getElementById('cfg-nom').value = (m === 'perso') ? "Moi" : "";
+            document.getElementById('s-notes').value = "";
             nav('page-config');
         }
 
@@ -177,8 +164,9 @@
         function hit(c) {
             if(cur.scores.length >= 25) return;
             let pts = (cur.disc === 'FU') ? (c > 0 ? 1 : 0) : (c === 1 ? 3 : (c === 2 ? 2 : 0));
-            cur.scores.push({c, p: pts}); drawSGrid();
-            if(cur.scores.length === 25) document.getElementById('btn-save').style.display = 'block';
+            cur.scores.push({c, p: pts}); 
+            drawSGrid();
+            document.getElementById('btn-save').style.display = (cur.scores.length === 25) ? 'block' : 'none';
         }
 
         function drawSGrid() {
@@ -187,7 +175,7 @@
                 const t = document.createElement('div'); t.className = 'tile'; t.innerText = i+1;
                 if(cur.scores[i]) {
                     const s = cur.scores[i];
-                    if(s.c === 1) t.classList.add('v'); else if(s.c === 2) t.classList.add('o'); else if(s.c === 0) t.classList.add('r');
+                    if(s.c === 1) t.className += ' v'; else if(s.c === 2) t.className += ' o'; else if(s.c === 0) t.className += ' r';
                 }
                 g.appendChild(t);
             }
@@ -197,44 +185,37 @@
         function undo() { cur.scores.pop(); document.getElementById('btn-save').style.display = 'none'; drawSGrid(); }
 
         function save() {
-            db.eleve.push({ ...cur, total: cur.scores.reduce((a,b)=>a+b.p,0), date: new Date().toISOString(), type: 'eleve' });
+            db.eleve.push({ ...cur, total: cur.scores.reduce((a,b)=>a+b.p,0), date: new Date().toISOString(), type: 'eleve', notes: document.getElementById('s-notes').value });
             saveDB(); navArch('eleve');
-        }
-
-        function updateFilters() {
-            const fN = document.getElementById('f-nom'); const fD = document.getElementById('f-disc');
-            fN.innerHTML = '<option value="Tous">Tous les noms</option>';
-            fD.innerHTML = '<option value="Toutes">Toutes disciplines</option>';
-            let data = db[currentMode];
-            [...new Set(data.map(x => x.nom))].forEach(n => fN.innerHTML += `<option value="${n}">${n}</option>`);
-            [...new Set(data.map(x => x.disc))].forEach(d => fD.innerHTML += `<option value="${d}">${d}</option>`);
         }
 
         function drawList() {
             const l = document.getElementById('arch-list'); l.innerHTML = '';
-            const nF = document.getElementById('f-nom').value; const dF = document.getElementById('f-disc').value;
-            db[currentMode].filter(x => (nF === 'Tous' || x.nom === nF) && (dF === 'Toutes' || x.disc === dF)).slice().reverse().forEach(s => {
+            db[currentMode].slice().reverse().forEach(s => {
                 const item = document.createElement('div'); item.className = 'arch-card';
-                item.innerHTML = `<div style="flex:1" onclick="showDet('${s.date}')"><b>${s.nom}</b><br><small>${new Date(s.date).toLocaleDateString()} | ${s.disc}</small></div>
-                                  <b style="color:var(--accent); margin-right:15px; font-size:1.3rem;">${s.total}</b>
-                                  <button style="background:none; border:none; color:var(--danger); font-size:1.2rem;" onclick="del('${s.date}')">🗑️</button>`;
+                item.onclick = () => showDet(s.date);
+                item.innerHTML = `<div style="flex:1"><b>${s.nom}</b><br><small>${new Date(s.date).toLocaleDateString()} | ${s.disc}</small></div>
+                                  <b style="color:var(--accent); font-size:1.4rem;">${s.total}</b>`;
                 l.appendChild(item);
             });
         }
 
         function showDet(date) {
             const s = db[currentMode].find(x => x.date === date);
+            if(!s) return;
+            document.getElementById('d-title').innerText = `${s.nom} - ${s.disc}`;
             document.getElementById('d-total').innerText = s.total;
+            document.getElementById('d-notes').innerText = s.notes ? "Coach : " + s.notes : "";
             const g = document.getElementById('d-grid'); g.innerHTML = '';
             if(s.type === 'eleve') {
-                document.getElementById('d-graph-frame').style.display = 'block';
+                document.getElementById('d-analysis').innerText = analyze(s.scores);
                 s.scores.forEach((p, i) => {
                     const t = document.createElement('div'); t.className = 'tile'; t.innerText = i+1;
-                    if(p.c === 1) t.classList.add('v'); else if(p.c === 2) t.classList.add('o'); else if(p.c === 0) t.classList.add('r');
+                    if(p.c === 1) t.className += ' v'; else if(p.c === 2) t.className += ' o'; else if(p.c === 0) t.className += ' r';
                     g.appendChild(t);
                 });
-                setTimeout(() => drawGraph(s.scores), 50);
-            } else { document.getElementById('d-graph-frame').style.display = 'none'; }
+                drawGraph(s.scores);
+            }
             nav('page-detail');
         }
 
@@ -242,37 +223,42 @@
             const svg = document.getElementById('g-svg'); svg.innerHTML = '';
             const body = document.getElementById('g-body');
             body.querySelectorAll('.dot').forEach(d => d.remove());
-            let cum = 0;
-            let pts = [{x: 0, y: 0, c: 1}];
-            sc.forEach((s, i) => {
-                if(s.p > 0) cum++;
-                pts.push({ x: (i + 1) * 4, y: (cum / 25) * 100, c: s.c });
-            });
-            const startDot = document.createElement('div'); startDot.className = 'dot'; startDot.style.left = "0%"; startDot.style.bottom = "0%"; body.appendChild(startDot);
-            for (let i = 0; i < pts.length - 1; i++) {
+            let cum = 0; let pts = [{x: 0, y: 0, c: 1}];
+            sc.forEach((s, i) => { if(s.p > 0) cum++; pts.push({ x: (i+1)*4, y: (cum/25)*100, c: s.c }); });
+            for (let i=0; i<pts.length-1; i++) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", pts[i].x + "%");
-                line.setAttribute("y1", (100 - pts[i].y) + "%");
-                line.setAttribute("x2", pts[i+1].x + "%");
-                line.setAttribute("y2", (100 - pts[i+1].y) + "%");
-                let colorClass = pts[i+1].c === 1 ? 'l-v' : (pts[i+1].c === 2 ? 'l-o' : 'l-r');
-                line.setAttribute("class", colorClass);
+                line.setAttribute("x1", pts[i].x+"%"); line.setAttribute("y1", (100-pts[i].y)+"%");
+                line.setAttribute("x2", pts[i+1].x+"%"); line.setAttribute("y2", (100-pts[i+1].y)+"%");
+                line.setAttribute("stroke", pts[i+1].c===1?'#2ecc71':(pts[i+1].c===2?'#f1c40f':'#e74c3c'));
+                line.setAttribute("stroke-width", "3");
                 svg.appendChild(line);
-                const dot = document.createElement('div'); dot.className = 'dot'; dot.style.left = pts[i+1].x + "%"; dot.style.bottom = pts[i+1].y + "%"; body.appendChild(dot);
+                const dot = document.createElement('div'); dot.className='dot'; dot.style.left=pts[i+1].x+"%"; dot.style.bottom=pts[i+1].y+"%"; body.appendChild(dot);
             }
         }
 
-        function del(date) { if(confirm("Supprimer ?")) { db[currentMode] = db[currentMode].filter(x => x.date !== date); saveDB(); drawList(); } }
-        function saveDB() { localStorage.setItem('trap_db_v88', JSON.stringify(db)); }
-        function exportJ() {
-            const b = new Blob([JSON.stringify(db)], {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "balltrap_complet.json"; a.click();
+        function analyze(scores) {
+            let hits = scores.filter(s => s.p > 0).length;
+            let lastFive = scores.slice(-5);
+            let missedLast = lastFive.filter(s => s.p === 0).length;
+            if (missedLast >= 1 && hits >= 20) return "⚠️ Très belle série, mais attention au relâchement sur les tout derniers plateaux. Restez dedans jusqu'au bout !";
+            if (hits === 25) return "🏆 Perfection ! 25/25. Maîtrise totale du début à la fin.";
+            if (hits > 22) return "🔥 Performance solide. La technique est là, continuez comme ça.";
+            let firstFive = scores.slice(0, 5).filter(s => s.p === 0).length;
+            if (firstFive >= 2 && missedLast === 0) return "📈 Belle remontée ! Un début timide mais une fin de série très solide.";
+            return "🎯 Série enregistrée. Travaillez la régularité pour grappiller les derniers points.";
         }
-        function importJ(e) {
-            const r = new FileReader();
-            r.onload = (x) => { db = JSON.parse(x.target.result); saveDB(); alert("Import OK !"); nav('page-menu'); };
-            r.readAsText(e.target.files[0]);
+
+        async function shareBilan() {
+            const area = document.getElementById('capture-zone');
+            const canvas = await html2canvas(area, { backgroundColor: '#0a0a0a', scale: 2 });
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], "bilan_trap.png", { type: "image/png" });
+                if (navigator.share) await navigator.share({ files: [file], title: "Mon Bilan Trap" });
+                else alert("Capture prête. Faites un screenshot pour partager !");
+            });
         }
+
+        function saveDB() { localStorage.setItem('trap_db_v92', JSON.stringify(db)); }
     </script>
 </body>
 </html>
