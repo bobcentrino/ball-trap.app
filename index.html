@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon.png">
-    <title>Ball-Trap Master V9.2</title>
+    <title>Ball-Trap Master V9.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -41,6 +41,7 @@
 
         .arch-card { background: var(--card); padding: 18px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
         .btn-full { width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: 800; background: #2c2c2c; color: white; text-transform: uppercase; cursor: pointer; }
+        .btn-sec { background: #444; font-size: 0.85rem; padding: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -54,9 +55,15 @@
             <h2 class="gold-title">Tableau de Bord</h2>
             <button class="btn-full" style="background:var(--accent); color:black; margin-bottom:15px;" onclick="prep('perso')">👤 Score Perso</button>
             <button class="btn-full" style="background:var(--accent); color:black;" onclick="prep('eleve')">🎓 Suivi Élève</button>
-            <div style="margin-top: 40px; display: grid; gap: 10px;">
+            <div style="margin-top: 30px; display: grid; gap: 10px;">
                 <button class="btn-full" onclick="navArch('perso')">📁 Dossier Perso</button>
                 <button class="btn-full" onclick="navArch('eleve')">📁 Dossier Élèves</button>
+            </div>
+            
+            <div style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+                <button class="btn-full btn-sec" onclick="exportData()">💾 Exporter Sauvegarde (JSON)</button>
+                <button class="btn-full btn-sec" onclick="document.getElementById('imp').click()">📂 Importer Sauvegarde (JSON)</button>
+                <input type="file" id="imp" style="display:none" onchange="importData(event)">
             </div>
         </div>
         <div class="footer"><button class="btn-full" onclick="nav('page-accueil')">Sortie</button></div>
@@ -65,13 +72,13 @@
     <div id="page-config" class="flex-page">
         <div class="content">
             <h2 class="gold-title">Configuration</h2>
-            <input type="text" id="cfg-nom" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:none;" placeholder="Nom du tireur">
-            <select id="cfg-disc" style="width:100%; padding:15px; border-radius:10px; border:none;">
+            <input type="text" id="cfg-nom" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:none; background:#1a1a1a; color:white;" placeholder="Nom du tireur">
+            <select id="cfg-disc" style="width:100%; padding:15px; border-radius:10px; border:none; background:#1a1a1a; color:white;">
                 <option value="FU">Fosse Universelle</option>
                 <option value="DTL">DTL</option>
                 <option value="Trap 1">Trap 1</option>
             </select>
-            <div id="zone-p" style="display:none; margin-top:10px;"><input type="number" id="cfg-total" style="width:100%; padding:15px; border-radius:10px; border:none;" placeholder="Total points"></div>
+            <div id="zone-p" style="display:none; margin-top:10px;"><input type="number" id="cfg-total" style="width:100%; padding:15px; border-radius:10px; border:none; background:#1a1a1a; color:white;" placeholder="Total points"></div>
             <button class="btn-full" style="background:var(--success); margin-top:25px;" onclick="lancer()">VALIDER</button>
         </div>
         <div class="footer"><button class="btn-full" onclick="nav('page-menu')">ANNULER</button></div>
@@ -123,11 +130,11 @@
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('trap_db_v92')) || { perso: [], eleve: [] };
+        // Utilisation d'une clé de version pour éviter les conflits
+        let db = JSON.parse(localStorage.getItem('trap_db_v93')) || { perso: [], eleve: [] };
         let cur = { scores: [] };
         let currentMode = 'eleve';
 
-        // Fix CodePen / GitHub Startup
         document.addEventListener("DOMContentLoaded", () => {
             nav('page-accueil');
         });
@@ -195,7 +202,8 @@
                 const item = document.createElement('div'); item.className = 'arch-card';
                 item.onclick = () => showDet(s.date);
                 item.innerHTML = `<div style="flex:1"><b>${s.nom}</b><br><small>${new Date(s.date).toLocaleDateString()} | ${s.disc}</small></div>
-                                  <b style="color:var(--accent); font-size:1.4rem;">${s.total}</b>`;
+                                  <b style="color:var(--accent); font-size:1.4rem; margin-right:15px;">${s.total}</b>
+                                  <button style="background:none; border:none; color:var(--danger); font-size:1.2rem;" onclick="event.stopPropagation(); del('${s.date}')">🗑️</button>`;
                 l.appendChild(item);
             });
         }
@@ -254,11 +262,43 @@
             canvas.toBlob(async (blob) => {
                 const file = new File([blob], "bilan_trap.png", { type: "image/png" });
                 if (navigator.share) await navigator.share({ files: [file], title: "Mon Bilan Trap" });
-                else alert("Capture prête. Faites un screenshot pour partager !");
+                else alert("Image prête. Faites un screenshot !");
             });
         }
 
-        function saveDB() { localStorage.setItem('trap_db_v92', JSON.stringify(db)); }
+        function del(date) { 
+            if(confirm("Supprimer cette série ?")) { 
+                db[currentMode] = db[currentMode].filter(x => x.date !== date); 
+                saveDB(); drawList(); 
+            } 
+        }
+
+        function saveDB() { localStorage.setItem('trap_db_v93', JSON.stringify(db)); }
+
+        function exportData() {
+            const dataStr = JSON.stringify(db);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = "sauvegarde_trap_" + new Date().toLocaleDateString() + ".json";
+            link.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    db = JSON.parse(e.target.result);
+                    saveDB();
+                    alert("Importation réussie !");
+                    location.reload();
+                } catch (err) { alert("Erreur lors de l'importation du fichier."); }
+            };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
