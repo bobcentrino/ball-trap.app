@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Ball-Trap Master Pro</title>
     <style>
         :root {
@@ -13,8 +13,23 @@
             --v-color: #72d582; --o-color: #edcc52; --r-color: #e66756;
         }
 
-        body, html { margin: 0; padding: 0; background: #1a1a1a; font-family: sans-serif; height: 100dvh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .app-container { width: 100%; max-width: 430px; height: 100vh; background: var(--bg); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        body, html { 
+            margin: 0; padding: 0; 
+            background: var(--bg); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            height: 100%; width: 100%;
+            overflow: hidden; 
+        }
+
+        /* Conteneur plein écran sans bandes noires */
+        .app-container { 
+            width: 100vw; 
+            height: 100dvh; 
+            background: var(--bg); 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+        }
 
         /* PAGE 0 - ACCUEIL */
         #page-0 { 
@@ -27,58 +42,62 @@
         .logo-sub { font-size: 0.9rem; color: var(--accent); font-weight: bold; text-transform: uppercase; margin-top: 5px; }
         
         .btn-enter { 
-            width: 180px; height: 180px; border-radius: 50%; border: none; 
-            background: var(--bg); color: var(--accent); font-size: 1.4rem; font-weight: 900; 
+            width: 200px; height: 200px; border-radius: 50%; border: none; 
+            background: var(--bg); color: var(--accent); font-size: 1.5rem; font-weight: 900; 
             text-transform: uppercase; cursor: pointer; 
             box-shadow: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light);
             display: flex; justify-content: center; align-items: center;
-            transition: all 0.2s ease;
         }
-        .btn-enter:active { box-shadow: inset 8px 8px 15px var(--shadow-dark), inset -8px -8px 15px var(--shadow-light); transform: scale(0.98); }
+        .btn-enter:active { box-shadow: inset 8px 8px 15px var(--shadow-dark), inset -8px -8px 15px var(--shadow-light); }
 
-        /* BOUTON HOME HAUT DE PAGE */
+        /* BOUTON MAISON */
         .btn-home {
-            position: absolute; top: 20px; left: 20px; width: 40px; height: 40px;
+            position: absolute; top: 50px; left: 20px; width: 45px; height: 45px;
             border-radius: 12px; background: var(--bg); border: none;
             box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
             color: #888; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 5000; font-size: 1.2rem;
+            cursor: pointer; z-index: 5000; font-size: 1.4rem;
         }
-        .btn-home:active { box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); }
 
         /* PAGES & SCROLL */
-        .page { display: none; flex: 1; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; overflow-y: auto; width: 100%; padding-bottom: 120px; -webkit-overflow-scrolling: touch; }
+        .page { 
+            display: none; flex: 1; flex-direction: column; align-items: center; 
+            padding: 20px; padding-top: 60px; box-sizing: border-box; 
+            overflow-y: auto; width: 100%; 
+            padding-bottom: 120px; -webkit-overflow-scrolling: touch; 
+        }
         .page.active { display: flex; }
         
-        h2 { color: var(--accent); text-transform: uppercase; font-size: 1.6rem; margin-top: 10px; margin-bottom: 25px; text-align: center; }
+        h2 { color: var(--accent); text-transform: uppercase; font-size: 1.6rem; margin-top: 40px; margin-bottom: 25px; text-align: center; }
 
-        .card { width: 100%; background: var(--bg); border-radius: 30px; padding: 25px; box-sizing: border-box; box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); margin-bottom: 20px; position: relative; }
+        /* CARTES NEUMORPHIQUES */
+        .card { width: 100%; background: var(--bg); border-radius: 30px; padding: 25px; box-sizing: border-box; box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); margin-bottom: 20px; }
         .stat-line { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .value { color: var(--accent); font-weight: 900; font-size: 1.4rem; }
         .sub { color: #999; font-size: 0.7rem; display: block; text-transform: uppercase; font-weight: bold; }
 
-        /* GRAPH PROGRESSIF */
+        /* GRAPHE ESCALIER */
         .bars-container { display: flex; align-items: flex-end; gap: 3px; height: 160px; width: 100%; background: transparent; padding: 10px 0; box-sizing: border-box; margin-bottom: 10px; }
         .bar-item { flex: 1; border-radius: 4px 4px 0 0; position: relative; transition: height 0.8s ease-out; }
         .bar-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 0.6rem; color: #999; font-weight: bold; }
 
-        /* BOUTONS UI */
+        /* BOUTONS */
         .btn-main { width: 100%; height: 65px; border: none; border-radius: 20px; background: var(--accent); color: white; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; cursor: pointer; box-shadow: 4px 4px 10px rgba(0,0,0,0.2); margin-bottom: 15px; flex-shrink: 0; }
-        .btn-choice { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--bg); color: #444; font-weight: 800; margin-bottom: 12px; box-shadow: 4px 4px 8px var(--shadow-dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; flex-shrink: 0; }
+        .btn-choice { width: 100%; padding: 18px; border-radius: 18px; border: none; background: var(--bg); color: #444; font-weight: 800; margin-bottom: 12px; box-shadow: 4px 4px 8px var(--shadow-dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
         .btn-secondary { width: 100%; background: var(--bg); border: none; border-radius: 15px; color: #888; font-weight: bold; padding: 12px; margin-top: 10px; box-shadow: 3px 3px 6px var(--shadow-dark); cursor: pointer; }
-        .btn-del { background: none; border: none; color: var(--r-color); cursor: pointer; font-size: 1.2rem; opacity: 0.6; padding: 5px; z-index: 10; }
+        .btn-del { background: none; border: none; color: var(--r-color); cursor: pointer; font-size: 1.2rem; opacity: 0.6; padding: 5px; }
 
         .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
         .tile { width: 100%; aspect-ratio: 1/1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; color: #94a3b8; background: var(--bg); box-shadow: 3px 3px 6px var(--shadow-dark); }
         .tile.filled { color: white; box-shadow: none; }
         .tile.v { background: var(--v-color); } .tile.o { background: var(--o-color); } .tile.r { background: var(--r-color); }
 
-        .hist-card { width: 100%; background: var(--bg); padding: 18px; border-radius: 20px; box-shadow: 5px 5px 10px var(--shadow-dark); margin-bottom: 15px; border-left: 6px solid var(--accent); box-sizing: border-box; text-align: left; position: relative; flex-shrink: 0; }
+        .hist-card { width: 100%; background: var(--bg); padding: 18px; border-radius: 20px; box-shadow: 5px 5px 10px var(--shadow-dark); margin-bottom: 15px; border-left: 6px solid var(--accent); box-sizing: border-box; text-align: left; position: relative; }
         .hist-card.clickable { cursor: pointer; }
-        .hist-score { color: var(--accent); font-weight: 900; font-size: 1.2rem; }
 
+        /* BARRE DE NAVIGATION */
         .tab-bar { height: 85px; background: var(--bg); display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); position: absolute; bottom: 0; width: 100%; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-        .tab-item { flex: 1; text-align: center; color: #94a3b8; cursor: pointer; border: none; background: none; font-size: 0.7rem; font-weight: bold; }
+        .tab-item { flex: 1; text-align: center; color: #94a3b8; cursor: pointer; border: none; background: none; font-size: 0.75rem; font-weight: bold; }
         .tab-item.active { color: var(--accent); }
     </style>
 </head>
@@ -92,7 +111,7 @@
             <div class="logo-sub">Master Coach Edition</div>
         </div>
         <button class="btn-enter" onclick="entrerApp()">Entrer</button>
-        <div style="margin-top: 50px; color: #a3b1c6; font-size: 0.7rem; font-weight: bold; letter-spacing: 2px;">V 6.4 PRO</div>
+        <div style="margin-top: 50px; color: #a3b1c6; font-size: 0.75rem; font-weight: bold; letter-spacing: 2px;">V 6.5 PRO</div>
     </div>
 
     <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;">🏠</button>
@@ -118,7 +137,7 @@
     </div>
 
     <div id="page-saisie-moi" class="page">
-        <h2 id="titre-saisie-moi">Score</h2>
+        <h2>Score</h2>
         <div id="display-score" style="width:120px;height:80px;background:var(--bg);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:900;color:var(--accent);box-shadow:inset 6px 6px 12px var(--shadow-dark);margin-bottom:20px;">0</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px;width:100%">
             <script>for(let i=1;i<=9;i++) document.write(`<button class="btn-choice" style="justify-content:center;margin:0" onclick="addNum(${i})">${i}</button>`);</script>
@@ -140,7 +159,7 @@
         <div class="card">
             <div class="stat-line"><div><span style="color:#444;font-weight:bold">FU</span><span class="sub" id="e-c-fu">0 SÉRIE</span></div><span class="value" id="e-m-fu">0</span></div>
             <div class="stat-line"><div><span style="color:#444;font-weight:bold">DTL</span><span class="sub" id="e-c-dtl">0 SÉRIE</span></div><span class="value" id="e-m-dtl">0</span></div>
-            <div class="stat-line"><div><span style="color:#444;font-weight:bold">TRAP 1</span><span class="sub" id="e-c-trap1">0 SÉRIE</span></div><span class="value" id="m-trap1">0</span></div>
+            <div class="stat-line"><div><span style="color:#444;font-weight:bold">TRAP 1</span><span class="sub" id="e-c-trap1">0 SÉRIE</span></div><span class="value" id="e-m-trap1">0</span></div>
         </div>
         <button class="btn-main" onclick="ouvrirChoixDisc()">🔥 COACHER</button>
         <button class="btn-secondary" onclick="switchTab('page-eleves', null)">RETOUR</button>
@@ -169,12 +188,30 @@
         <button class="btn-choice" style="background:#94a3b8;color:white" onclick="ouvrirSelectionEleveStat()">🎓 SCORES ÉLÈVES <span>></span></button>
         
         <div style="margin-top:40px; width:100%; border-top:1px solid #ccc; padding-top:20px;">
-            <span class="sub" style="text-align:center; margin-bottom:15px;">Sécurité des données</span>
+            <span class="sub" style="text-align:center; margin-bottom:15px;">Sauvegarde</span>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <button class="btn-choice" style="justify-content:center; background:#f8f9fa; border:1px solid #ccc;" onclick="exporterData()">📤 EXPORTER</button>
-                <button class="btn-choice" style="justify-content:center; background:#f8f9fa; border:1px solid #ccc;" onclick="importerData()">📥 IMPORTER</button>
+                <button class="btn-choice" style="justify-content:center; background:#f8f9fa;" onclick="exporterData()">📤 EXPORTER</button>
+                <button class="btn-choice" style="justify-content:center; background:#f8f9fa;" onclick="importerData()">📥 IMPORTER</button>
             </div>
         </div>
+    </div>
+
+    <div id="page-analyse" class="page">
+        <h2>BILAN SÉRIE</h2>
+        <div class="card" style="padding:20px; margin-bottom:15px;">
+            <div style="text-align:center; margin-bottom:15px;">
+                <div id="analyse-nom" style="font-size:1.4rem; font-weight:900; color:#444; text-transform:uppercase;">NOM</div>
+                <div id="analyse-date" style="font-size:0.75rem; color:#999; font-weight:bold; margin-top:2px;">DATE</div>
+                <div id="analyse-score-badge" style="display:inline-block; background:var(--accent); color:white; padding:4px 12px; border-radius:10px; font-size:1rem; font-weight:900; margin-top:10px;">SCORE : 0</div>
+            </div>
+            <div id="analyse-bars" class="bars-container"></div>
+        </div>
+        <div class="card" id="analyse-note-card">
+            <span class="sub">COMMENTAIRE COACH</span>
+            <p id="analyse-note-text" style="font-size:1rem; color:#444; margin-top:10px; line-height:1.5; font-style:italic;"></p>
+        </div>
+        <button class="btn-main" style="background:#3498db" onclick="partagerBilan()">✉ PARTAGER LE BILAN</button>
+        <button class="btn-secondary" onclick="switchTab('page-view-stats', null)">RETOUR</button>
     </div>
 
     <div id="page-select-eleve-stats" class="page">
@@ -186,24 +223,6 @@
         <h2 id="titre-view-stats">Stats</h2>
         <div id="container-view-stats" style="width:100%"></div>
         <button class="btn-secondary" onclick="switchTab('page-stats', null)">RETOUR</button>
-    </div>
-
-    <div id="page-analyse" class="page">
-        <h2 id="analyse-titre-h2">BILAN SÉRIE</h2>
-        <div class="card" style="padding:20px; margin-bottom:15px;">
-            <div style="text-align:center; margin-bottom:15px;">
-                <div id="analyse-nom" style="font-size:1.4rem; font-weight:900; color:#444; text-transform:uppercase;">NOM</div>
-                <div id="analyse-date" style="font-size:0.75rem; color:#999; font-weight:bold; margin-top:2px;">DATE</div>
-                <div id="analyse-score-badge" style="display:inline-block; background:var(--accent); color:white; padding:4px 12px; border-radius:10px; font-size:1rem; font-weight:900; margin-top:10px;">SCORE : 0</div>
-            </div>
-            <div id="analyse-bars" class="bars-container"></div>
-        </div>
-        <div class="card" id="analyse-note-card">
-            <span class="sub">COMMENTAIRE COACH</span>
-            <p id="analyse-note-text" style="font-size:1.05rem; color:#444; margin-top:10px; line-height:1.5; font-style:italic;"></p>
-        </div>
-        <button class="btn-main" style="background:#3498db" onclick="partagerBilan()">✉ PARTAGER LE BILAN</button>
-        <button class="btn-secondary" onclick="switchTab('page-view-stats', null)">RETOUR</button>
     </div>
 
     <nav id="main-nav" class="tab-bar">
@@ -234,29 +253,20 @@
         const p0 = document.getElementById('page-0');
         const homeBtn = document.getElementById('global-home-btn');
         p0.style.transform = 'translateY(-100%)';
-        setTimeout(() => {
-            p0.style.display = 'none';
-            homeBtn.style.display = 'flex';
-        }, 600);
+        setTimeout(() => { p0.style.display = 'none'; homeBtn.style.display = 'flex'; }, 600);
     }
 
     function retourAccueil() {
         const p0 = document.getElementById('page-0');
         const homeBtn = document.getElementById('global-home-btn');
         p0.style.display = 'flex';
-        setTimeout(() => {
-            p0.style.transform = 'translateY(0)';
-            homeBtn.style.display = 'none';
-        }, 10);
+        setTimeout(() => { p0.style.transform = 'translateY(0)'; homeBtn.style.display = 'none'; }, 10);
     }
 
     function switchTab(id, el) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.getElementById(id).style.display = 'flex';
-        
-        // Cacher le bouton Home uniquement pendant le tir pour ne pas gêner
-        document.getElementById('global-home-btn').style.display = (id === 'page-tir') ? 'none' : 'flex';
-
+        document.getElementById('global-home-btn').style.display = (id === 'page-tir' || id === 'page-saisie-moi') ? 'none' : 'flex';
         if(el) {
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
@@ -270,7 +280,6 @@
         currentDisc = d; fermerModal();
         if(currentTireur === "Moi") {
             currentInputScore = ""; document.getElementById('display-score').innerText = "0";
-            document.getElementById('titre-saisie-moi').innerText = "Score " + d;
             switchTab('page-saisie-moi', null);
         } else lancerCoaching(d);
     }
@@ -343,11 +352,10 @@
         document.getElementById('btn-valider-serie').style.display = (serieEnCours.length===25)?'block':'none';
     }
     function validerSerie() {
-        let sg = [...serieEnCours];
         db.eleves[currentTireur].unshift({ 
             id: Date.now(), disc: currentDisc, score: document.getElementById('score-live').innerText, 
             date: new Date().toLocaleDateString('fr-FR'), note: document.getElementById('note-coach').value,
-            grille: sg, tireur: currentTireur 
+            grille: [...serieEnCours], tireur: currentTireur 
         });
         saveDB(); switchTab('page-fiche-eleve', null);
     }
@@ -363,8 +371,7 @@
         document.getElementById('analyse-date').innerText = s.date + " — " + s.disc;
         document.getElementById('analyse-score-badge').innerText = "SCORE : " + s.score + " / " + max;
         document.getElementById('analyse-note-text').innerText = s.note || "Pas de note particulière.";
-        let container = document.getElementById('analyse-bars');
-        container.innerHTML = "";
+        let container = document.getElementById('analyse-bars'); container.innerHTML = "";
         if(s.grille) {
             let cumul = 0;
             s.grille.forEach((v, i) => {
@@ -396,8 +403,7 @@
     function ouvrirSelectionEleveStat() {
         const noms = Object.keys(db.eleves);
         if(noms.length === 0) return;
-        const cont = document.getElementById('liste-selection-stats');
-        cont.innerHTML = "";
+        const cont = document.getElementById('liste-selection-stats'); cont.innerHTML = "";
         noms.forEach(nom => {
             const btn = document.createElement('button');
             btn.className = 'btn-choice'; btn.innerHTML = `<span>${nom}</span> <span>></span>`;
@@ -408,8 +414,7 @@
     }
     function renderFilteredStats(titre, data, color, type) {
         document.getElementById('titre-view-stats').innerText = titre;
-        const cont = document.getElementById('container-view-stats');
-        cont.innerHTML = "";
+        const cont = document.getElementById('container-view-stats'); cont.innerHTML = "";
         data.forEach(s => {
             const card = document.createElement('div');
             card.className = "hist-card" + (type !== 'moi' ? ' clickable' : '');
@@ -424,7 +429,7 @@
     }
     function supprimerScore(id, type, event) {
         event.stopPropagation();
-        if(confirm("Supprimer ce score ?")) {
+        if(confirm("Supprimer ?")) {
             if(type === 'moi') db.moi = db.moi.filter(s => s.id != id);
             else db.eleves[currentTireur] = db.eleves[currentTireur].filter(s => s.id != id);
             saveDB();
