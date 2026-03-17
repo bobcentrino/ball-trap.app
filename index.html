@@ -519,7 +519,7 @@
         <div class="logo-version">V 2.0</div>
     </div>
 
-    <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;" aria-label="Retour accueil">🏠</button>
+    <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;">🏠</button>
 
     <!-- PAGE PARAMÈTRES — 3ème onglet -->
     <div id="page-params" class="page">
@@ -628,7 +628,7 @@
     </div>
 
     <!-- MODALE DISCIPLINE — étape 1 : choix discipline -->
-    <div id="modal-disc" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Choix discipline" style="z-index:11000;">
+    <div id="modal-disc" class="modal-overlay" style="z-index:11000;">
         <div id="modal-disc-inner" class="modal-box" style="display:flex;flex-direction:column;gap:8px;">
             <h3 style="margin-bottom:4px;">Discipline</h3>
             <button class="btn-choice" onclick="selectionnerDisc('FU')">FOSSE UNIVERSELLE <span>›</span></button>
@@ -639,7 +639,7 @@
     </div>
 
     <!-- MODALE POSTE — étape 2 : choix poste de départ -->
-    <div id="modal-poste" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Choix poste de départ" style="z-index:11000;">
+    <div id="modal-poste" class="modal-overlay" style="z-index:11000;">
         <div class="modal-box" style="display:flex;flex-direction:column;gap:10px;">
             <h3 style="margin-bottom:0;">Poste de départ</h3>
             <span class="sub" style="text-align:center;margin-top:-4px;" id="modal-poste-disc"></span>
@@ -655,7 +655,7 @@
     </div>
 
     <!-- MODALE ANALYSE SÉRIE INDIVIDUELLE -->
-    <div id="modal-analyse-serie" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Analyse de série" style="z-index:13000;align-items:flex-end;">
+    <div id="modal-analyse-serie" class="modal-overlay" style="z-index:13000;align-items:flex-end;">
         <div style="width:100%;background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:24px 20px 40px;box-shadow:var(--neu-out-lg);max-height:85vh;overflow-y:auto;box-sizing:border-box;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                 <div>
@@ -683,11 +683,11 @@
 
             <div class="btn-row btn-row-2" style="margin-top:14px;">
                 <button class="btn-secondary" onclick="fermerAnalyseSerie()">FERMER</button>
-                <button class="btn-main" id="btn-generer-serie" onclick="genererAnalyseSerie()">✨ Analyser</button>
+                <button class="btn-main" id="btn-generer-serie" onclick="genererAnalyseSerie()">📊 Analyser</button>
             </div>
         </div>
     </div>
-    <div id="modal-confirm" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirmation">
+    <div id="modal-confirm" class="modal-overlay">
         <div class="modal-box">
             <p id="confirm-msg">Confirmer ?</p>
             <div class="modal-actions">
@@ -698,7 +698,7 @@
     </div>
 
     <!-- MODALE AJOUT ÉLÈVE -->
-    <div id="modal-ajout-eleve" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Ajouter un élève">
+    <div id="modal-ajout-eleve" class="modal-overlay">
         <div class="modal-box">
             <h3>Nouvel élève</h3>
             <input id="input-nom-eleve" class="input-neu" type="text" maxlength="50" placeholder="Prénom Nom..." autocomplete="off">
@@ -710,7 +710,7 @@
     </div>
 
     <!-- MODALE IMPORT -->
-    <div id="modal-import" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Importer des données">
+    <div id="modal-import" class="modal-overlay">
         <div class="modal-box">
             <h3>Importer</h3>
             <p style="font-size:0.82rem;color:var(--text-label);text-align:center;margin-bottom:14px;">
@@ -892,7 +892,7 @@
             <span class="stats-titre">Analyse coach</span>
             <div class="chart-card" style="padding:16px;">
                 <button id="btn-generer-analyse" class="btn-main" style="margin-bottom:14px;" onclick="genererAnalyseIA()">
-                    ✨ Générer l'analyse IA
+                    📊 Générer l'analyse
                 </button>
                 <div id="analyse-ia-loading" style="display:none;text-align:center;padding:20px 0;">
                     <div id="analyse-ia-dots" style="font-size:1.4rem;color:var(--accent);">●○○</div>
@@ -1216,25 +1216,24 @@
     function renderEleves() {
         const c = document.getElementById('liste-eleves');
         c.innerHTML = "";
-        /* Tri alphabétique */
-        Object.keys(db.eleves).sort((a, b) => a.localeCompare(b, 'fr')).forEach(nom => {
+        Object.keys(db.eleves).forEach(nom => {
+            // Construction DOM sécurisée — pas d'innerHTML avec données user
             const btn = document.createElement('div');
             btn.className = 'btn-choice';
 
             const spanNom = document.createElement('span');
-            spanNom.textContent = nom;
+            spanNom.textContent = nom; // textContent = pas de XSS
 
             const btnDel = document.createElement('button');
             btnDel.className = 'btn-del';
             btnDel.textContent = '🗑';
-            btnDel.setAttribute('aria-label', 'Supprimer ' + nom);
             btnDel.onclick = (e) => supprimerEleve(nom, e);
 
             btn.append(spanNom, btnDel);
             btn.onclick = function(e) {
                 if (e.target === btnDel) return;
                 currentTireur = nom;
-                document.getElementById('nom-fiche-eleve').textContent = nom; // textContent suffit
+                document.getElementById('nom-fiche-eleve').textContent = sanitize(nom);
                 switchTab('page-fiche-eleve', null);
             };
             c.appendChild(btn);
@@ -1256,9 +1255,9 @@
         /* Tendance : compare 1ère moitié vs 2ème moitié des séries */
         const mid   = Math.floor(scores.length / 2);
         const pct   = s => { const max = s.disc==='FU'?25:75; return Math.round(parseInt(s.score)/max*100); };
-        const avgOld = mid > 0 ? scores.slice(mid).map(pct).reduce((a,b)=>a+b,0) / (scores.length - mid) : 0;
-        const avgNew = mid > 0 ? scores.slice(0, mid).map(pct).reduce((a,b)=>a+b,0) / mid : 0;
-        const tendance = scores.length < 2 ? 'stable' : avgNew > avgOld + 3 ? 'en progression' : avgNew < avgOld - 3 ? 'en baisse' : 'stable';
+        const avgOld = scores.slice(mid).map(pct).reduce((a,b)=>a+b,0) / (scores.length - mid);
+        const avgNew = scores.slice(0, mid).map(pct).reduce((a,b)=>a+b,0) / mid;
+        const tendance = avgNew > avgOld + 3 ? 'en progression' : avgNew < avgOld - 3 ? 'en baisse' : 'stable';
 
         /* Analyse par poste sur toutes les séries avec grille */
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
@@ -1316,94 +1315,122 @@ Rédige une analyse en 4-5 phrases maximum, en français, dans un style coach pr
 Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres, écris en prose fluide.`;
     }
 
-    async function genererAnalyseIA() {
+    function genererAnalyseIA() {
         const scores = db.eleves[currentTireur] || [];
         if (!scores.length) { showToast('Pas assez de données.', 'error'); return; }
 
-        const btn = document.getElementById('btn-generer-analyse');
-        const loading = document.getElementById('analyse-ia-loading');
+        const btn      = document.getElementById('btn-generer-analyse');
         const textarea = document.getElementById('analyse-ia-texte');
-        const status = document.getElementById('analyse-ia-status');
+        const status   = document.getElementById('analyse-ia-status');
 
-        btn.style.display = 'none';
-        loading.style.display = 'block';
-        textarea.style.opacity = '0.4';
-        status.textContent = '';
+        const texte = _analyseLocale(currentTireur, scores);
+        textarea.value = texte;
 
-        /* Animation points */
-        const dotStates = ['●○○','○●○','○○●','○●○'];
-        let di = 0;
-        _dotsInterval = setInterval(() => {
-            document.getElementById('analyse-ia-dots').textContent = dotStates[di++ % dotStates.length];
-        }, 400);
+        /* Sauvegarde directe sans relire le DOM */
+        if (!db.analysesCoach) db.analysesCoach = {};
+        db.analysesCoach[currentTireur] = texte;
+        saveDB();
 
-        try {
-            const prompt = _construirePrompt(currentTireur, scores);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 1000,
-                    messages: [{ role: 'user', content: prompt }]
-                }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error('Erreur API : ' + response.status);
-            const data = await response.json();
-            const texte = data.content?.[0]?.text || '';
-            textarea.value = texte;
-            sauvegarderAnalyse();
-            status.textContent = '✓ Analyse générée — modifiez-la si besoin';
-
-        } catch(e) {
-            /* Fallback : analyse locale sans IA si API indisponible */
-            textarea.value = _analyseLocale(currentTireur, scores);
-            status.textContent = '⚠ Analyse locale (IA non disponible)';
-        } finally {
-            clearInterval(_dotsInterval);
-            loading.style.display = 'none';
-            textarea.style.opacity = '1';
-            btn.style.display = 'block';
-            btn.textContent = '↺ Régénérer l\'analyse';
-        }
+        status.textContent = '✓ Analyse générée — modifiez-la si besoin';
+        btn.textContent = '↺ Régénérer l\'analyse';
     }
 
     /* Analyse locale de secours (sans appel API) */
     function _analyseLocale(nom, scores) {
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+        /* --- Moyennes & tendance --- */
         const allPct = scores.map(s => Math.round(parseInt(s.score)/(s.disc==='FU'?25:75)*100));
         const avg    = Math.round(allPct.reduce((a,b)=>a+b,0)/allPct.length);
         const best   = Math.max(...allPct);
+        const worst  = Math.min(...allPct);
         const mid    = Math.floor(allPct.length/2);
-        const trend  = allPct.length >= 2
-            ? (allPct.slice(0,mid).reduce((a,b)=>a+b,0)/mid > allPct.slice(mid).reduce((a,b)=>a+b,0)/(allPct.length-mid) + 3 ? 'progression' : 'stable')
-            : 'stable';
+        const avgOld = mid > 0 ? allPct.slice(mid).reduce((a,b)=>a+b,0)/(allPct.length-mid) : avg;
+        const avgNew = mid > 0 ? allPct.slice(0,mid).reduce((a,b)=>a+b,0)/mid : avg;
+        const delta  = avgNew - avgOld;
+        const tendance = scores.length < 2 ? 'stable'
+            : delta > 4 ? 'progression' : delta < -4 ? 'recul' : 'stable';
 
+        /* --- Analyse par discipline --- */
+        const parDisc = ['FU','DTL','TRAP 1'].map(d => {
+            const list = scores.filter(s => s.disc === d);
+            if (!list.length) return null;
+            const moy = Math.round(list.reduce((a,b)=>a+parseInt(b.score),0)/list.length / (d==='FU'?25:75)*100);
+            return { disc: d, moy, nb: list.length };
+        }).filter(Boolean);
+
+        const meilleurDisc = parDisc.reduce((a,b) => a.moy > b.moy ? a : b, parDisc[0]);
+        const moinsDisc    = parDisc.reduce((a,b) => a.moy < b.moy ? a : b, parDisc[0]);
+
+        /* --- Analyse par poste sur grilles --- */
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
-        let pointFaible = '', pointFort = '';
+        const groupes = ['1-5','6-10','11-15','16-20','21-25'];
+        let pointFort = '', pointFaible = '', tauxFort = 0, tauxFaible = 100;
+        let postesProblematiques = [];
+
         if (avecGrille.length) {
-            const groupes = ['1-5','6-10','11-15','16-20','21-25'];
             const taux = groupes.map((_, gi) => {
                 let hits=0, total=0;
                 avecGrille.forEach(s => { for(let i=gi*5;i<gi*5+5;i++){total++;if(s.grille[i]>0)hits++;} });
                 return total ? Math.round((hits/total)*100) : 0;
             });
-            const minI = taux.indexOf(Math.min(...taux));
             const maxI = taux.indexOf(Math.max(...taux));
-            pointFaible = groupes[minI];
-            pointFort   = groupes[maxI];
+            const minI = taux.indexOf(Math.min(...taux));
+            pointFort    = groupes[maxI]; tauxFort    = taux[maxI];
+            pointFaible  = groupes[minI]; tauxFaible  = taux[minI];
+            postesProblematiques = groupes.filter((_,i) => taux[i] < 60);
         }
 
-        const niveauStr = avg >= 80 ? 'excellent' : avg >= 65 ? 'bon' : avg >= 50 ? 'correct' : 'à améliorer';
-        const tendanceStr = trend === 'progression' ? 'une belle progression est visible sur les dernières séries' : 'le niveau est stable sur l\'ensemble des séries';
+        /* --- Régularité : écart-type --- */
+        const ecart = Math.round(Math.sqrt(allPct.reduce((a,b) => a+(b-avg)**2, 0)/allPct.length));
+        const irregulier = ecart > 12;
 
-        let texte = `${nom} affiche un niveau ${niveauStr} avec une moyenne de ${avg}% — ${tendanceStr}.`;
-        if (pointFort) texte += ` Les postes ${pointFort} sont clairement les plus maîtrisés, avec un taux de réussite élevé.`;
-        if (pointFaible) texte += ` Les postes ${pointFaible} constituent le principal axe de travail et méritent une attention particulière lors des prochaines séances.`;
-        texte += ` Il est recommandé de travailler en répétition sur les postes les plus difficiles, en variant les angles de présentation des plateaux pour renforcer les automatismes.`;
+        /* --- Postes de départ les plus joués --- */
+        const postesJoues = [...new Set(scores.map(s=>s.poste).filter(Boolean))].sort();
+
+        /* --- Construction du texte --- */
+        const niveauMots = avg >= 85 ? ['excellent','très solide','remarquable']
+            : avg >= 70 ? ['bon','régulier','fiable']
+            : avg >= 55 ? ['correct','en développement','encourageant']
+            : ['perfectible','à construire','en progression'];
+
+        // Phrase 1 — niveau général + tendance
+        const tendanceMots = tendance === 'progression'
+            ? [`avec une progression nette de +${Math.round(delta)}% sur les dernières séries`,'en nette amélioration sur les séances récentes']
+            : tendance === 'recul'
+            ? [`avec une légère baisse de régularité à surveiller`,'avec quelques séances en retrait par rapport aux meilleures performances']
+            : [`avec un niveau stable et homogène`,'avec une bonne constance dans les résultats'];
+
+        let texte = `${nom} présente un niveau ${pick(niveauMots)} avec une moyenne de ${avg}% (meilleure série : ${best}%, moins bonne : ${worst}%), ${pick(tendanceMots)}.`;
+
+        // Phrase 2 — discipline(s)
+        if (parDisc.length > 1) {
+            texte += ` La ${meilleurDisc.disc} est la discipline la mieux maîtrisée (${meilleurDisc.moy}%)`;
+            if (moinsDisc.disc !== meilleurDisc.disc) texte += `, tandis que la ${moinsDisc.disc} reste l'axe de travail prioritaire (${moinsDisc.moy}%).`;
+            else texte += '.';
+        }
+
+        // Phrase 3 — postes forts/faibles
+        if (pointFort) {
+            texte += ` Sur les grilles enregistrées, les tirs ${pointFort} sont les plus maîtrisés (${tauxFort}% de réussite)`;
+            if (tauxFaible < 70) texte += `, tandis que les tirs ${pointFaible} constituent le point faible principal (${tauxFaible}%).`;
+            else texte += '.';
+        }
+
+        // Phrase 4 — régularité
+        if (irregulier) {
+            texte += ` ${pick(['La régularité est le principal chantier','L\'irrégularité des résultats mérite attention'])} : un écart de ${ecart} points entre les séries indique des variations importantes selon les séances.`;
+        }
+
+        // Phrase 5 — conseil personnalisé
+        if (postesProblematiques.length) {
+            texte += ` Conseil prioritaire : travailler en répétition sur les tirs ${postesProblematiques.join(' et ')} en variant les angles de sortie pour renforcer les automatismes sur ces zones.`;
+        } else if (tendance === 'stable' && avg >= 70) {
+            texte += ` Pour franchir un palier, ${pick(['intensifier le travail sur la gestion du stress en compétition','varier les conditions d\'entraînement pour sortir de la zone de confort','travailler la constance sur la totalité des 25 tirs sans relâchement en fin de série'])}.`;
+        } else {
+            texte += ` La priorité est de ${pick(['consolider les bases techniques','répéter les fondamentaux sur chaque poste','travailler la régularité avant de chercher la performance'])}.`;
+        }
+
         return texte;
     }
 
@@ -1442,7 +1469,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     }
 
     function fermerAnalyseSerie() {
-        clearInterval(_dotsSerieInterval);
         document.getElementById('modal-analyse-serie').style.display = 'none';
         _currentSerie = null;
     }
@@ -1506,77 +1532,118 @@ Rédige une analyse de coaching en 4-5 phrases maximum, en français, style coac
 Sois direct, concret, bienveillant. En prose, sans bullet points.`;
     }
 
-    async function genererAnalyseSerie() {
+    function genererAnalyseSerie() {
         if (!_currentSerie) return;
 
-        const btn     = document.getElementById('btn-generer-serie');
-        const loading = document.getElementById('modal-serie-loading');
+        const btn      = document.getElementById('btn-generer-serie');
         const textarea = document.getElementById('modal-serie-texte');
-        const status  = document.getElementById('modal-serie-status');
+        const status   = document.getElementById('modal-serie-status');
 
-        btn.style.display = 'none';
-        loading.style.display = 'block';
-        textarea.style.opacity = '0.4';
-        status.textContent = '';
+        const texte = _analyseLocale_serie(_currentSerie);
+        textarea.value = texte;
 
-        const dotStates = ['●○○','○●○','○○●','○●○'];
-        let di = 0;
-        _dotsSerieInterval = setInterval(() => {
-            document.getElementById('modal-serie-dots').textContent = dotStates[di++ % dotStates.length];
-        }, 400);
+        /* Sauvegarde directe sans relire le DOM */
+        if (!db.analysesCoach) db.analysesCoach = {};
+        db.analysesCoach['serie_' + _currentSerie.id] = texte;
+        saveDB();
 
-        try {
-            const prompt = _construirePromptSerie(_currentSerie);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 800,
-                    messages: [{ role: 'user', content: prompt }]
-                }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error('Erreur API');
-            const data = await response.json();
-            const texte = data.content?.[0]?.text || '';
-            textarea.value = texte;
-            sauvegarderAnalyseSerie();
-            status.textContent = '✓ Analyse générée — modifiez-la si besoin';
-
-        } catch(e) {
-            /* Fallback local */
-            textarea.value = _analyseLocale_serie(_currentSerie);
-            status.textContent = '⚠ Analyse locale (IA non disponible)';
-        } finally {
-            clearInterval(_dotsSerieInterval);
-            loading.style.display = 'none';
-            textarea.style.opacity = '1';
-            btn.style.display = 'block';
-            btn.textContent = '↺ Régénérer';
-        }
+        status.textContent = '✓ Analyse générée — modifiez-la si besoin';
+        btn.textContent = '↺ Régénérer';
     }
 
+    
     function _analyseLocale_serie(s) {
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         const max  = s.disc === 'FU' ? 25 : 75;
         const pct  = Math.round((parseInt(s.score)/max)*100);
-        const rates = s.grille.map((v,i) => v===0?(i+1):null).filter(Boolean);
+
+        /* --- Groupes de 5 tirs --- */
         const groupes = ['1-5','6-10','11-15','16-20','21-25'];
         const taux = groupes.map((_,gi) => {
             let h=0; for(let i=gi*5;i<gi*5+5;i++){if(s.grille[i]>0)h++;} return Math.round(h/5*100);
         });
-        const minI = taux.indexOf(Math.min(...taux));
         const maxI = taux.indexOf(Math.max(...taux));
-        const niveau = pct>=85?'excellente':pct>=70?'bonne':pct>=55?'correcte':'à améliorer';
+        const minI = taux.indexOf(Math.min(...taux));
+
+        /* --- Tirs ratés et deuxièmes coups --- */
+        const rates        = s.grille.map((v,i) => v===0 ? i+1 : null).filter(Boolean);
+        const deuxiemeCoup = s.disc !== 'FU' ? s.grille.map((v,i) => v===2 ? i+1 : null).filter(Boolean) : [];
+
+        /* --- Séquences de ratés consécutifs (perte de concentration) --- */
+        let maxConsecutifs = 0, consecutifsActuels = 0, positionPire = 0;
+        s.grille.forEach((v, i) => {
+            if (v === 0) {
+                consecutifsActuels++;
+                if (consecutifsActuels > maxConsecutifs) { maxConsecutifs = consecutifsActuels; positionPire = i+1; }
+            } else { consecutifsActuels = 0; }
+        });
+
+        /* --- Analyse début / milieu / fin de série --- */
+        const debut  = s.grille.slice(0,8).filter(v=>v>0).length;   // tirs 1-8
+        const milieu = s.grille.slice(8,17).filter(v=>v>0).length;  // tirs 9-17
+        const fin    = s.grille.slice(17,25).filter(v=>v>0).length; // tirs 18-25
+        const pctDebut  = Math.round(debut/8*100);
+        const pctMilieu = Math.round(milieu/9*100);
+        const pctFin    = Math.round(fin/8*100);
+        const fatigue = pctFin < pctDebut - 20;
+        const montee  = pctFin > pctDebut + 20;
+
+        /* --- Niveau & poste --- */
+        const niveau = pct>=88?['excellente','remarquable','très aboutie']
+            : pct>=75?['bonne','solide','maîtrisée']
+            : pct>=60?['correcte','honnête','en progrès']
+            : ['perfectible','à améliorer','difficile'];
         const posteStr = s.poste ? ` depuis le poste ${s.poste}` : '';
-        let texte = `Série ${niveau}${posteStr} en ${s.disc} avec ${s.score}/${max} (${pct}%).`;
-        texte += ` Point fort sur les tirs ${groupes[maxI]} (${taux[maxI]}% de réussite).`;
-        if (taux[minI] < 80) texte += ` Les tirs ${groupes[minI]} sont le point faible de cette série (${taux[minI]}%).`;
-        if (rates.length) texte += ` Tirs à retravailler : ${rates.slice(0,5).join(', ')}${rates.length>5?' et autres...':''}.`;
-        texte += ` Concentrez la prochaine séance sur les tirs difficiles identifiés pour consolider les acquis.`;
+
+        /* --- Phrase 1 : intro --- */
+        let texte = `Série ${pick(niveau)}${posteStr} en ${s.disc} : ${s.score}/${max} (${pct}%).`;
+
+        /* --- Phrase 2 : dynamique début/fin --- */
+        if (fatigue) {
+            texte += ` ${pick(['La concentration fléchit nettement en fin de série','Une baisse de régularité apparaît sur les derniers tirs'])}, départ à ${pctDebut}% contre ${pctFin}% sur les tirs 18-25, ce qui suggère une gestion de l'effort à travailler.`;
+        } else if (montee) {
+            texte += ` Bonne montée en puissance : le tireur démarre prudemment (${pctDebut}%) mais accélère franchement sur la fin (${pctFin}%), signe d'une bonne gestion de la série.`;
+        } else {
+            texte += ` La régularité est au rendez-vous sur l'ensemble des 25 tirs, départ ${pctDebut}%, milieu ${pctMilieu}%, fin ${pctFin}%.`;
+        }
+
+        /* --- Phrase 3 : séquences de ratés --- */
+        if (maxConsecutifs >= 3) {
+            texte += ` Attention : ${maxConsecutifs} ratés consécutifs autour du tir ${positionPire} trahissent une rupture de concentration, c'est le point critique de cette série.`;
+        } else if (maxConsecutifs === 2) {
+            texte += ` Deux ratés consécutifs repérés autour du tir ${positionPire} : surveiller cette zone lors de la prochaine séance.`;
+        }
+
+        /* --- Phrase 4 : zones fortes/faibles --- */
+        if (taux[maxI] === 100 && taux[minI] < 60) {
+            texte += ` Les tirs ${groupes[maxI]} sont parfaitement maîtrisés (100%), en contraste avec les tirs ${groupes[minI]} qui restent problématiques (${taux[minI]}%).`;
+        } else if (taux[minI] < 60) {
+            texte += ` Zone prioritaire : les tirs ${groupes[minI]} avec seulement ${taux[minI]}% de réussite.`;
+        } else if (taux[maxI] === 100) {
+            texte += ` Excellent sur les tirs ${groupes[maxI]} (100% de réussite), c'est le secteur fort de cette série.`;
+        }
+
+        /* --- Phrase 5 : deuxièmes coups --- */
+        if (deuxiemeCoup.length >= 3) {
+            texte += ` ${deuxiemeCoup.length} tirs au deuxième coup (tirs ${deuxiemeCoup.slice(0,3).join(', ')}${deuxiemeCoup.length>3?'…':''}) : probable manque de prise d'avance${s.poste ? ` sur les angles du poste ${s.poste}` : ''}, travailler l'anticipation dès la sortie de la cible.`;
+        } else if (deuxiemeCoup.length > 0) {
+            texte += ` ${deuxiemeCoup.length} tir${deuxiemeCoup.length>1?'s':''} rattrapé${deuxiemeCoup.length>1?'s':''} au deuxième coup (tir${deuxiemeCoup.length>1?'s':''} ${deuxiemeCoup.join(', ')}) : à surveiller pour gagner en fluidité.`;
+        }
+
+        /* --- Phrase 6 : conseil ciblé --- */
+        const conseilsParZone = {
+            '1-5':   ['Travailler les plateaux droits et les angles proches','Revoir le placement de départ sur les plateaux centraux'],
+            '6-10':  ['Insister sur la lecture des angles latéraux','Travailler la prise d\'avance sur les plateaux qui partent vite'],
+            '11-15': ['Consolider la zone centrale qui conditionne la confiance','Répéter les tirs 11-15 en série pour automatiser'],
+            '16-20': ['Travailler la vigilance en milieu-fin de série','Ces tirs coïncident souvent avec une baisse de concentration'],
+            '21-25': ['La fin de série est décisive, travailler mentalement les 5 derniers tirs','Garder l\'intensité et l\'agressivité jusqu\'au dernier plateau']
+        };
+        if (taux[minI] < 70 && conseilsParZone[groupes[minI]]) {
+            texte += ` Conseil : ${pick(conseilsParZone[groupes[minI]])}.`;
+        } else {
+            texte += ` ${pick(['Prochaine séance : répéter ce niveau pour installer la régularité','Objectif : reproduire cette performance et viser 5% de plus','Maintenir cet état de forme et travailler la constance sur la durée'])}.`;
+        }
+
         return texte;
     }
 
@@ -1792,7 +1859,7 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             const btnAnalyse = document.createElement('button');
             btnAnalyse.className = 'btn-secondary';
             btnAnalyse.style.cssText = 'height:36px;font-size:0.75rem;color:var(--accent);font-weight:800;';
-            btnAnalyse.textContent = '✨ Analyser cette série';
+            btnAnalyse.textContent = '📊 Analyser cette série';
             btnAnalyse.onclick = (e) => { e.stopPropagation(); ouvrirAnalyseSerie(s); };
 
             card.append(row1, btnAnalyse);
@@ -1825,59 +1892,51 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             s.disc === 'FU' ? '#72d582' : s.disc === 'DTL' ? '#edcc52' : '#e66756'
         );
 
-        const borderColor = disc === 'tous' ? '#f39c12' : (
-            disc === 'FU' ? '#72d582' : disc === 'DTL' ? '#edcc52' : '#e66756'
-        );
-
         const ctx = document.getElementById('chart-progression').getContext('2d');
-        if (_chartProg) {
-            _chartProg.data.labels = labels;
-            _chartProg.data.datasets[0].data = data;
-            _chartProg.data.datasets[0].borderColor = borderColor;
-            _chartProg.data.datasets[0].pointBackgroundColor = disc === 'tous' ? colors : Array(data.length).fill(borderColor);
-            _chartProg.update();
-        } else {
-            _chartProg = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        data,
-                        borderColor,
-                        backgroundColor: 'transparent',
-                        pointBackgroundColor: disc === 'tous' ? colors : undefined,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        borderWidth: 2.5,
-                        tension: 0.35
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => ctx.parsed.y + '%' +
-                                    (filtre[ctx.dataIndex] ? ' (' + filtre[ctx.dataIndex].disc + ')' : '')
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 },
-                            grid: { display: false }
-                        },
-                        y: {
-                            min: 0, max: 100,
-                            ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
-                            grid: { color: 'rgba(0,0,0,0.05)' }
+        if (_chartProg) _chartProg.destroy();
+
+        _chartProg = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    borderColor: disc === 'tous' ? '#f39c12' : (
+                        disc === 'FU' ? '#72d582' : disc === 'DTL' ? '#edcc52' : '#e66756'
+                    ),
+                    backgroundColor: 'transparent',
+                    pointBackgroundColor: disc === 'tous' ? colors : undefined,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2.5,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ctx.parsed.y + '%' +
+                                (filtre[ctx.dataIndex] ? ' (' + filtre[ctx.dataIndex].disc + ')' : '')
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        min: 0, max: 100,
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
                 }
-            });
-        }
+            }
+        });
     }
 
     function filtrerProgression(btn) {
@@ -1910,45 +1969,43 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             return total ? Math.round((hits / total) * 100) : 0;
         });
 
-        const bgColors = taux.map(v => v >= 80 ? '#72d582' : v >= 60 ? '#edcc52' : '#e66756');
+        const accentColor = disc === 'FU' ? '#72d582' : disc === 'DTL' ? '#edcc52' : '#e66756';
         const ctx = document.getElementById('chart-postes').getContext('2d');
-        if (_chartPoste) {
-            _chartPoste.data.datasets[0].data = taux;
-            _chartPoste.data.datasets[0].backgroundColor = bgColors;
-            _chartPoste.update();
-        } else {
-            _chartPoste = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: groupes,
-                    datasets: [{
-                        data: taux,
-                        backgroundColor: bgColors,
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
+        if (_chartPoste) _chartPoste.destroy();
+
+        _chartPoste = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: groupes,
+                datasets: [{
+                    data: taux,
+                    backgroundColor: taux.map(v =>
+                        v >= 80 ? '#72d582' : v >= 60 ? '#edcc52' : '#e66756'
+                    ),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: ctx => ctx.parsed.y + '%' } }
+                scales: {
+                    x: {
+                        ticks: { font: { size: 11 } },
+                        grid: { display: false }
                     },
-                    scales: {
-                        x: {
-                            ticks: { font: { size: 11 } },
-                            grid: { display: false }
-                        },
-                        y: {
-                            min: 0, max: 100,
-                            ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
-                            grid: { color: 'rgba(0,0,0,0.05)' }
-                        }
+                    y: {
+                        min: 0, max: 100,
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     function filtrerPostes(btn) {
@@ -2017,11 +2074,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
     }
 
     function validerSerie() {
-        const btn = document.getElementById('btn-valider-serie');
-        if (btn.disabled) return;
-        btn.disabled = true;
-        setTimeout(() => { btn.disabled = false; }, 1500);
-
         const scoreVal = parseInt(document.getElementById('score-live').textContent, 10);
         const note = document.getElementById('note-coach').value.slice(0, 500);
         db.eleves[currentTireur].unshift({
