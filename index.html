@@ -69,6 +69,16 @@
             --text-primary: #dde2ec;
             --text-muted:   #8a96b0;
             --text-label:   #6b7690;
+            --overlay-bg:   rgba(56,63,80,0.97);
+            --chart-grid:   rgba(255,255,255,0.12);
+            --chart-text:   #8a96b0;
+        }
+
+        /* Variables pour le mode clair (défaut) */
+        :root {
+            --overlay-bg:   rgba(224,229,236,0.97);
+            --chart-grid:   rgba(0,0,0,0.05);
+            --chart-text:   #94a3b8;
         }
 
         *, *::before, *::after {
@@ -357,12 +367,21 @@
         .tab-item {
             flex: 1; text-align: center; color: var(--text-muted);
             cursor: pointer; border: none; background: none;
-            font-size: 0.72rem; font-weight: 700;
-            padding: 8px 0; line-height: 1.4;
+            font-size: 0.82rem; font-weight: 700;
+            padding: 8px 0; line-height: 1.5;
         }
+        .tab-item .tab-icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
         .tab-item.active { color: var(--accent); }
 
-        /* ---- TOAST ---- */
+        /* ---- MÉTÉO ---- */
+        .meteo-bar { display:flex; gap:8px; width:100%; justify-content:space-between; flex-shrink:0; }
+        .meteo-btn {
+            flex:1; height:48px; border:none; border-radius:var(--radius-sm);
+            background:var(--bg); box-shadow:var(--neu-out-sm);
+            font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition: box-shadow 0.15s;
+        }
+        .meteo-btn.active { box-shadow:var(--neu-in); }
         @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(16px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
         .toast {
             position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
@@ -375,7 +394,7 @@
         /* ---- MODALES — structure commune ---- */
         .modal-overlay {
             display: none; position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(224,229,236,0.97); z-index: 12000;
+            background: var(--overlay-bg); z-index: 12000;
             flex-direction: column; justify-content: center; align-items: center;
         }
         .modal-box {
@@ -504,6 +523,179 @@
             text-align: center; color: var(--text-label);
             font-size: 0.9rem; padding: 30px 0; font-style: italic;
         }
+
+        /* ---- RADAR STYLES ---- */
+        .radar-container {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .radar-legend {
+            display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+            margin-top: 10px;
+        }
+        .radar-legend-item {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.7rem; color: var(--text-muted);
+        }
+        .radar-legend-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+        }
+        .radar-score-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            margin-left: 8px;
+        }
+        .radar-score-badge.excellent { background: var(--v-color); }
+        .radar-score-badge.good { background: var(--o-color); }
+        .radar-score-badge.weak { background: var(--r-color); }
+
+        /* ---- WIDGET MÉTÉO DYNAMIQUE ---- */
+        .weather-widget {
+            width: 100%;
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-out-sm);
+            padding: 12px 14px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .weather-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-label);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .weather-refresh {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .weather-refresh:active { opacity: 0.6; }
+        .weather-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .weather-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .weather-info {
+            flex: 1;
+        }
+        .weather-temp {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--text-primary);
+        }
+        .weather-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .weather-wind {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        .weather-wind-icon { font-size: 1rem; }
+        .weather-loading {
+            text-align: center;
+            padding: 8px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+        .weather-error {
+            font-size: 0.75rem;
+            color: var(--r-color);
+        }
+        .weather-location {
+            font-size: 0.65rem;
+            color: var(--text-label);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        /* ---- SÉLECTEUR VENT ---- */
+        .wind-selector {
+            width: 100%;
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-out-sm);
+            padding: 10px 12px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .wind-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-label);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .wind-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .wind-btn {
+            flex: 1;
+            height: 44px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            box-shadow: var(--neu-out-sm);
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.2s ease;
+        }
+        .wind-btn-icon {
+            font-size: 1.1rem;
+        }
+        .wind-btn-text {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .wind-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: none;
+        }
+        .wind-btn:active {
+            transform: scale(0.96);
+        }
     </style>
 </head>
 <body>
@@ -516,7 +708,7 @@
             <div class="logo-sub">Master Coach Edition</div>
         </div>
         <button class="btn-enter" onclick="entrerApp()">Entrer</button>
-        <div class="logo-version">V 2.0</div>
+        <div class="logo-version">V 2.7 - Rotation Postes</div>
     </div>
 
     <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;">🏠</button>
@@ -613,7 +805,7 @@
             <div class="settings-card">
                 <div class="settings-row">
                     <span class="settings-row-label">Version</span>
-                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.0</span>
+                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.7 - Rotation Postes</span>
                 </div>
                 <div class="settings-row">
                     <span class="settings-row-label">Élèves enregistrés</span>
@@ -790,6 +982,36 @@
             <button class="btn-secondary" style="color:var(--r-color)" onclick="quitterTir()">✕ QUITTER</button>
         </div>
 
+        <!-- Widget Météo Dynamique -->
+        <div class="weather-widget" id="weather-widget">
+            <div class="weather-header">
+                <span class="weather-title">🌤️ Météo actuelle</span>
+                <button class="weather-refresh" onclick="rafraichirMeteo()">↻</button>
+            </div>
+            <div id="weather-content" class="weather-content">
+                <div class="weather-loading">📍 Détection de la position...</div>
+            </div>
+        </div>
+
+        <!-- Sélecteur de vent (ajustement coach) -->
+        <div class="wind-selector">
+            <span class="wind-label">💨 Vent sur le pas de tir</span>
+            <div class="wind-buttons">
+                <button class="wind-btn active" id="vent-faible" onclick="setVent('faible')">
+                    <span class="wind-btn-icon">～</span>
+                    <span class="wind-btn-text">Faible</span>
+                </button>
+                <button class="wind-btn" id="vent-modere" onclick="setVent('modere')">
+                    <span class="wind-btn-icon">💨</span>
+                    <span class="wind-btn-text">Modéré</span>
+                </button>
+                <button class="wind-btn" id="vent-fort" onclick="setVent('fort')">
+                    <span class="wind-btn-icon">🌀</span>
+                    <span class="wind-btn-text">Fort</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Note coach -->
         <textarea id="note-coach" class="textarea-neu" placeholder="Note de coaching..." style="height:60px;flex-shrink:0;"></textarea>
 
@@ -830,6 +1052,24 @@
                 <div class="record-card">
                     <div class="record-val" id="rec-total">—</div>
                     <span class="record-sub">Séries jouées</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOUVEAU : Graphique Radar -->
+        <div class="stats-section" id="section-radar">
+            <span class="stats-titre">Profil de performance</span>
+            <div class="disc-filter" id="filter-radar">
+                <button class="disc-pill active" data-disc="FU" onclick="filtrerRadar(this)">FU</button>
+                <button class="disc-pill" data-disc="DTL" onclick="filtrerRadar(this)">DTL</button>
+                <button class="disc-pill" data-disc="TRAP 1" onclick="filtrerRadar(this)">Trap 1</button>
+            </div>
+            <div class="chart-card">
+                <div class="radar-container">
+                    <div style="position:relative;height:220px;">
+                        <canvas id="chart-radar"></canvas>
+                    </div>
+                    <div class="radar-legend" id="radar-legend"></div>
                 </div>
             </div>
         </div>
@@ -944,9 +1184,9 @@
     </div>
 
     <nav id="main-nav" class="tab-bar">
-        <div class="tab-item active" onclick="switchTab('page-eleves', this)">🎓<br>ÉLÈVES</div>
-        <div class="tab-item" onclick="switchTab('page-stats', this)">📊<br>STATS</div>
-        <div class="tab-item" onclick="switchTab('page-params', this)">⚙️<br>RÉGLAGES</div>
+        <div class="tab-item active" onclick="switchTab('page-eleves', this)"><span class="tab-icon">🎓</span>ÉLÈVES</div>
+        <div class="tab-item" onclick="switchTab('page-stats', this)"><span class="tab-icon">📊</span>STATS</div>
+        <div class="tab-item" onclick="switchTab('page-params', this)"><span class="tab-icon">⚙️</span>RÉGLAGES</div>
     </nav>
 </div>
 
@@ -964,6 +1204,8 @@
     var currentTireur = "Moi";
     var currentDisc = "";
     var currentPoste = null;
+    var currentVent = 'faible';  // Vent local ajusté par le coach
+    var currentMeteoAPI = null;  // Météo récupérée par l'API
     var serieEnCours = [];
     var currentAnalyseSerie = null;
 
@@ -1217,12 +1459,11 @@
         const c = document.getElementById('liste-eleves');
         c.innerHTML = "";
         Object.keys(db.eleves).forEach(nom => {
-            // Construction DOM sécurisée — pas d'innerHTML avec données user
             const btn = document.createElement('div');
             btn.className = 'btn-choice';
 
             const spanNom = document.createElement('span');
-            spanNom.textContent = nom; // textContent = pas de XSS
+            spanNom.textContent = nom;
 
             const btnDel = document.createElement('button');
             btnDel.className = 'btn-del';
@@ -1252,37 +1493,42 @@
         const bestMax   = bestSerie ? (bestSerie.disc === 'FU' ? 25 : 75) : 75;
         const globalAvg = (allScores.reduce((a,b) => a+b,0) / allScores.length).toFixed(1);
 
-        /* Tendance : compare 1ère moitié vs 2ème moitié des séries */
         const mid   = Math.floor(scores.length / 2);
         const pct   = s => { const max = s.disc==='FU'?25:75; return Math.round(parseInt(s.score)/max*100); };
         const avgOld = scores.slice(mid).map(pct).reduce((a,b)=>a+b,0) / (scores.length - mid);
         const avgNew = scores.slice(0, mid).map(pct).reduce((a,b)=>a+b,0) / mid;
         const tendance = avgNew > avgOld + 3 ? 'en progression' : avgNew < avgOld - 3 ? 'en baisse' : 'stable';
 
-        /* Analyse par poste sur toutes les séries avec grille */
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
         let postesInfo = '';
         if (avecGrille.length) {
             ['FU','DTL','TRAP 1'].forEach(disc => {
                 const series = avecGrille.filter(s => s.disc === disc);
                 if (!series.length) return;
-                const groupes = ['1-5','6-10','11-15','16-20','21-25'];
-                const taux = groupes.map((_, gi) => {
-                    let hits=0, total=0;
-                    series.forEach(s => {
-                        for (let i=gi*5; i<gi*5+5; i++) { total++; if(s.grille[i]>0) hits++; }
-                    });
-                    return total ? Math.round((hits/total)*100) : 0;
+                
+                // Calculer les taux par POSTE RÉEL
+                const postesHits = [0, 0, 0, 0, 0];
+                const postesTotal = [0, 0, 0, 0, 0];
+                series.forEach(s => {
+                    const posteDepart = s.poste || 1;
+                    for (let i = 0; i < 25; i++) {
+                        const posteReel = calculerPoste(i + 1, disc, posteDepart);
+                        postesTotal[posteReel - 1]++;
+                        if (s.grille[i] > 0) postesHits[posteReel - 1]++;
+                    }
                 });
-                const faibles = groupes.filter((_,i) => taux[i] < 60).join(', ');
-                const forts   = groupes.filter((_,i) => taux[i] >= 85).join(', ');
+                const taux = postesHits.map((h, i) => 
+                    postesTotal[i] ? Math.round((h / postesTotal[i]) * 100) : 0
+                );
+                const postesLabels = ['P1','P2','P3','P4','P5'];
+                const faibles = postesLabels.filter((_,i) => taux[i] < 60).join(', ');
+                const forts   = postesLabels.filter((_,i) => taux[i] >= 85).join(', ');
                 postesInfo += `\n${disc} : taux par poste [${taux.map(t=>t+'%').join(', ')}]`;
                 if (forts)   postesInfo += ` — Points forts : ${forts}`;
                 if (faibles) postesInfo += ` — Points faibles : ${faibles}`;
             });
         }
 
-        /* Résumé par discipline avec poste */
         const parDisc = ['FU','DTL','TRAP 1'].map(d => {
             const list = scores.filter(s => s.disc === d);
             if (!list.length) return null;
@@ -1326,7 +1572,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         const texte = _analyseLocale(currentTireur, scores);
         textarea.value = texte;
 
-        /* Sauvegarde directe sans relire le DOM */
         if (!db.analysesCoach) db.analysesCoach = {};
         db.analysesCoach[currentTireur] = texte;
         saveDB();
@@ -1335,11 +1580,9 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         btn.textContent = '↺ Régénérer l\'analyse';
     }
 
-    /* Analyse locale de secours (sans appel API) */
     function _analyseLocale(nom, scores) {
         const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
-        /* --- Moyennes & tendance --- */
         const allPct = scores.map(s => Math.round(parseInt(s.score)/(s.disc==='FU'?25:75)*100));
         const avg    = Math.round(allPct.reduce((a,b)=>a+b,0)/allPct.length);
         const best   = Math.max(...allPct);
@@ -1351,7 +1594,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         const tendance = scores.length < 2 ? 'stable'
             : delta > 4 ? 'progression' : delta < -4 ? 'recul' : 'stable';
 
-        /* --- Analyse par discipline --- */
         const parDisc = ['FU','DTL','TRAP 1'].map(d => {
             const list = scores.filter(s => s.disc === d);
             if (!list.length) return null;
@@ -1362,39 +1604,45 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         const meilleurDisc = parDisc.reduce((a,b) => a.moy > b.moy ? a : b, parDisc[0]);
         const moinsDisc    = parDisc.reduce((a,b) => a.moy < b.moy ? a : b, parDisc[0]);
 
-        /* --- Analyse par poste sur grilles --- */
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
-        const groupes = ['1-5','6-10','11-15','16-20','21-25'];
+        const postesLabels = ['P1','P2','P3','P4','P5'];
         let pointFort = '', pointFaible = '', tauxFort = 0, tauxFaible = 100;
         let postesProblematiques = [];
 
         if (avecGrille.length) {
-            const taux = groupes.map((_, gi) => {
-                let hits=0, total=0;
-                avecGrille.forEach(s => { for(let i=gi*5;i<gi*5+5;i++){total++;if(s.grille[i]>0)hits++;} });
-                return total ? Math.round((hits/total)*100) : 0;
+            // Calculer les taux par POSTE RÉEL
+            const postesHits = [0, 0, 0, 0, 0];
+            const postesTotal = [0, 0, 0, 0, 0];
+            
+            avecGrille.forEach(s => {
+                const posteDepart = s.poste || 1;
+                // Déterminer la discipline pour calculer le poste réel
+                const disc = s.disc;
+                for (let i = 0; i < 25; i++) {
+                    const posteReel = calculerPoste(i + 1, disc, posteDepart);
+                    postesTotal[posteReel - 1]++;
+                    if (s.grille[i] > 0) postesHits[posteReel - 1]++;
+                }
             });
+            
+            const taux = postesHits.map((h, i) => 
+                postesTotal[i] ? Math.round((h / postesTotal[i]) * 100) : 0
+            );
             const maxI = taux.indexOf(Math.max(...taux));
             const minI = taux.indexOf(Math.min(...taux));
-            pointFort    = groupes[maxI]; tauxFort    = taux[maxI];
-            pointFaible  = groupes[minI]; tauxFaible  = taux[minI];
-            postesProblematiques = groupes.filter((_,i) => taux[i] < 60);
+            pointFort    = postesLabels[maxI]; tauxFort    = taux[maxI];
+            pointFaible  = postesLabels[minI]; tauxFaible  = taux[minI];
+            postesProblematiques = postesLabels.filter((_,i) => taux[i] < 60);
         }
 
-        /* --- Régularité : écart-type --- */
         const ecart = Math.round(Math.sqrt(allPct.reduce((a,b) => a+(b-avg)**2, 0)/allPct.length));
         const irregulier = ecart > 12;
 
-        /* --- Postes de départ les plus joués --- */
-        const postesJoues = [...new Set(scores.map(s=>s.poste).filter(Boolean))].sort();
-
-        /* --- Construction du texte --- */
         const niveauMots = avg >= 85 ? ['excellent','très solide','remarquable']
             : avg >= 70 ? ['bon','régulier','fiable']
             : avg >= 55 ? ['correct','en développement','encourageant']
             : ['perfectible','à construire','en progression'];
 
-        // Phrase 1 — niveau général + tendance
         const tendanceMots = tendance === 'progression'
             ? [`avec une progression nette de +${Math.round(delta)}% sur les dernières séries`,'en nette amélioration sur les séances récentes']
             : tendance === 'recul'
@@ -1403,28 +1651,24 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
 
         let texte = `${nom} présente un niveau ${pick(niveauMots)} avec une moyenne de ${avg}% (meilleure série : ${best}%, moins bonne : ${worst}%), ${pick(tendanceMots)}.`;
 
-        // Phrase 2 — discipline(s)
         if (parDisc.length > 1) {
             texte += ` La ${meilleurDisc.disc} est la discipline la mieux maîtrisée (${meilleurDisc.moy}%)`;
             if (moinsDisc.disc !== meilleurDisc.disc) texte += `, tandis que la ${moinsDisc.disc} reste l'axe de travail prioritaire (${moinsDisc.moy}%).`;
             else texte += '.';
         }
 
-        // Phrase 3 — postes forts/faibles
         if (pointFort) {
-            texte += ` Sur les grilles enregistrées, les tirs ${pointFort} sont les plus maîtrisés (${tauxFort}% de réussite)`;
-            if (tauxFaible < 70) texte += `, tandis que les tirs ${pointFaible} constituent le point faible principal (${tauxFaible}%).`;
+            texte += ` Sur les grilles enregistrées, le poste ${pointFort} est le mieux maîtrisé (${tauxFort}% de réussite)`;
+            if (tauxFaible < 70) texte += `, tandis que le poste ${pointFaible} constitue le point faible principal (${tauxFaible}%).`;
             else texte += '.';
         }
 
-        // Phrase 4 — régularité
         if (irregulier) {
             texte += ` ${pick(['La régularité est le principal chantier','L\'irrégularité des résultats mérite attention'])} : un écart de ${ecart} points entre les séries indique des variations importantes selon les séances.`;
         }
 
-        // Phrase 5 — conseil personnalisé
         if (postesProblematiques.length) {
-            texte += ` Conseil prioritaire : travailler en répétition sur les tirs ${postesProblematiques.join(' et ')} en variant les angles de sortie pour renforcer les automatismes sur ces zones.`;
+            texte += ` 🎯 Conseil prioritaire : programmer une séance spécifique sur le${postesProblematiques.length > 1 ? 's' : ''} poste${postesProblematiques.length > 1 ? 's' : ''} ${postesProblematiques.join(' et ')} pour renforcer les automatismes sur cette zone.`;
         } else if (tendance === 'stable' && avg >= 70) {
             texte += ` Pour franchir un palier, ${pick(['intensifier le travail sur la gestion du stress en compétition','varier les conditions d\'entraînement pour sortir de la zone de confort','travailler la constance sur la totalité des 25 tirs sans relâchement en fin de série'])}.`;
         } else {
@@ -1458,7 +1702,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         document.getElementById('modal-serie-sous-titre').textContent = serie.date;
         document.getElementById('modal-serie-badge').textContent = 'SCORE : ' + serie.score + ' / ' + max + ' (' + pct + '%)';
 
-        /* Charge l'analyse sauvegardée si elle existe */
         const saved = db.analysesCoach?.['serie_' + serie.id] || '';
         document.getElementById('modal-serie-texte').value = saved;
         document.getElementById('modal-serie-status').textContent = saved ? '✓ Analyse sauvegardée — modifiez-la si besoin' : '';
@@ -1481,57 +1724,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         saveDB();
     }
 
-    function _construirePromptSerie(serie) {
-        const max = serie.disc === 'FU' ? 25 : 75;
-        const pct = Math.round((parseInt(serie.score) / max) * 100);
-
-        /* Détail tir par tir */
-        const groupes = ['1-5','6-10','11-15','16-20','21-25'];
-        const taux = groupes.map((_, gi) => {
-            let hits = 0;
-            for (let i = gi*5; i < gi*5+5; i++) { if (serie.grille[i] > 0) hits++; }
-            return Math.round((hits/5)*100);
-        });
-
-        /* Liste des tirs ratés */
-        const rates = serie.grille
-            .map((v, i) => v === 0 ? (i+1) : null)
-            .filter(Boolean);
-
-        /* Tirs "orange" (X) = deuxième coup en DTL/Trap */
-        const deuxiemeCoup = serie.disc !== 'FU'
-            ? serie.grille.map((v,i) => v===2 ? (i+1) : null).filter(Boolean)
-            : [];
-
-        const posteStr = serie.poste ? `Poste de départ : ${serie.poste}` : 'Poste non renseigné';
-
-        return `Tu es un coach expert en ball-trap. Génère une analyse précise et constructive d'une série spécifique.
-
-TIREUR : ${serie.tireur}
-DISCIPLINE : ${serie.disc}
-${posteStr}
-DATE : ${serie.date}
-SCORE : ${serie.score}/${max} (${pct}%)
-
-RÉUSSITE PAR GROUPE DE TIRS :
-- Tirs 1-5 : ${taux[0]}%
-- Tirs 6-10 : ${taux[1]}%
-- Tirs 11-15 : ${taux[2]}%
-- Tirs 16-20 : ${taux[3]}%
-- Tirs 21-25 : ${taux[4]}%
-
-TIRS RATÉS (0 point) : ${rates.length ? rates.join(', ') : 'aucun'}
-${deuxiemeCoup.length ? `TIRS SUR DEUXIÈME COUP (2 pts) : ${deuxiemeCoup.join(', ')}` : ''}
-
-Rédige une analyse de coaching en 4-5 phrases maximum, en français, style coach de terrain :
-1. Évaluation rapide de la série (niveau, régularité)
-2. Analyse des groupes forts et faibles — sois précis sur les numéros de tirs
-3. Si deuxième coup : identifie le problème (manque de confiance, angle difficile depuis ce poste ?)
-4. Un conseil d'entraînement immédiatement applicable pour la prochaine séance
-
-Sois direct, concret, bienveillant. En prose, sans bullet points.`;
-    }
-
     function genererAnalyseSerie() {
         if (!_currentSerie) return;
 
@@ -1542,7 +1734,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         const texte = _analyseLocale_serie(_currentSerie);
         textarea.value = texte;
 
-        /* Sauvegarde directe sans relire le DOM */
         if (!db.analysesCoach) db.analysesCoach = {};
         db.analysesCoach['serie_' + _currentSerie.id] = texte;
         saveDB();
@@ -1551,99 +1742,392 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         btn.textContent = '↺ Régénérer';
     }
 
+    /* =========================================================
+       MOTEUR D'ANALYSE AVANCÉ — NIVEAU COACH PROFESSIONNEL
+    ========================================================= */
     
+    // Utilitaires
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const round1 = n => Math.round(n * 10) / 10;
+    
+    // Calculer les statistiques avancées d'un élève
+    function _calculerStatsEleve(tireur, disc = null) {
+        const scores = db.eleves[tireur] || [];
+        const filtres = disc ? scores.filter(s => s.disc === disc) : scores;
+        
+        if (!filtres.length) return null;
+        
+        const maxScore = disc => disc === 'FU' ? 25 : 75;
+        const pcts = filtres.map(s => Math.round(parseInt(s.score) / maxScore(s.disc) * 100));
+        
+        const moyenne = pcts.reduce((a,b) => a+b, 0) / pcts.length;
+        const meilleure = Math.max(...pcts);
+        const pire = Math.min(...pcts);
+        
+        // Écart-type (régularité)
+        const variance = pcts.reduce((a, b) => a + Math.pow(b - moyenne, 2), 0) / pcts.length;
+        const ecartType = Math.sqrt(variance);
+        
+        // Tendance sur les 5 dernières séries
+        const dernieres = pcts.slice(0, 5);
+        const anciennes = pcts.slice(5, 10);
+        let tendance = 'stable';
+        if (dernieres.length >= 3 && anciennes.length >= 2) {
+            const moyRecente = dernieres.reduce((a,b) => a+b, 0) / dernieres.length;
+            const moyAncienne = anciennes.reduce((a,b) => a+b, 0) / anciennes.length;
+            if (moyRecente > moyAncienne + 5) tendance = 'progression';
+            else if (moyRecente < moyAncienne - 5) tendance = 'baisse';
+        }
+        
+        // Profil de tireur
+        let profil = 'en-developpement';
+        if (ecartType < 5 && moyenne >= 70) profil = 'regulier';
+        else if (ecartType > 12) profil = 'irregulier';
+        else if (meilleure >= 90 && moyenne < 70) profil = 'explosif';
+        else if (moyenne >= 85) profil = 'expert';
+        else if (moyenne >= 70) profil = 'confirme';
+        
+        return { moyenne, meilleure, pire, ecartType, tendance, profil, nbSeries: filtres.length, pcts };
+    }
+    
+    // Analyser les patterns récurrents par POSTE RÉEL
+    function _analyserPatterns(tireur, disc) {
+        const scores = db.eleves[tireur] || [];
+        const series = scores.filter(s => s.disc === disc && s.grille && s.grille.length === 25);
+        
+        if (series.length < 2) return null;
+        
+        // Analyser les postes faibles récurrents (P1-P5)
+        const postesHits = [0, 0, 0, 0, 0];
+        const postesTotal = [0, 0, 0, 0, 0];
+        
+        series.forEach(s => {
+            const posteDepart = s.poste || 1;
+            for (let i = 0; i < 25; i++) {
+                const posteReel = calculerPoste(i + 1, disc, posteDepart);
+                const posteIndex = posteReel - 1;
+                postesTotal[posteIndex]++;
+                if (s.grille[i] > 0) postesHits[posteIndex]++;
+            }
+        });
+        
+        const zonesPct = postesHits.map((h, i) => 
+            postesTotal[i] ? Math.round(h / postesTotal[i] * 100) : 0
+        );
+        const zoneFaible = zonesPct.indexOf(Math.min(...zonesPct));
+        const zoneForte = zonesPct.indexOf(Math.max(...zonesPct));
+        const zonesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        
+        // Analyser les ratés consécutifs récurrents
+        let totalConsec = 0, nbSeriesAvecConsec = 0;
+        series.forEach(s => {
+            let consec = 0, maxC = 0;
+            s.grille.forEach(v => {
+                if (v === 0) { consec++; maxC = Math.max(maxC, consec); }
+                else consec = 0;
+            });
+            if (maxC >= 2) { totalConsec += maxC; nbSeriesAvecConsec++; }
+        });
+        
+        return {
+            zoneFaible: zonesLabels[zoneFaible],
+            zoneFaiblePct: zonesPct[zoneFaible],
+            zoneForte: zonesLabels[zoneForte],
+            zoneFortePct: zonesPct[zoneForte],
+            zonesPct,
+            aProblemeConsec: nbSeriesAvecConsec > series.length * 0.4,
+            moyenneConsec: nbSeriesAvecConsec ? round1(totalConsec / nbSeriesAvecConsec) : 0
+        };
+    }
+
     function _analyseLocale_serie(s) {
-        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         const max  = s.disc === 'FU' ? 25 : 75;
         const pct  = Math.round((parseInt(s.score)/max)*100);
-
-        /* --- Groupes de 5 tirs --- */
-        const groupes = ['1-5','6-10','11-15','16-20','21-25'];
-        const taux = groupes.map((_,gi) => {
-            let h=0; for(let i=gi*5;i<gi*5+5;i++){if(s.grille[i]>0)h++;} return Math.round(h/5*100);
-        });
-        const maxI = taux.indexOf(Math.max(...taux));
-        const minI = taux.indexOf(Math.min(...taux));
-
-        /* --- Tirs ratés et deuxièmes coups --- */
-        const rates        = s.grille.map((v,i) => v===0 ? i+1 : null).filter(Boolean);
-        const deuxiemeCoup = s.disc !== 'FU' ? s.grille.map((v,i) => v===2 ? i+1 : null).filter(Boolean) : [];
-
-        /* --- Séquences de ratés consécutifs (perte de concentration) --- */
-        let maxConsecutifs = 0, consecutifsActuels = 0, positionPire = 0;
-        s.grille.forEach((v, i) => {
-            if (v === 0) {
-                consecutifsActuels++;
-                if (consecutifsActuels > maxConsecutifs) { maxConsecutifs = consecutifsActuels; positionPire = i+1; }
-            } else { consecutifsActuels = 0; }
-        });
-
-        /* --- Analyse début / milieu / fin de série --- */
-        const debut  = s.grille.slice(0,8).filter(v=>v>0).length;   // tirs 1-8
-        const milieu = s.grille.slice(8,17).filter(v=>v>0).length;  // tirs 9-17
-        const fin    = s.grille.slice(17,25).filter(v=>v>0).length; // tirs 18-25
-        const pctDebut  = Math.round(debut/8*100);
-        const pctMilieu = Math.round(milieu/9*100);
-        const pctFin    = Math.round(fin/8*100);
-        const fatigue = pctFin < pctDebut - 20;
-        const montee  = pctFin > pctDebut + 20;
-
-        /* --- Niveau & poste --- */
-        const niveau = pct>=88?['excellente','remarquable','très aboutie']
-            : pct>=75?['bonne','solide','maîtrisée']
-            : pct>=60?['correcte','honnête','en progrès']
-            : ['perfectible','à améliorer','difficile'];
+        const nom  = s.tireur || 'Tireur';
         const posteStr = s.poste ? ` depuis le poste ${s.poste}` : '';
 
-        /* --- Phrase 1 : intro --- */
-        let texte = `Série ${pick(niveau)}${posteStr} en ${s.disc} : ${s.score}/${max} (${pct}%).`;
+        // ═══════════════════════════════════════════════════════════
+        // RÉCUPÉRER L'HISTORIQUE DE L'ÉLÈVE
+        // ═══════════════════════════════════════════════════════════
+        const statsEleve = _calculerStatsEleve(nom, s.disc);
+        const patterns = _analyserPatterns(nom, s.disc);
+        
+        // Contexte météo/vent
+        const ventCtx = { fort: ' par vent fort', modere: ' par vent modéré', faible: '' };
+        const ventSuffix = s.vent ? (ventCtx[s.vent] || '') : '';
+        let meteoSuffix = '';
+        if (s.meteoAPI?.desc?.includes('Pluie') || s.meteoAPI?.desc?.includes('Averse')) {
+            meteoSuffix = ' sous la pluie';
+        }
+        const conditionSuffix = ventSuffix || meteoSuffix;
 
-        /* --- Phrase 2 : dynamique début/fin --- */
-        if (fatigue) {
-            texte += ` ${pick(['La concentration fléchit nettement en fin de série','Une baisse de régularité apparaît sur les derniers tirs'])}, départ à ${pctDebut}% contre ${pctFin}% sur les tirs 18-25, ce qui suggère une gestion de l'effort à travailler.`;
+        // ═══════════════════════════════════════════════════════════
+        // CAS SPÉCIAL : SÉRIE PARFAITE (100%)
+        // ═══════════════════════════════════════════════════════════
+        if (pct === 100) {
+            let texte = `🏆 ${nom}, SÉRIE PARFAITE ! ${s.score}/${max}${posteStr} en ${s.disc}${conditionSuffix} — aucun plateau raté !\n\n`;
+            
+            // Comparaison avec l'historique
+            if (statsEleve) {
+                const nbParfaites = statsEleve.pcts.filter(p => p === 100).length;
+                if (nbParfaites === 1) {
+                    texte += `C'est ta PREMIÈRE série parfaite ! Une performance exceptionnelle qui marque une étape importante.\n\n`;
+                } else {
+                    texte += `C'est ta ${nbParfaites}${nbParfaites === 2 ? 'de' : nbParfaites === 3 ? 'troi' : ''}série parfaite, tu confirmes ton niveau !\n\n`;
+                }
+            }
+            
+            texte += `Maîtrise totale du début à la fin, concentration impeccable, technique au point. Ce type de série est rare, savoure ce moment ! 🏆\n\n`;
+            
+            // Objectif suivant
+            if (statsEleve && statsEleve.profil !== 'regulier') {
+                texte += `🎯 Objectif : enchaîner les séries parfaites. L'excellence se mesure à la régularité, pas aux coups d'éclat.`;
+            } else {
+                texte += `🎯 Défi : reproduire cette performance en compétition, sous la pression. Tu as prouvé que tu sais faire.`;
+            }
+            
+            return texte;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ANALYSE DÉTAILLÉE DE LA SÉRIE
+        // ═══════════════════════════════════════════════════════════
+        
+        // Métriques par POSTE RÉEL
+        const postesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        const postesHits = [0, 0, 0, 0, 0];
+        const posteDepart = s.poste || 1;
+        
+        for (let i = 0; i < 25; i++) {
+            const posteReel = calculerPoste(i + 1, s.disc, posteDepart);
+            if (s.grille[i] > 0) postesHits[posteReel - 1]++;
+        }
+        
+        const taux = postesHits.map(h => Math.round(h / 5 * 100));
+        const maxI = taux.indexOf(Math.max(...taux));
+        const minI = taux.indexOf(Math.min(...taux));
+        
+        // Analyse temporelle
+        const pctDebut = Math.round(s.grille.slice(0, 8).filter(v => v > 0).length / 8 * 100);
+        const pctMilieu = Math.round(s.grille.slice(8, 17).filter(v => v > 0).length / 9 * 100);
+        const pctFin = Math.round(s.grille.slice(17, 25).filter(v => v > 0).length / 8 * 100);
+        
+        // Détection des patterns
+        const fatigue = pctFin < pctDebut - 20;
+        const montee = pctFin > pctDebut + 20;
+        const trouMilieu = pctMilieu < pctDebut - 20 && pctFin >= pctMilieu;
+        const demarrageDifficile = pctDebut < pctMilieu - 15 && pctDebut < pctFin - 15;
+        
+        // Ratés consécutifs
+        let maxConsec = 0, encours = 0, debutPire = 0, tmpDebut = 0, positionsRatés = [];
+        s.grille.forEach((v, i) => {
+            if (v === 0) {
+                positionsRatés.push(i + 1);
+                if (encours === 0) tmpDebut = i + 1;
+                encours++;
+                if (encours > maxConsec) { maxConsec = encours; debutPire = tmpDebut; }
+            } else { encours = 0; }
+        });
+        const finPire = debutPire + maxConsec - 1;
+        
+        // Deuxièmes coups (DTL/TRAP)
+        const deuxiemeCoup = s.disc !== 'FU' ? s.grille.map((v, i) => v === 2 ? i + 1 : null).filter(Boolean) : [];
+        
+        // ═══════════════════════════════════════════════════════════
+        // GÉNÉRATION DU TEXTE
+        // ═══════════════════════════════════════════════════════════
+        
+        let texte = '';
+        
+        // --- ACCROCHE avec comparaison historique ---
+        if (statsEleve) {
+            const ecartMoyenne = pct - statsEleve.moyenne;
+            const rang = statsEleve.pcts.sort((a,b) => b-a).indexOf(pct) + 1;
+            
+            if (pct === statsEleve.meilleure && statsEleve.nbSeries > 1) {
+                texte = `🌟 ${nom}, ÉGALISATION DE TON RECORD ! ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+                texte += `Tu égalles ta meilleure série ! `;
+            } else if (pct >= statsEleve.meilleure - 5 && pct !== statsEleve.meilleure) {
+                texte = `🔥 ${nom}, EXCELLENTE SÉRIE ! ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+                texte += `À ${pct}%, tu es à ${round1(Math.abs(ecartMoyenne))} points ${ecartMoyenne >= 0 ? 'au-dessus' : 'en dessous'} de ta moyenne habituelle (${round1(statsEleve.moyenne)}%). `;
+            } else if (ecartMoyenne > 10) {
+                texte = `📈 ${nom}, BELLE PROGRESSION ! ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+                texte += `Série bien au-dessus de ta moyenne (${round1(statsEleve.moyenne)}%), tu gagnes ${round1(ecartMoyenne)} points ! `;
+            } else if (ecartMoyenne < -10) {
+                texte = `${nom}, ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+                texte += `Cette série est en dessous de ton niveau habituel (${round1(statsEleve.moyenne)}% de moyenne). Pas de panique, analysons ensemble ce qui s'est passé. `;
+            } else {
+                texte = `${nom}, ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+                texte += `Performance dans ta moyenne (${round1(statsEleve.moyenne)}%), du classique pour toi. `;
+            }
+            
+            // Ajouter la tendance
+            if (statsEleve.tendance === 'progression') {
+                texte += `Tu es en phase de progression ces derniers temps, continue !\n\n`;
+            } else if (statsEleve.tendance === 'baisse') {
+                texte += `Attention, tes dernières séries montrent une légère baisse, on va redresser la barre.\n\n`;
+            } else {
+                texte += `\n\n`;
+            }
+        } else {
+            texte = `${nom}, ${s.score}/${max} (${pct}%)${posteStr} en ${s.disc}${conditionSuffix}\n\n`;
+            texte += `Première série enregistrée ! Elle servira de référence pour tes prochaines analyses.\n\n`;
+        }
+        
+        // --- ANALYSE DU DÉROULÉ ---
+        texte += `📊 DÉROULÉ DE LA SÉRIE\n`;
+        
+        if (trouMilieu) {
+            texte += `• Départ ${pctDebut}% → trou d'air au milieu (${pctMilieu}%) → remontée en fin (${pctFin}%)\n`;
+            texte += `  ⚠️ Le passage à vide sur les tirs 9-17 a coûté cher. C'est souvent là que la confiance vacille.\n`;
+        } else if (fatigue) {
+            texte += `• Départ ${pctDebut}% → fin à ${pctFin}% (chute de ${pctDebut - pctFin} points)\n`;
+            texte += `  ⚠️ Baisse de régime en fin de série. La fatigue mentale ou un relâchement de concentration ?\n`;
         } else if (montee) {
-            texte += ` Bonne montée en puissance : le tireur démarre prudemment (${pctDebut}%) mais accélère franchement sur la fin (${pctFin}%), signe d'une bonne gestion de la série.`;
+            texte += `• Départ prudent (${pctDebut}%) → montée en puissance → fin à ${pctFin}%\n`;
+            texte += `  ✓ Tu as mis du temps à entrer dans la série mais tu as fini fort. L'inverse peut aussi arriver...\n`;
+        } else if (demarrageDifficile) {
+            texte += `• Départ difficile (${pctDebut}%) → amélioration progressive\n`;
+            texte += `  ⚠️ Problème de mise en route. Travaille ta routine d'entrée de série.\n`;
         } else {
-            texte += ` La régularité est au rendez-vous sur l'ensemble des 25 tirs, départ ${pctDebut}%, milieu ${pctMilieu}%, fin ${pctFin}%.`;
+            texte += `• Début ${pctDebut}% → milieu ${pctMilieu}% → fin ${pctFin}%\n`;
+            texte += `  ✓ Série homogène, bonne gestion mentale sur l'ensemble des 25 tirs.\n`;
         }
-
-        /* --- Phrase 3 : séquences de ratés --- */
-        if (maxConsecutifs >= 3) {
-            texte += ` Attention : ${maxConsecutifs} ratés consécutifs autour du tir ${positionPire} trahissent une rupture de concentration, c'est le point critique de cette série.`;
-        } else if (maxConsecutifs === 2) {
-            texte += ` Deux ratés consécutifs repérés autour du tir ${positionPire} : surveiller cette zone lors de la prochaine séance.`;
-        }
-
-        /* --- Phrase 4 : zones fortes/faibles --- */
-        if (taux[maxI] === 100 && taux[minI] < 60) {
-            texte += ` Les tirs ${groupes[maxI]} sont parfaitement maîtrisés (100%), en contraste avec les tirs ${groupes[minI]} qui restent problématiques (${taux[minI]}%).`;
-        } else if (taux[minI] < 60) {
-            texte += ` Zone prioritaire : les tirs ${groupes[minI]} avec seulement ${taux[minI]}% de réussite.`;
-        } else if (taux[maxI] === 100) {
-            texte += ` Excellent sur les tirs ${groupes[maxI]} (100% de réussite), c'est le secteur fort de cette série.`;
-        }
-
-        /* --- Phrase 5 : deuxièmes coups --- */
-        if (deuxiemeCoup.length >= 3) {
-            texte += ` ${deuxiemeCoup.length} tirs au deuxième coup (tirs ${deuxiemeCoup.slice(0,3).join(', ')}${deuxiemeCoup.length>3?'…':''}) : probable manque de prise d'avance${s.poste ? ` sur les angles du poste ${s.poste}` : ''}, travailler l'anticipation dès la sortie de la cible.`;
-        } else if (deuxiemeCoup.length > 0) {
-            texte += ` ${deuxiemeCoup.length} tir${deuxiemeCoup.length>1?'s':''} rattrapé${deuxiemeCoup.length>1?'s':''} au deuxième coup (tir${deuxiemeCoup.length>1?'s':''} ${deuxiemeCoup.join(', ')}) : à surveiller pour gagner en fluidité.`;
-        }
-
-        /* --- Phrase 6 : conseil ciblé --- */
-        const conseilsParZone = {
-            '1-5':   ['Travailler les plateaux droits et les angles proches','Revoir le placement de départ sur les plateaux centraux'],
-            '6-10':  ['Insister sur la lecture des angles latéraux','Travailler la prise d\'avance sur les plateaux qui partent vite'],
-            '11-15': ['Consolider la zone centrale qui conditionne la confiance','Répéter les tirs 11-15 en série pour automatiser'],
-            '16-20': ['Travailler la vigilance en milieu-fin de série','Ces tirs coïncident souvent avec une baisse de concentration'],
-            '21-25': ['La fin de série est décisive, travailler mentalement les 5 derniers tirs','Garder l\'intensité et l\'agressivité jusqu\'au dernier plateau']
-        };
-        if (taux[minI] < 70 && conseilsParZone[groupes[minI]]) {
-            texte += ` Conseil : ${pick(conseilsParZone[groupes[minI]])}.`;
+        
+        // --- ANALYSE DES ZONES ---
+        texte += `\n🎯 ANALYSE PAR POSTE\n`;
+        
+        const zonesFortes = taux.map((t, i) => t >= 80 ? postesLabels[i] : null).filter(Boolean);
+        const zonesFaibles = taux.map((t, i) => t < 60 ? postesLabels[i] : null).filter(Boolean);
+        
+        if (zonesFortes.length > 0 && zonesFaibles.length > 0) {
+            texte += `• Postes forts : ${zonesFortes.join(', ')} (${taux[postesLabels.indexOf(zonesFortes[0])]}%+)\n`;
+            texte += `• Postes faibles : ${zonesFaibles.join(', ')} (${taux[postesLabels.indexOf(zonesFaibles[0])]}%)\n`;
+        } else if (zonesFaibles.length > 0) {
+            texte += `• Poste à travailler : ${zonesFaibles.join(', ')} à ${taux[minI]}%\n`;
+        } else if (zonesFortes.length === 5) {
+            texte += `• Tous les postes sont au-dessus de 80% — belle régularité !\n`;
         } else {
-            texte += ` ${pick(['Prochaine séance : répéter ce niveau pour installer la régularité','Objectif : reproduire cette performance et viser 5% de plus','Maintenir cet état de forme et travailler la constance sur la durée'])}.`;
+            texte += `• Meilleur poste : ${postesLabels[maxI]} (${taux[maxI]}%)\n`;
+            texte += `• Poste le plus fragile : ${postesLabels[minI]} (${taux[minI]}%)\n`;
         }
-
+        
+        // Comparaison avec patterns historiques
+        if (patterns && zonesFaibles.length > 0) {
+            if (patterns.zoneFaible === zonesFaibles[0]) {
+                texte += `  📍 RÉCURRENCE : Les tirs ${patterns.zoneFaible} sont TA zone faible récurrente (${patterns.zoneFaiblePct}% sur l'ensemble de tes séries). C'est un axe de travail prioritaire.\n`;
+            }
+        }
+        
+        // --- ANALYSE DES RATÉS ---
+        texte += `\n🔍 ANALYSE DES PLATEAUX RATÉS\n`;
+        
+        const nbRates = positionsRatés.length;
+        
+        if (nbRates === 0) {
+            texte += `• Aucun plateau raté !\n`;
+        } else {
+            texte += `• ${nbRates} plateau${nbRates > 1 ? 'x' : ''} raté${nbRates > 1 ? 's' : ''} : ${positionsRatés.join(', ')}\n`;
+            
+            if (maxConsec >= 3) {
+                texte += `  ⚠️ SÉRIE DE ${maxConsec} RATÉS CONSÉCUTIFS (tirs ${debutPire}-${finPire})\n`;
+                texte += `     C'est le point noir de cette série. Une fois le premier raté, le doute s'installe et ça s'enchaîne.\n`;
+                
+                if (patterns?.aProblemeConsec) {
+                    texte += `     📍 RÉCURRENCE : Tu as souvent des séries de ratés (moyenne ${patterns.moyenneConsec} consécutifs).\n`;
+                    texte += `     Travaille ta capacité à te "réinitialiser" après chaque tir, réussi ou raté.\n`;
+                }
+            } else if (maxConsec === 2) {
+                texte += `  • Deux ratés consécutifs (tirs ${debutPire}-${finPire}) : signal à surveiller.\n`;
+            } else {
+                texte += `  • Les ratés sont bien répartis, pas d'effet boule de neige.\n`;
+            }
+        }
+        
+        // Deuxièmes coups
+        if (deuxiemeCoup.length > 0) {
+            texte += `\n⚡ TIRS RATTRAPÉS (2ème coup)\n`;
+            texte += `• ${deuxiemeCoup.length} tir${deuxiemeCoup.length > 1 ? 's' : ''} : ${deuxiemeCoup.slice(0, 5).join(', ')}${deuxiemeCoup.length > 5 ? '...' : ''}\n`;
+            if (deuxiemeCoup.length >= 3) {
+                texte += `  ⚠️ Trop de rattrapages = problème d'anticipation. Ton œil doit partir AVANT le bruit de la machine.\n`;
+            } else {
+                texte += `  À surveiller, mais pas inquiétant.\n`;
+            }
+        }
+        
+        // --- PROFIL ET CONSEILS ---
+        texte += `\n💡 CONSEILS PERSONNALISÉS\n`;
+        
+        // Déterminer le conseil principal
+        let conseilPrincipal = '';
+        
+        if (maxConsec >= 3 || (patterns?.aProblemeConsec && maxConsec >= 2)) {
+            const routines = [
+                `Travaille ta routine de RÉINITIALISATION : après chaque tir, souffle 2 secondes, replace tes pieds, recentre ton regard. Chaque plateau = premier plateau.`,
+                `Le mental te joue des tours après un raté. Exercice : en entraînement, demande à quelqu'un de faire du bruit inattendu après ton annonce. Apprends à rester concentré quoi qu'il arrive.`,
+                `Ton problème n'est pas technique mais mental. La prochaine séance, fixe-toi un seul objectif : accepter le raté et passer immédiatement au plateau suivant.`
+            ];
+            conseilPrincipal = pick(routines);
+        } else if (fatigue) {
+            const conseilsFatigue = [
+                `La fatigue de fin de série trahit un relâchement. Prochain exercice : fais 30 tirs au lieu de 25 pour habituer ton mental à durer plus longtemps.`,
+                `Tu lâches en fin de série. Avant les tirs 18-25, redis-toi "nouvelle série, 0-0" pour garder la même intensité qu'au début.`,
+                `Travaille l'endurance mentale : en compétition, la fatigue arrive souvent sur les derniers tirs. Entraîne-toi à finir fort avec des séries de 30.`
+            ];
+            conseilPrincipal = pick(conseilsFatigue);
+        } else if (trouMilieu) {
+            const conseilsMilieu = [
+                `Le trou d'air du milieu est classique : on se sent bien après un bon départ et on relâche. Reste vigilant sur les tirs 9-17, c'est là que se jouent les grandes séries.`,
+                `Sur les tirs 11-15, impose-toi le même rituel strict qu'au tir 1. C'est la zone danger où la concentration baisse souvent.`
+            ];
+            conseilPrincipal = pick(conseilsMilieu);
+        } else if (zonesFaibles.length > 0 && patterns?.zoneFaible === zonesFaibles[0]) {
+            const conseilsPoste = {
+                'P1': `Le poste 1 reste ton point faible récurrent. Travaille spécifiquement ton placement de départ, ta position de pieds, ta vision centrale AVANT l'annonce.`,
+                'P2': `Le poste 2 te pose problème régulièrement. Concentre-toi sur la lecture de trajectoire latérale, prends plus d'avance sur ces angles.`,
+                'P3': `Le poste 3 est ton talon d'Achille. C'est souvent un poste central où la routine s'installe mal. Répète ces tirs en série isolée.`,
+                'P4': `Le poste 4 te coûte cher. Travaille ta position et ton équilibre sur ce poste en particulier.`,
+                'P5': `Le poste 5 reste difficile pour toi. Travaille spécifiquement les angles de sortie sur ce poste.`
+            };
+            conseilPrincipal = conseilsPoste[patterns.zoneFaible] || `Le poste ${patterns.zoneFaible} est ton point faible récurrent — travaille-le en série isolée.`;
+        } else if (deuxiemeCoup.length >= 3) {
+            const conseilsAnticipation = [
+                `Trop de deuxièmes coups = problème d'anticipation. Ton œil doit partir vers la cible AVANT le bruit de la machine. Exercice : visualise la trajectoire pendant l'annonce.`,
+                `Tu es en retard sur ta lecture. Prochain entraînement : demande à faire des "tirs à blanc" (sans cartouche) pour travailler uniquement ta prise d'avance visuelle.`,
+                `Les rattrapages montrent que tu réagis au lieu d'anticiper. Ralentis ta routine d'annonce et visualise la trajectoire AVANT de dire "pull".`
+            ];
+            conseilPrincipal = pick(conseilsAnticipation);
+        } else if (pct >= 85) {
+            const conseilsExpert = [
+                `Tu as le niveau pour viser 90%+. Maintenant c'est la régularité qui compte : enchaîne 3 séries à ce niveau-là.`,
+                `Techniquement au point, le défi est mental. Travaille la gestion de la pression en simulant des conditions de compétition.`,
+                `Ton score est solide. Pour progresser, travaille ta constance : l'objectif est de faire ce score MINIMUM à chaque séance.`
+            ];
+            conseilPrincipal = pick(conseilsExpert);
+        } else {
+            const conseilsGeneraux = [
+                `Prochain objectif : ${Math.min(pct + 8, 95)}%. Concentre-toi sur la régularité plutôt que sur la performance pure.`,
+                `Pour progresser, identifie UN point à améliorer (technique, mental, routine) et travaille-le spécifiquement à la prochaine séance.`,
+                `La clé est dans les détails : position, respiration, tempo d'annonce. Relis ta routine et cherche les points à affiner.`
+            ];
+            conseilPrincipal = pick(conseilsGeneraux);
+        }
+        
+        texte += `→ ${conseilPrincipal}\n`;
+        
+        // Objectif chiffré si historique dispo
+        if (statsEleve && statsEleve.nbSeries >= 3) {
+            const prochainObjectif = pct >= statsEleve.moyenne 
+                ? Math.min(Math.round(statsEleve.moyenne) + 5, 95)
+                : Math.round(statsEleve.moyenne);
+            texte += `\n🎯 Prochain objectif : ${prochainObjectif}% minimum en ${s.disc}`;
+            
+            if (statsEleve.profil === 'irregulier') {
+                texte += ` (ton profil "irrégulier" indique qu'il faut travailler la constance)`;
+            }
+            texte += `\n`;
+        }
+        
         return texte;
     }
 
@@ -1662,10 +2146,26 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         if (texte) btn.textContent = '↺ Régénérer l\'analyse';
         else btn.textContent = '✨ Générer l\'analyse IA';
     }
+
     var _chartProg       = null;
     var _chartPoste      = null;
+    var _chartRadar      = null;
     var _discProgression = 'tous';
     var _discPostes      = 'FU';
+    var _discRadar       = 'FU';
+
+    /* =========================================================
+       HELPER — COULEURS GRAPHIQUES SELON MODE SOMBRE
+    ========================================================= */
+    function _getChartColors() {
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        return {
+            grid: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.05)',
+            gridStrong: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)',
+            text: isDark ? '#8a96b0' : '#94a3b8',
+            textPrimary: isDark ? '#dde2ec' : '#444'
+        };
+    }
 
     /* =========================================================
        FICHE ÉLÈVE — résumé uniquement
@@ -1684,12 +2184,10 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         });
     }
 
-    /* Bouton "Voir les stats" depuis la fiche élève */
     function ouvrirStatsEleve() {
         afficherStatsEleve(currentTireur);
     }
 
-    /* Sélection d'un élève depuis la page Stats */
     function ouvrirSelectionEleveStats() {
         const noms = Object.keys(db.eleves);
         if (!noms.length) { showToast('Aucun élève enregistré.', 'info'); return; }
@@ -1709,26 +2207,196 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         switchTab('page-select-eleve-stats-avancees', null);
     }
 
-    /* Charge et affiche les stats avancées d'un élève */
+    /* =========================================================
+       GRAPHIQUE RADAR - NOUVELLE FONCTIONNALITÉ
+    ========================================================= */
+    function calculerDonneesRadar(disc) {
+        const scores = db.eleves[currentTireur] || [];
+        const scoresDisc = scores.filter(s => s.disc === disc);
+        const avecGrille = scoresDisc.filter(s => s.grille && s.grille.length === 25);
+
+        if (!scoresDisc.length) {
+            return { debut: 0, milieu: 0, fin: 0, regularite: 0, progression: 50, pointsForts: 0 };
+        }
+
+        let debutHits = 0, debutTotal = 0;
+        let milieuHits = 0, milieuTotal = 0;
+        let finHits = 0, finTotal = 0;
+
+        avecGrille.forEach(s => {
+            for (let i = 0; i < 8; i++) { debutTotal++; if (s.grille[i] > 0) debutHits++; }
+            for (let i = 8; i < 17; i++) { milieuTotal++; if (s.grille[i] > 0) milieuHits++; }
+            for (let i = 17; i < 25; i++) { finTotal++; if (s.grille[i] > 0) finHits++; }
+        });
+
+        const debut = debutTotal ? Math.round((debutHits / debutTotal) * 100) : 0;
+        const milieu = milieuTotal ? Math.round((milieuHits / milieuTotal) * 100) : 0;
+        const fin = finTotal ? Math.round((finHits / finTotal) * 100) : 0;
+
+        const allPct = scoresDisc.map(s => Math.round(parseInt(s.score) / (disc === 'FU' ? 25 : 75) * 100));
+        const avg = allPct.reduce((a, b) => a + b, 0) / allPct.length;
+        const ecartType = Math.sqrt(allPct.reduce((a, b) => a + (b - avg) ** 2, 0) / allPct.length);
+        const regularite = Math.max(0, Math.min(100, Math.round(100 - ecartType * 2)));
+
+        let progression = 50;
+        if (scoresDisc.length >= 2) {
+            const mid = Math.floor(scoresDisc.length / 2);
+            const oldScores = scoresDisc.slice(mid);
+            const newScores = scoresDisc.slice(0, mid);
+            const oldAvg = oldScores.reduce((a, s) => a + parseInt(s.score), 0) / oldScores.length / (disc === 'FU' ? 25 : 75) * 100;
+            const newAvg = newScores.reduce((a, s) => a + parseInt(s.score), 0) / newScores.length / (disc === 'FU' ? 25 : 75) * 100;
+            const delta = newAvg - oldAvg;
+            progression = Math.max(0, Math.min(100, Math.round(50 + delta * 2)));
+        }
+
+        let pointsForts = 0;
+        if (avecGrille.length) {
+            const postesTaux = [0, 0, 0, 0, 0];
+            let totalSeries = 0;
+            avecGrille.forEach(s => {
+                totalSeries++;
+                for (let g = 0; g < 5; g++) {
+                    let hits = 0;
+                    for (let i = g * 5; i < g * 5 + 5; i++) { if (s.grille[i] > 0) hits++; }
+                    if (hits >= 4) postesTaux[g]++;
+                }
+            });
+            const fortsCount = postesTaux.filter(t => t / totalSeries >= 0.8).length;
+            pointsForts = Math.round((fortsCount / 5) * 100);
+        }
+
+        return { debut, milieu, fin, regularite, progression, pointsForts };
+    }
+
+    function _dessinerRadar(disc) {
+        const data = calculerDonneesRadar(disc);
+        const ctx = document.getElementById('chart-radar').getContext('2d');
+
+        if (_chartRadar) _chartRadar.destroy();
+
+        const labels = ['Début', 'Milieu', 'Fin', 'Régularité', 'Progression', 'Points forts'];
+        const values = [data.debut, data.milieu, data.fin, data.regularite, data.progression, data.pointsForts];
+
+        const scoreGlobal = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+
+        let accentColor = '#f39c12';
+        let scoreClass = '';
+        if (scoreGlobal >= 75) { accentColor = '#72d582'; scoreClass = 'excellent'; }
+        else if (scoreGlobal >= 50) { accentColor = '#edcc52'; scoreClass = 'good'; }
+        else { accentColor = '#e66756'; scoreClass = 'weak'; }
+
+        const rootStyles = getComputedStyle(document.documentElement);
+        const customAccent = rootStyles.getPropertyValue('--accent').trim();
+        if (customAccent && scoreGlobal >= 50 && scoreGlobal < 75) {
+            accentColor = customAccent;
+        }
+
+        _chartRadar = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Performance',
+                    data: values,
+                    backgroundColor: accentColor + '40',
+                    borderColor: accentColor,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: accentColor,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ctx.label + ': ' + ctx.raw + '%'
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 25,
+                            font: { size: 9 },
+                            color: _getChartColors().text,
+                            backdropColor: 'transparent'
+                        },
+                        pointLabels: {
+                            font: { size: 11, weight: '700' },
+                            color: _getChartColors().textPrimary
+                        },
+                        grid: { color: _getChartColors().gridStrong },
+                        angleLines: { color: _getChartColors().grid }
+                    }
+                }
+            }
+        });
+
+        const legendContainer = document.getElementById('radar-legend');
+        legendContainer.innerHTML = '';
+
+        labels.forEach((label, i) => {
+            const item = document.createElement('div');
+            item.className = 'radar-legend-item';
+
+            const dot = document.createElement('div');
+            dot.className = 'radar-legend-dot';
+            dot.style.background = values[i] >= 75 ? '#72d582' : values[i] >= 50 ? '#edcc52' : '#e66756';
+
+            const text = document.createElement('span');
+            text.textContent = `${label}: ${values[i]}%`;
+
+            item.append(dot, text);
+            legendContainer.appendChild(item);
+        });
+
+        const titreRadar = document.querySelector('#section-radar .stats-titre');
+        if (titreRadar) {
+            titreRadar.innerHTML = `Profil de performance <span class="radar-score-badge ${scoreClass}">${scoreGlobal}%</span>`;
+        }
+    }
+
+    function filtrerRadar(btn) {
+        document.querySelectorAll('#filter-radar .disc-pill')
+            .forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        _discRadar = btn.dataset.disc;
+        _dessinerRadar(_discRadar);
+    }
+
+    /* =========================================================
+       CHARGE ET AFFICHE LES STATS AVANCÉES D'UN ÉLÈVE
+    ========================================================= */
     function afficherStatsEleve(nom) {
         currentTireur = nom;
         _discProgression = 'tous';
         _discPostes = 'FU';
+        _discRadar = 'FU';
 
-        /* Reset filtres */
         document.querySelectorAll('#filter-progression .disc-pill').forEach((b, i) => {
             b.classList.toggle('active', i === 0);
         });
         document.querySelectorAll('#filter-postes .disc-pill').forEach((b, i) => {
             b.classList.toggle('active', i === 0);
         });
+        document.querySelectorAll('#filter-radar .disc-pill').forEach((b, i) => {
+            b.classList.toggle('active', i === 0);
+        });
 
         document.getElementById('stats-eleve-nom').textContent = nom;
         const scores = db.eleves[nom] || [];
 
-        /* Réinitialisation complète — évite que les données
-           de l'élève précédent restent affichées */
         document.getElementById('section-records').style.display     = 'none';
+        document.getElementById('section-radar').style.display       = 'none';
         document.getElementById('section-progression').style.display = 'none';
         document.getElementById('section-postes').style.display      = 'none';
         document.getElementById('section-historique').style.display  = 'none';
@@ -1745,7 +2413,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             return;
         }
 
-        /* Records */
         const allScores = scores.map(s => parseInt(s.score));
         const bestRaw   = Math.max(...allScores);
         const bestSerie = scores.find(s => parseInt(s.score) === bestRaw);
@@ -1756,11 +2423,13 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         document.getElementById('rec-total').textContent = scores.length;
         document.getElementById('section-records').style.display = 'block';
 
-        /* Progression */
+        // NOUVEAU : Radar
+        document.getElementById('section-radar').style.display = 'block';
+        _dessinerRadar('FU');
+
         document.getElementById('section-progression').style.display = 'block';
         _dessinerProgression('tous');
 
-        /* Postes */
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
         if (avecGrille.length) {
             document.getElementById('section-postes').style.display = 'block';
@@ -1771,18 +2440,15 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             document.getElementById('stats-empty').style.display    = 'block';
         }
 
-        /* Liste des séries + graphique escalier */
         document.getElementById('card-escalier').style.display = 'none';
         _rendreListeSeries(scores);
 
-        /* Section analyse IA */
         document.getElementById('section-analyse-ia').style.display = 'block';
         _chargerAnalyseSauvegardee();
 
         switchTab('page-stats-eleve', null);
     }
 
-    /* Affiche le graphique escalier d'une série cliquée */
     function afficherEscalier(serie) {
         if (!serie.grille || !serie.grille.length) return;
         const max = serie.disc === 'FU' ? 25 : 75;
@@ -1814,13 +2480,11 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         card.style.display = 'block';
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-        /* Met en évidence la série sélectionnée */
         document.querySelectorAll('.serie-card').forEach(c => c.style.borderLeftWidth = '5px');
         const sel = document.querySelector(`.serie-card[data-id="${serie.id}"]`);
         if (sel) sel.style.borderLeftWidth = '8px';
     }
 
-    /* Construit la liste des séries avec grille */
     function _rendreListeSeries(scores) {
         const cont = document.getElementById('liste-series-eleve');
         cont.innerHTML = '';
@@ -1837,7 +2501,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             card.style.flexDirection = 'column';
             card.style.gap = '8px';
 
-            /* Ligne 1 : infos + flèche escalier */
             const row1 = document.createElement('div');
             row1.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;';
             const header = document.createElement('div');
@@ -1855,7 +2518,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             row1.append(header, arrow);
             row1.onclick = () => afficherEscalier(s);
 
-            /* Ligne 2 : bouton analyse série */
             const btnAnalyse = document.createElement('button');
             btnAnalyse.className = 'btn-secondary';
             btnAnalyse.style.cssText = 'height:36px;font-size:0.75rem;color:var(--accent);font-weight:800;';
@@ -1867,27 +2529,22 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         });
 
         document.getElementById('section-historique').style.display = 'block';
-        /* Affiche automatiquement la première série */
         afficherEscalier(avecGrille[0]);
     }
 
-    /* Courbe de progression */
     function _dessinerProgression(disc) {
         const scores = db.eleves[currentTireur] || [];
         let filtre = disc === 'tous' ? scores : scores.filter(s => s.disc === disc);
-        /* On affiche dans l'ordre chronologique (le plus ancien en premier) */
         filtre = [...filtre].reverse();
 
         const labels  = filtre.map((s, i) => {
             const parts = s.date.split('/');
             return parts.length === 3 ? parts[0] + '/' + parts[1] : '#' + (i + 1);
         });
-        /* Normalise le score en % du max pour comparer les disciplines */
         const data = filtre.map(s => {
             const max = s.disc === 'FU' ? 25 : 75;
             return Math.round((parseInt(s.score) / max) * 100);
         });
-        /* Couleur par discipline si mode "tous" */
         const colors = filtre.map(s =>
             s.disc === 'FU' ? '#72d582' : s.disc === 'DTL' ? '#edcc52' : '#e66756'
         );
@@ -1926,13 +2583,13 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
                 },
                 scales: {
                     x: {
-                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 },
+                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8, color: _getChartColors().text },
                         grid: { display: false }
                     },
                     y: {
                         min: 0, max: 100,
-                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
+                        grid: { color: _getChartColors().grid }
                     }
                 }
             }
@@ -1947,36 +2604,77 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         _dessinerProgression(_discProgression);
     }
 
-    /* Analyse par poste (groupes de 5) */
     function _dessinerPostes(disc) {
         const scores    = db.eleves[currentTireur] || [];
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25 && s.disc === disc);
 
-        if (!avecGrille.length) return;
+        const ctx = document.getElementById('chart-postes').getContext('2d');
+        
+        // Détruire l'ancien graphique AVANT de vérifier les données
+        if (_chartPoste) {
+            _chartPoste.destroy();
+            _chartPoste = null;
+        }
 
-        /* Taux de réussite pour chaque groupe de 5 tirs */
-        const groupes = ['1-5', '6-10', '11-15', '16-20', '21-25'];
-        const taux = groupes.map((_, gi) => {
-            let hits = 0, total = 0;
-            avecGrille.forEach(s => {
-                for (let i = gi * 5; i < gi * 5 + 5; i++) {
-                    total++;
-                    /* FU : touché = valeur > 0 ; DTL/Trap : touché = valeur === 1 (3pts) ou 2 (2pts) */
-                    if (disc === 'FU') { if (s.grille[i] > 0) hits++; }
-                    else              { if (s.grille[i] > 0) hits++; }
+        // Si pas de données, afficher un graphique vide
+        if (!avecGrille.length) {
+            _chartPoste = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['P1', 'P2', 'P3', 'P4', 'P5'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(150,150,150,0.3)',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { size: 11 }, color: _getChartColors().text },
+                            grid: { display: false }
+                        },
+                        y: {
+                            min: 0, max: 100,
+                            ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
+                            grid: { color: _getChartColors().grid }
+                        }
+                    }
                 }
             });
-            return total ? Math.round((hits / total) * 100) : 0;
-        });
+            return;
+        }
 
-        const accentColor = disc === 'FU' ? '#72d582' : disc === 'DTL' ? '#edcc52' : '#e66756';
-        const ctx = document.getElementById('chart-postes').getContext('2d');
-        if (_chartPoste) _chartPoste.destroy();
+        // Calculer les taux par POSTE RÉEL (en tenant compte du poste de départ)
+        const postesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        const postesHits = [0, 0, 0, 0, 0];
+        const postesTotal = [0, 0, 0, 0, 0];
+        
+        avecGrille.forEach(s => {
+            const posteDepart = s.poste || 1; // Si pas de poste, on assume poste 1
+            for (let i = 0; i < 25; i++) {
+                const posteReel = calculerPoste(i + 1, disc, posteDepart);
+                const posteIndex = posteReel - 1; // 0-indexed
+                postesTotal[posteIndex]++;
+                if (s.grille[i] > 0) postesHits[posteIndex]++;
+            }
+        });
+        
+        const taux = postesLabels.map((_, i) => 
+            postesTotal[i] ? Math.round((postesHits[i] / postesTotal[i]) * 100) : 0
+        );
 
         _chartPoste = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupes,
+                labels: postesLabels,
                 datasets: [{
                     data: taux,
                     backgroundColor: taux.map(v =>
@@ -1995,13 +2693,13 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
                 },
                 scales: {
                     x: {
-                        ticks: { font: { size: 11 } },
+                        ticks: { font: { size: 11 }, color: _getChartColors().text },
                         grid: { display: false }
                     },
                     y: {
                         min: 0, max: 100,
-                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
+                        grid: { color: _getChartColors().grid }
                     }
                 }
             }
@@ -2016,13 +2714,246 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         _dessinerPostes(_discPostes);
     }
 
+    function setVent(v) {
+        currentVent = v;
+        ['faible', 'modere', 'fort'].forEach(k => {
+            const btn = document.getElementById('vent-' + k);
+            if (btn) btn.classList.toggle('active', k === v);
+        });
+    }
+
     /* =========================================================
-       SESSION DE TIR (COACHING)
+       MÉTÉO DYNAMIQUE — Open-Météo API (gratuite, sans clé)
     ========================================================= */
+    var _weatherCache = null;
+    var _weatherCacheTime = 0;
+    var _userLocation = null;
+
+    async function chargerMeteoDynamique() {
+        const container = document.getElementById('weather-content');
+        if (!container) return;
+
+        // Cache de 10 minutes
+        const now = Date.now();
+        if (_weatherCache && (now - _weatherCacheTime) < 600000) {
+            afficherMeteo(_weatherCache);
+            return;
+        }
+
+        container.innerHTML = '<div class="weather-loading">📍 Détection de la position...</div>';
+
+        try {
+            // Étape 1: Géolocalisation
+            if (!_userLocation) {
+                _userLocation = await obtenirPosition();
+            }
+
+            // Étape 2: Appel API Open-Météo
+            const meteo = await appelerOpenMeteo(_userLocation.lat, _userLocation.lon);
+
+            // Cache
+            _weatherCache = meteo;
+            _weatherCacheTime = now;
+
+            // Affichage
+            afficherMeteo(meteo);
+
+            // Suggestion de vent
+            autoSelectionnerVent(meteo);
+
+        } catch (error) {
+            afficherErreurMeteo(error.message);
+        }
+    }
+
+    function obtenirPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Géolocalisation non supportée'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    resolve({
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude
+                    });
+                },
+                (err) => {
+                    // Position par défaut: Paris
+                    console.warn('Géoloc refusée, utilisation de Paris par défaut');
+                    resolve({ lat: 48.8566, lon: 2.3522 });
+                },
+                { timeout: 5000, enableHighAccuracy: false }
+            );
+        });
+    }
+
+    async function appelerOpenMeteo(lat, lon) {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day&timezone=auto`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Erreur API météo');
+
+        const data = await response.json();
+        return {
+            temp: Math.round(data.current.temperature_2m),
+            code: data.current.weather_code,
+            windSpeed: Math.round(data.current.wind_speed_10m),
+            windDir: data.current.wind_direction_10m,
+            isDay: data.current.is_day === 1,  // true = jour, false = nuit
+            location: _userLocation?.name || 'Position actuelle'
+        };
+    }
+
+    function afficherMeteo(meteo) {
+        const container = document.getElementById('weather-content');
+        if (!container) return;
+
+        const icon = obtenirIconeMeteo(meteo.code, meteo.isDay);
+        const desc = obtenirDescriptionMeteo(meteo.code);
+        const ventDir = obtenirDirectionVent(meteo.windDir);
+
+        container.innerHTML = `
+            <div class="weather-icon">${icon}</div>
+            <div class="weather-info">
+                <div class="weather-temp">${meteo.temp}°C</div>
+                <div class="weather-desc">${desc}</div>
+                <div class="weather-location">📍 ${meteo.location || 'Position détectée'}</div>
+            </div>
+            <div class="weather-wind">
+                <span class="weather-wind-icon">💨</span>
+                <span>${meteo.windSpeed} km/h ${ventDir}</span>
+            </div>
+        `;
+    }
+
+    function afficherErreurMeteo(msg) {
+        const container = document.getElementById('weather-content');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="weather-error">
+                ⚠️ ${msg}<br>
+                <button class="weather-refresh" onclick="rafraichirMeteo()" style="margin-top:6px;">Réessayer</button>
+            </div>
+        `;
+    }
+
+    function rafraichirMeteo() {
+        _weatherCache = null;
+        _userLocation = null;
+        chargerMeteoDynamique();
+    }
+
+    function obtenirIconeMeteo(code, isDay = true) {
+        // Codes WMO: https://open-meteo.com/en/docs
+        // isDay: true = jour, false = nuit
+        
+        if (code === 0) {
+            return isDay ? '☀️' : '🌙';  // Clair : soleil ou lune
+        }
+        if (code === 1 || code === 2) {
+            return isDay ? '⛅' : '☁️';  // Partiellement nuageux
+        }
+        if (code === 3) {
+            return '☁️';  // Couvert (pareil jour/nuit)
+        }
+        if (code <= 48) {
+            return '🌫️';  // Brouillard
+        }
+        if (code <= 57) {
+            return '🌧️';  // Bruine
+        }
+        if (code <= 67) {
+            return '🌧️';  // Pluie
+        }
+        if (code <= 77) {
+            return '🌨️';  // Neige
+        }
+        if (code <= 82) {
+            return '🌧️';  // Averses
+        }
+        if (code <= 86) {
+            return '🌨️';  // Neige
+        }
+        if (code <= 99) {
+            return '⛈️';  // Orage
+        }
+        return isDay ? '🌤️' : '🌙';
+    }
+
+    function obtenirDescriptionMeteo(code) {
+        if (code === 0) return 'Ciel clair';
+        if (code === 1) return 'Principalement clair';
+        if (code === 2) return 'Partiellement nuageux';
+        if (code === 3) return 'Couvert';
+        if (code <= 48) return 'Brouillard';
+        if (code <= 57) return 'Bruine';
+        if (code <= 67) return 'Pluie';
+        if (code <= 77) return 'Neige';
+        if (code <= 82) return 'Averses';
+        if (code <= 86) return 'Averses de neige';
+        if (code <= 99) return 'Orage';
+        return 'Variable';
+    }
+
+    function obtenirDirectionVent(deg) {
+        const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+        const idx = Math.round(deg / 45) % 8;
+        return dirs[idx];
+    }
+
+    function autoSelectionnerVent(meteo) {
+        // Sauvegarde les données météo API
+        currentMeteoAPI = {
+            code: meteo.code,
+            temp: meteo.temp,
+            windSpeed: meteo.windSpeed,
+            windDir: meteo.windDir,
+            isDay: meteo.isDay,
+            desc: obtenirDescriptionMeteo(meteo.code)
+        };
+
+        // Suggestion de vent basée sur le vent API
+        const wind = meteo.windSpeed;
+
+        if (wind >= 30) {
+            setVent('fort');
+        } else if (wind >= 15) {
+            setVent('modere');
+        } else {
+            setVent('faible');
+        }
+    }
+
+    /* =========================================================
+       CALCUL DU POSTE SELON DISCIPLINE ET POSTE DE DÉPART
+       FU / TRAP 1 : 1 plateau par poste, rotation continue
+       DTL : 5 plateaux par poste avant de changer
+    ========================================================= */
+    function calculerPoste(numPlateau, discipline, posteDepart) {
+        if (!posteDepart) return numPlateau; // Si pas de poste défini, retourner le numéro brut
+        const poste = parseInt(posteDepart);
+        
+        if (discipline === 'DTL') {
+            // DTL : 5 plateaux par poste
+            // Groupe 0 = 1-5, Groupe 1 = 6-10, etc.
+            const groupe = Math.floor((numPlateau - 1) / 5);
+            return ((groupe + poste - 1) % 5) + 1;
+        } else {
+            // FU et TRAP 1 : 1 plateau par poste, rotation continue
+            return ((numPlateau - 1 + poste - 1) % 5) + 1;
+        }
+    }
+
     function lancerCoaching(disc) {
         currentDisc = disc;
         serieEnCours = [];
+        currentVent = 'faible';  // Réinitialisation
         document.getElementById('note-coach').value = "";
+        chargerMeteoDynamique();
         const posteLabel = currentPoste ? ' · P' + currentPoste : '';
         document.getElementById('badge-tir').textContent = currentTireur + " | " + disc + posteLabel;
         const g = document.getElementById('grid-25');
@@ -2030,7 +2961,8 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         for (let i = 1; i <= 25; i++) {
             const t = document.createElement('div');
             t.style.cssText = 'width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;color:var(--text-muted);background:var(--bg);box-shadow:2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light);flex-shrink:0;';
-            t.textContent = i;
+            // Afficher le numéro de poste au lieu du numéro de plateau
+            t.textContent = calculerPoste(i, disc, currentPoste);
             g.appendChild(t);
         }
         updateTirUI();
@@ -2063,7 +2995,8 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             tiles[i].style.background = 'var(--bg)';
             tiles[i].style.color      = 'var(--text-muted)';
             tiles[i].style.boxShadow  = '2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light)';
-            tiles[i].textContent      = i + 1;
+            // Afficher le numéro de poste au lieu du numéro de plateau (i+1)
+            tiles[i].textContent      = calculerPoste(i + 1, currentDisc, currentPoste);
         }
         const scoreVal = (currentDisc === 'FU')
             ? serieEnCours.reduce((a, b) => a + (b > 0 ? 1 : 0), 0)
@@ -2076,11 +3009,27 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
     function validerSerie() {
         const scoreVal = parseInt(document.getElementById('score-live').textContent, 10);
         const note = document.getElementById('note-coach').value.slice(0, 500);
+
+        // Construction de la note avec météo et vent
+        const ventLabels = { faible: 'Vent faible', modere: 'Vent modéré', fort: 'Vent fort' };
+        const ventIcon = { faible: '～', modere: '💨', fort: '🌀' };
+        
+        let meteoNote = '';
+        if (currentMeteoAPI) {
+            meteoNote = `[${currentMeteoAPI.temp}°C - ${currentMeteoAPI.desc}] `;
+        }
+        if (currentVent !== 'faible') {
+            meteoNote += `[${ventIcon[currentVent]} ${ventLabels[currentVent]}] `;
+        }
+        const noteFinal = meteoNote + note;
+
         db.eleves[currentTireur].unshift({
             id: Date.now(), disc: currentDisc, score: scoreVal,
             date: new Date().toLocaleDateString('fr-FR'),
-            note: note,
+            note: noteFinal,
             poste: currentPoste,
+            vent: currentVent,
+            meteoAPI: currentMeteoAPI,
             grille: [...serieEnCours], tireur: currentTireur
         });
         saveDB();
@@ -2097,7 +3046,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         if (!s) return;
         currentAnalyseSerie = s;
         const max = (s.disc === 'FU') ? 25 : 75;
-        // textContent partout — pas d'injection possible
         document.getElementById('analyse-nom').textContent = s.tireur;
         document.getElementById('analyse-date').textContent = s.date + " — " + s.disc;
         document.getElementById('analyse-score-badge').textContent = "SCORE : " + s.score + " / " + max;
@@ -2134,7 +3082,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         if (navigator.share) {
             navigator.share({ text: msg });
         } else {
-            // Copie dans le presse-papier moderne
             if (navigator.clipboard?.writeText) {
                 navigator.clipboard.writeText(msg).then(() => showToast('Bilan copié !', 'success'));
             } else {
@@ -2211,30 +3158,40 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
     ========================================================= */
     async function exporterData() {
         const json = JSON.stringify(db, null, 2);
+        const fileName = 'balltrap-backup-' + new Date().toISOString().slice(0, 10) + '.json';
 
-        // Méthode 1 : clipboard moderne
-        if (navigator.clipboard?.writeText) {
-            try {
-                await navigator.clipboard.writeText(json);
-                showToast('Données copiées dans le presse-papier !', 'success');
-                return;
-            } catch (e) { /* fallback */ }
-        }
-
-        // Méthode 2 : téléchargement fichier JSON
+        // PRIORITÉ : Téléchargement du fichier JSON
         try {
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'balltrap-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.download = fileName;
+            a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Fichier téléchargé !', 'success');
+            
+            // Cleanup après un court délai
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showToast('📥 Fichier téléchargé : ' + fileName, 'success');
+            return;
         } catch (e) {
-            showToast('Export impossible sur cet appareil.', 'error');
+            console.warn('Téléchargement impossible, fallback presse-papier:', e);
+        }
+
+        // FALLBACK : Presse-papier (si téléchargement impossible)
+        if (navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(json);
+                showToast('📋 Données copiées dans le presse-papier !', 'success');
+                return;
+            } catch (e) {
+                showToast('Export impossible sur cet appareil.', 'error');
+            }
         }
     }
 
@@ -2290,25 +3247,28 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
         if (track) track.style.background = on ? 'var(--accent)' : 'var(--shadow-dark)';
         if (thumb) thumb.style.transform  = on ? 'translateX(24px)' : 'translateX(0)';
         sauvegarderParams();
+        
+        // Redessiner les graphiques avec les nouvelles couleurs
+        if (_chartRadar) _dessinerRadar(_discRadar);
+        if (_chartProg) _dessinerProgression(_discProgression);
+        if (_chartPoste || document.getElementById('section-postes').style.display !== 'none') {
+            _dessinerPostes(_discPostes);
+        }
     }
 
     function appliquerParamsAuDemarrage() {
         const p = loadParams();
         appliquerTheme(p.theme);
 
-        /* Restaure le mode sombre */
         if (p.darkMode) {
             document.documentElement.classList.add('dark-mode');
         }
 
-        /* Réordonne les boutons existants selon la discipline favorite */
         const discFav = p.discFav;
         const ordre   = [discFav, ...['FU','DTL','TRAP 1'].filter(d => d !== discFav)];
         const modalInner  = document.getElementById('modal-disc-inner');
         const btnAnnuler  = modalInner.querySelector('.btn-secondary');
-        /* Retire tous les btn-choice existants */
         modalInner.querySelectorAll('.btn-choice').forEach(b => b.remove());
-        /* Recrée dans le bon ordre */
         const labels = { 'FU': 'FOSSE UNIVERSELLE', 'DTL': 'FOSSE DTL', 'TRAP 1': 'TRAP 1' };
         ordre.forEach(d => {
             const btn  = document.createElement('button');
@@ -2321,7 +3281,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
             modalInner.insertBefore(btn, btnAnnuler);
         });
 
-        /* Affiche le nom du coach comme titre de l'app sur la page accueil */
         if (p.nomCoach) {
             const logoSub = document.querySelector('.logo-sub');
             if (logoSub) logoSub.textContent = p.nomCoach + ' — Coach';
@@ -2337,8 +3296,6 @@ Sois direct, concret, bienveillant. En prose, sans bullet points.`;
 
     /* =========================================================
        PWA — SERVICE WORKER INLINE (Blob URL)
-       Fonctionne sans serveur, sans fichiers externes.
-       Sur un vrai hébergement HTTPS, sw.js externe est préférable.
     ========================================================= */
     const SW_CODE = `
 const CACHE = 'balltrap-v1';
@@ -2383,7 +3340,6 @@ self.addEventListener('message', e => {
 });
 `;
 
-    /* Injection du manifest en data URI */
     const MANIFEST = {
         name: 'Ball-Trap Master Pro',
         short_name: 'Ball-Trap',
@@ -2437,7 +3393,6 @@ self.addEventListener('message', e => {
     document.getElementById('pwa-manifest').href =
         'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(MANIFEST));
 
-    /* Enregistrement du Service Worker via Blob URL */
     if ('serviceWorker' in navigator) {
         const blob = new Blob([SW_CODE], { type: 'application/javascript' });
         const swUrl = URL.createObjectURL(blob);
