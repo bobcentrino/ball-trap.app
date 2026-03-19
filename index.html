@@ -16,6 +16,10 @@
     <!-- Chart.js pour les stats avancées -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
+    <!-- jsPDF pour export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
     <style>
 
         /* =====================================================
@@ -114,7 +118,7 @@
         .logo-area    { text-align: center; margin-bottom: 50px; }
         .logo-title   { font-size: 2.2rem; font-weight: 900; color: var(--text-primary); letter-spacing: -1px; margin: 0; }
         .logo-sub     { font-size: 0.9rem; color: var(--accent); font-weight: bold; text-transform: uppercase; margin-top: 5px; }
-        .logo-version { margin-top: 50px; color: var(--shadow-dark); font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; }
+        .logo-version { margin-top: 50px; color: var(--text-muted); font-size: 0.75rem; font-weight: bold; letter-spacing: 2px; }
 
         .btn-enter {
             width: 200px; height: 200px; border-radius: 50%; border: none;
@@ -133,7 +137,7 @@
             width: var(--btn-h-sm); height: var(--btn-h-sm);
             border-radius: var(--radius-sm); background: var(--bg); border: none;
             box-shadow: var(--neu-out-sm);
-            color: #888; display: flex; justify-content: center; align-items: center;
+            color: var(--text-muted); display: flex; justify-content: center; align-items: center;
             cursor: pointer; z-index: 5000; font-size: 1.3rem;
         }
 
@@ -145,7 +149,7 @@
             width: var(--btn-h-sm); height: var(--btn-h-sm);
             border-radius: var(--radius-sm); background: var(--bg); border: none;
             box-shadow: var(--neu-out-sm);
-            color: #888; display: flex; justify-content: center; align-items: center;
+            color: var(--text-muted); display: flex; justify-content: center; align-items: center;
             cursor: pointer; z-index: 5000; font-size: 1.3rem;
             display: none;
         }
@@ -283,7 +287,7 @@
             background: var(--bg);
             border: none;
             border-radius: var(--radius-sm);
-            color: #888;
+            color: var(--text-muted);
             font-weight: 700;
             font-size: var(--font-btn);
             box-shadow: var(--neu-out-sm);
@@ -708,7 +712,7 @@
             <div class="logo-sub">Master Coach Edition</div>
         </div>
         <button class="btn-enter" onclick="entrerApp()">Entrer</button>
-        <div class="logo-version">V 2.7 - Rotation Postes</div>
+        <div class="logo-version">V 2.8 - Export PDF</div>
     </div>
 
     <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;">🏠</button>
@@ -805,7 +809,7 @@
             <div class="settings-card">
                 <div class="settings-row">
                     <span class="settings-row-label">Version</span>
-                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.7 - Rotation Postes</span>
+                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.8 - Export PDF</span>
                 </div>
                 <div class="settings-row">
                     <span class="settings-row-label">Élèves enregistrés</span>
@@ -952,6 +956,13 @@
 
         <button class="btn-main" onclick="ouvrirChoixDisc()">🔥 Coacher</button>
         <button class="btn-choice" onclick="ouvrirStatsEleve()">📊 Voir les stats <span>›</span></button>
+        
+        <!-- Boutons Export PDF -->
+        <div style="display:flex;gap:10px;width:100%;margin-top:5px;">
+            <button class="btn-choice" style="flex:1;background:#e74c3c;" onclick="genererRapportMensuel()">📄 Rapport Mensuel</button>
+            <button class="btn-choice" style="flex:1;background:#3498db;" onclick="genererRapportJournee()">📋 Rapport Journée</button>
+        </div>
+        
         <button class="btn-secondary" onclick="switchTab('page-eleves', null)">RETOUR</button>
     </div>
 
@@ -1168,6 +1179,7 @@
             <p id="analyse-note-text" style="font-size:0.95rem;color:var(--text-primary);margin:10px 0 0;line-height:1.6;font-style:italic;"></p>
         </div>
         <button class="btn-main" style="background:#3498db" onclick="partagerBilan()">✉ PARTAGER LE BILAN</button>
+        <button class="btn-main" style="background:#e74c3c" onclick="genererRapportJournee(currentAnalyseSerie)">📄 EXPORTER PDF JOURNÉE</button>
         <button class="btn-secondary" onclick="switchTab('page-view-stats', null)">RETOUR</button>
     </div>
 
@@ -1505,24 +1517,16 @@
             ['FU','DTL','TRAP 1'].forEach(disc => {
                 const series = avecGrille.filter(s => s.disc === disc);
                 if (!series.length) return;
-                
-                // Calculer les taux par POSTE RÉEL
-                const postesHits = [0, 0, 0, 0, 0];
-                const postesTotal = [0, 0, 0, 0, 0];
-                series.forEach(s => {
-                    const posteDepart = s.poste || 1;
-                    for (let i = 0; i < 25; i++) {
-                        const posteReel = calculerPoste(i + 1, disc, posteDepart);
-                        postesTotal[posteReel - 1]++;
-                        if (s.grille[i] > 0) postesHits[posteReel - 1]++;
-                    }
+                const groupes = ['1-5','6-10','11-15','16-20','21-25'];
+                const taux = groupes.map((_, gi) => {
+                    let hits=0, total=0;
+                    series.forEach(s => {
+                        for (let i=gi*5; i<gi*5+5; i++) { total++; if(s.grille[i]>0) hits++; }
+                    });
+                    return total ? Math.round((hits/total)*100) : 0;
                 });
-                const taux = postesHits.map((h, i) => 
-                    postesTotal[i] ? Math.round((h / postesTotal[i]) * 100) : 0
-                );
-                const postesLabels = ['P1','P2','P3','P4','P5'];
-                const faibles = postesLabels.filter((_,i) => taux[i] < 60).join(', ');
-                const forts   = postesLabels.filter((_,i) => taux[i] >= 85).join(', ');
+                const faibles = groupes.filter((_,i) => taux[i] < 60).join(', ');
+                const forts   = groupes.filter((_,i) => taux[i] >= 85).join(', ');
                 postesInfo += `\n${disc} : taux par poste [${taux.map(t=>t+'%').join(', ')}]`;
                 if (forts)   postesInfo += ` — Points forts : ${forts}`;
                 if (faibles) postesInfo += ` — Points faibles : ${faibles}`;
@@ -1605,34 +1609,21 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         const moinsDisc    = parDisc.reduce((a,b) => a.moy < b.moy ? a : b, parDisc[0]);
 
         const avecGrille = scores.filter(s => s.grille && s.grille.length === 25);
-        const postesLabels = ['P1','P2','P3','P4','P5'];
+        const groupes = ['1-5','6-10','11-15','16-20','21-25'];
         let pointFort = '', pointFaible = '', tauxFort = 0, tauxFaible = 100;
         let postesProblematiques = [];
 
         if (avecGrille.length) {
-            // Calculer les taux par POSTE RÉEL
-            const postesHits = [0, 0, 0, 0, 0];
-            const postesTotal = [0, 0, 0, 0, 0];
-            
-            avecGrille.forEach(s => {
-                const posteDepart = s.poste || 1;
-                // Déterminer la discipline pour calculer le poste réel
-                const disc = s.disc;
-                for (let i = 0; i < 25; i++) {
-                    const posteReel = calculerPoste(i + 1, disc, posteDepart);
-                    postesTotal[posteReel - 1]++;
-                    if (s.grille[i] > 0) postesHits[posteReel - 1]++;
-                }
+            const taux = groupes.map((_, gi) => {
+                let hits=0, total=0;
+                avecGrille.forEach(s => { for(let i=gi*5;i<gi*5+5;i++){total++;if(s.grille[i]>0)hits++;} });
+                return total ? Math.round((hits/total)*100) : 0;
             });
-            
-            const taux = postesHits.map((h, i) => 
-                postesTotal[i] ? Math.round((h / postesTotal[i]) * 100) : 0
-            );
             const maxI = taux.indexOf(Math.max(...taux));
             const minI = taux.indexOf(Math.min(...taux));
-            pointFort    = postesLabels[maxI]; tauxFort    = taux[maxI];
-            pointFaible  = postesLabels[minI]; tauxFaible  = taux[minI];
-            postesProblematiques = postesLabels.filter((_,i) => taux[i] < 60);
+            pointFort    = groupes[maxI]; tauxFort    = taux[maxI];
+            pointFaible  = groupes[minI]; tauxFaible  = taux[minI];
+            postesProblematiques = groupes.filter((_,i) => taux[i] < 60);
         }
 
         const ecart = Math.round(Math.sqrt(allPct.reduce((a,b) => a+(b-avg)**2, 0)/allPct.length));
@@ -1658,8 +1649,8 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         }
 
         if (pointFort) {
-            texte += ` Sur les grilles enregistrées, le poste ${pointFort} est le mieux maîtrisé (${tauxFort}% de réussite)`;
-            if (tauxFaible < 70) texte += `, tandis que le poste ${pointFaible} constitue le point faible principal (${tauxFaible}%).`;
+            texte += ` Sur les grilles enregistrées, les tirs ${pointFort} sont les plus maîtrisés (${tauxFort}% de réussite)`;
+            if (tauxFaible < 70) texte += `, tandis que les tirs ${pointFaible} constituent le point faible principal (${tauxFaible}%).`;
             else texte += '.';
         }
 
@@ -1668,7 +1659,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         }
 
         if (postesProblematiques.length) {
-            texte += ` 🎯 Conseil prioritaire : programmer une séance spécifique sur le${postesProblematiques.length > 1 ? 's' : ''} poste${postesProblematiques.length > 1 ? 's' : ''} ${postesProblematiques.join(' et ')} pour renforcer les automatismes sur cette zone.`;
+            texte += ` Conseil prioritaire : travailler en répétition sur les tirs ${postesProblematiques.join(' et ')} en variant les angles de sortie pour renforcer les automatismes sur ces zones.`;
         } else if (tendance === 'stable' && avg >= 70) {
             texte += ` Pour franchir un palier, ${pick(['intensifier le travail sur la gestion du stress en compétition','varier les conditions d\'entraînement pour sortir de la zone de confort','travailler la constance sur la totalité des 25 tirs sans relâchement en fin de série'])}.`;
         } else {
@@ -1790,33 +1781,30 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         return { moyenne, meilleure, pire, ecartType, tendance, profil, nbSeries: filtres.length, pcts };
     }
     
-    // Analyser les patterns récurrents par POSTE RÉEL
+    // Analyser les patterns récurrents
     function _analyserPatterns(tireur, disc) {
         const scores = db.eleves[tireur] || [];
         const series = scores.filter(s => s.disc === disc && s.grille && s.grille.length === 25);
         
         if (series.length < 2) return null;
         
-        // Analyser les postes faibles récurrents (P1-P5)
-        const postesHits = [0, 0, 0, 0, 0];
-        const postesTotal = [0, 0, 0, 0, 0];
+        // Analyser les zones faibles récurrentes
+        const zonesTaux = [0, 0, 0, 0, 0]; // 1-5, 6-10, 11-15, 16-20, 21-25
+        const zonesTotal = [0, 0, 0, 0, 0];
         
         series.forEach(s => {
-            const posteDepart = s.poste || 1;
-            for (let i = 0; i < 25; i++) {
-                const posteReel = calculerPoste(i + 1, disc, posteDepart);
-                const posteIndex = posteReel - 1;
-                postesTotal[posteIndex]++;
-                if (s.grille[i] > 0) postesHits[posteIndex]++;
+            for (let g = 0; g < 5; g++) {
+                for (let i = g * 5; i < g * 5 + 5; i++) {
+                    zonesTotal[g]++;
+                    if (s.grille[i] > 0) zonesTaux[g]++;
+                }
             }
         });
         
-        const zonesPct = postesHits.map((h, i) => 
-            postesTotal[i] ? Math.round(h / postesTotal[i] * 100) : 0
-        );
+        const zonesPct = zonesTaux.map((h, i) => Math.round(h / zonesTotal[i] * 100));
         const zoneFaible = zonesPct.indexOf(Math.min(...zonesPct));
         const zoneForte = zonesPct.indexOf(Math.max(...zonesPct));
-        const zonesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        const zonesLabels = ['1-5', '6-10', '11-15', '16-20', '21-25'];
         
         // Analyser les ratés consécutifs récurrents
         let totalConsec = 0, nbSeriesAvecConsec = 0;
@@ -1893,17 +1881,14 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         // ANALYSE DÉTAILLÉE DE LA SÉRIE
         // ═══════════════════════════════════════════════════════════
         
-        // Métriques par POSTE RÉEL
-        const postesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
-        const postesHits = [0, 0, 0, 0, 0];
-        const posteDepart = s.poste || 1;
+        // Métriques de la série
+        const groupes = ['1-5', '6-10', '11-15', '16-20', '21-25'];
+        const taux = groupes.map((_, gi) => {
+            let h = 0;
+            for (let i = gi * 5; i < gi * 5 + 5; i++) { if (s.grille[i] > 0) h++; }
+            return Math.round(h / 5 * 100);
+        });
         
-        for (let i = 0; i < 25; i++) {
-            const posteReel = calculerPoste(i + 1, s.disc, posteDepart);
-            if (s.grille[i] > 0) postesHits[posteReel - 1]++;
-        }
-        
-        const taux = postesHits.map(h => Math.round(h / 5 * 100));
         const maxI = taux.indexOf(Math.max(...taux));
         const minI = taux.indexOf(Math.min(...taux));
         
@@ -1995,21 +1980,21 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         }
         
         // --- ANALYSE DES ZONES ---
-        texte += `\n🎯 ANALYSE PAR POSTE\n`;
+        texte += `\n🎯 ANALYSE PAR ZONE\n`;
         
-        const zonesFortes = taux.map((t, i) => t >= 80 ? postesLabels[i] : null).filter(Boolean);
-        const zonesFaibles = taux.map((t, i) => t < 60 ? postesLabels[i] : null).filter(Boolean);
+        const zonesFortes = taux.map((t, i) => t >= 80 ? groupes[i] : null).filter(Boolean);
+        const zonesFaibles = taux.map((t, i) => t < 60 ? groupes[i] : null).filter(Boolean);
         
         if (zonesFortes.length > 0 && zonesFaibles.length > 0) {
-            texte += `• Postes forts : ${zonesFortes.join(', ')} (${taux[postesLabels.indexOf(zonesFortes[0])]}%+)\n`;
-            texte += `• Postes faibles : ${zonesFaibles.join(', ')} (${taux[postesLabels.indexOf(zonesFaibles[0])]}%)\n`;
+            texte += `• Zones fortes : ${zonesFortes.join(', ')} (${taux[groupes.indexOf(zonesFortes[0])]}%+)\n`;
+            texte += `• Zones faibles : ${zonesFaibles.join(', ')} (${taux[groupes.indexOf(zonesFaibles[0])]}%)\n`;
         } else if (zonesFaibles.length > 0) {
-            texte += `• Poste à travailler : ${zonesFaibles.join(', ')} à ${taux[minI]}%\n`;
+            texte += `• Zone à travailler : tirs ${zonesFaibles.join(', ')} à ${taux[minI]}%\n`;
         } else if (zonesFortes.length === 5) {
-            texte += `• Tous les postes sont au-dessus de 80% — belle régularité !\n`;
+            texte += `• Toutes les zones sont au-dessus de 80% — belle régularité !\n`;
         } else {
-            texte += `• Meilleur poste : ${postesLabels[maxI]} (${taux[maxI]}%)\n`;
-            texte += `• Poste le plus fragile : ${postesLabels[minI]} (${taux[minI]}%)\n`;
+            texte += `• Meilleure zone : ${groupes[maxI]} (${taux[maxI]}%)\n`;
+            texte += `• Zone la plus fragile : ${groupes[minI]} (${taux[minI]}%)\n`;
         }
         
         // Comparaison avec patterns historiques
@@ -2082,14 +2067,14 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             ];
             conseilPrincipal = pick(conseilsMilieu);
         } else if (zonesFaibles.length > 0 && patterns?.zoneFaible === zonesFaibles[0]) {
-            const conseilsPoste = {
-                'P1': `Le poste 1 reste ton point faible récurrent. Travaille spécifiquement ton placement de départ, ta position de pieds, ta vision centrale AVANT l'annonce.`,
-                'P2': `Le poste 2 te pose problème régulièrement. Concentre-toi sur la lecture de trajectoire latérale, prends plus d'avance sur ces angles.`,
-                'P3': `Le poste 3 est ton talon d'Achille. C'est souvent un poste central où la routine s'installe mal. Répète ces tirs en série isolée.`,
-                'P4': `Le poste 4 te coûte cher. Travaille ta position et ton équilibre sur ce poste en particulier.`,
-                'P5': `Le poste 5 reste difficile pour toi. Travaille spécifiquement les angles de sortie sur ce poste.`
+            const conseilsZone = {
+                '1-5': `Les tirs 1-5 restent ton point faible récurrent. Travaille spécifiquement ton placement de départ, ta position de pieds, ta vision centrale AVANT l'annonce.`,
+                '6-10': `Les tirs 6-10 te posent problème régulièrement. Concentre-toi sur la lecture de trajectoire latérale, prends plus d'avance sur ces angles.`,
+                '11-15': `La zone 11-15 est ton talon d'Achille. C'est souvent là que la routine s'installe mal. Répète ces tirs en série isolée.`,
+                '16-20': `Les tirs 16-20 te coûtent cher. C'est la zone de fatigue mentale. Entraîne-toi à rester hyper vigilant sur ce passage.`,
+                '21-25': `Les derniers tirs (21-25) restent difficiles pour toi. La fin de série n'est pas une formalité, garde la même intensité qu'au tir 1.`
             };
-            conseilPrincipal = conseilsPoste[patterns.zoneFaible] || `Le poste ${patterns.zoneFaible} est ton point faible récurrent — travaille-le en série isolée.`;
+            conseilPrincipal = conseilsZone[patterns.zoneFaible];
         } else if (deuxiemeCoup.length >= 3) {
             const conseilsAnticipation = [
                 `Trop de deuxièmes coups = problème d'anticipation. Ton œil doit partir vers la cible AVANT le bruit de la machine. Exercice : visualise la trajectoire pendant l'annonce.`,
@@ -2149,23 +2134,21 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
 
     var _chartProg       = null;
     var _chartPoste      = null;
+
+    // Helper pour couleurs graphiques selon mode
+    function _getChartColors() {
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        return {
+            grid:        isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+            gridStrong:  isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+            text:        isDark ? '#8a96b0' : '#94a3b8',
+            textPrimary: isDark ? '#dde2ec' : '#444444'
+        };
+    }
     var _chartRadar      = null;
     var _discProgression = 'tous';
     var _discPostes      = 'FU';
     var _discRadar       = 'FU';
-
-    /* =========================================================
-       HELPER — COULEURS GRAPHIQUES SELON MODE SOMBRE
-    ========================================================= */
-    function _getChartColors() {
-        const isDark = document.documentElement.classList.contains('dark-mode');
-        return {
-            grid: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.05)',
-            gridStrong: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)',
-            text: isDark ? '#8a96b0' : '#94a3b8',
-            textPrimary: isDark ? '#dde2ec' : '#444'
-        };
-    }
 
     /* =========================================================
        FICHE ÉLÈVE — résumé uniquement
@@ -2334,7 +2317,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                             font: { size: 11, weight: '700' },
                             color: _getChartColors().textPrimary
                         },
-                        grid: { color: _getChartColors().gridStrong },
+                        grid: { color: _getChartColors().grid },
                         angleLines: { color: _getChartColors().grid }
                     }
                 }
@@ -2583,13 +2566,13 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                 },
                 scales: {
                     x: {
-                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8, color: _getChartColors().text },
+                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 },
                         grid: { display: false }
                     },
                     y: {
                         min: 0, max: 100,
-                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
-                        grid: { color: _getChartColors().grid }
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     }
                 }
             }
@@ -2621,7 +2604,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             _chartPoste = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['P1', 'P2', 'P3', 'P4', 'P5'],
+                    labels: ['1-5', '6-10', '11-15', '16-20', '21-25'],
                     datasets: [{
                         data: [0, 0, 0, 0, 0],
                         backgroundColor: 'rgba(150,150,150,0.3)',
@@ -2638,13 +2621,13 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                     },
                     scales: {
                         x: {
-                            ticks: { font: { size: 11 }, color: _getChartColors().text },
+                            ticks: { font: { size: 11 } },
                             grid: { display: false }
                         },
                         y: {
                             min: 0, max: 100,
-                            ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
-                            grid: { color: _getChartColors().grid }
+                            ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
                         }
                     }
                 }
@@ -2652,29 +2635,22 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             return;
         }
 
-        // Calculer les taux par POSTE RÉEL (en tenant compte du poste de départ)
-        const postesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
-        const postesHits = [0, 0, 0, 0, 0];
-        const postesTotal = [0, 0, 0, 0, 0];
-        
-        avecGrille.forEach(s => {
-            const posteDepart = s.poste || 1; // Si pas de poste, on assume poste 1
-            for (let i = 0; i < 25; i++) {
-                const posteReel = calculerPoste(i + 1, disc, posteDepart);
-                const posteIndex = posteReel - 1; // 0-indexed
-                postesTotal[posteIndex]++;
-                if (s.grille[i] > 0) postesHits[posteIndex]++;
-            }
+        const groupes = ['1-5', '6-10', '11-15', '16-20', '21-25'];
+        const taux = groupes.map((_, gi) => {
+            let hits = 0, total = 0;
+            avecGrille.forEach(s => {
+                for (let i = gi * 5; i < gi * 5 + 5; i++) {
+                    total++;
+                    if (s.grille[i] > 0) hits++;
+                }
+            });
+            return total ? Math.round((hits / total) * 100) : 0;
         });
-        
-        const taux = postesLabels.map((_, i) => 
-            postesTotal[i] ? Math.round((postesHits[i] / postesTotal[i]) * 100) : 0
-        );
 
         _chartPoste = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: postesLabels,
+                labels: groupes,
                 datasets: [{
                     data: taux,
                     backgroundColor: taux.map(v =>
@@ -2693,13 +2669,13 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                 },
                 scales: {
                     x: {
-                        ticks: { font: { size: 11 }, color: _getChartColors().text },
+                        ticks: { font: { size: 11 } },
                         grid: { display: false }
                     },
                     y: {
                         min: 0, max: 100,
-                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25, color: _getChartColors().text },
-                        grid: { color: _getChartColors().grid }
+                        ticks: { font: { size: 10 }, callback: v => v + '%', stepSize: 25 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     }
                 }
             }
@@ -2929,17 +2905,14 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     }
 
     /* =========================================================
-       CALCUL DU POSTE SELON DISCIPLINE ET POSTE DE DÉPART
-       FU / TRAP 1 : 1 plateau par poste, rotation continue
-       DTL : 5 plateaux par poste avant de changer
+       CALCUL POSTE RÉEL SELON DISCIPLINE ET POSTE DE DÉPART
     ========================================================= */
     function calculerPoste(numPlateau, discipline, posteDepart) {
-        if (!posteDepart) return numPlateau; // Si pas de poste défini, retourner le numéro brut
+        if (!posteDepart) return numPlateau;
         const poste = parseInt(posteDepart);
         
         if (discipline === 'DTL') {
             // DTL : 5 plateaux par poste
-            // Groupe 0 = 1-5, Groupe 1 = 6-10, etc.
             const groupe = Math.floor((numPlateau - 1) / 5);
             return ((groupe + poste - 1) % 5) + 1;
         } else {
@@ -2961,7 +2934,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         for (let i = 1; i <= 25; i++) {
             const t = document.createElement('div');
             t.style.cssText = 'width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;color:var(--text-muted);background:var(--bg);box-shadow:2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light);flex-shrink:0;';
-            // Afficher le numéro de poste au lieu du numéro de plateau
+            // Afficher le numéro de poste réel au lieu du numéro de plateau
             t.textContent = calculerPoste(i, disc, currentPoste);
             g.appendChild(t);
         }
@@ -2995,7 +2968,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             tiles[i].style.background = 'var(--bg)';
             tiles[i].style.color      = 'var(--text-muted)';
             tiles[i].style.boxShadow  = '2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light)';
-            // Afficher le numéro de poste au lieu du numéro de plateau (i+1)
+            // Afficher le numéro de poste réel
             tiles[i].textContent      = calculerPoste(i + 1, currentDisc, currentPoste);
         }
         const scoreVal = (currentDisc === 'FU')
@@ -3246,14 +3219,11 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         const thumb  = document.getElementById('dark-toggle-thumb');
         if (track) track.style.background = on ? 'var(--accent)' : 'var(--shadow-dark)';
         if (thumb) thumb.style.transform  = on ? 'translateX(24px)' : 'translateX(0)';
-        sauvegarderParams();
-        
-        // Redessiner les graphiques avec les nouvelles couleurs
-        if (_chartRadar) _dessinerRadar(_discRadar);
-        if (_chartProg) _dessinerProgression(_discProgression);
-        if (_chartPoste || document.getElementById('section-postes').style.display !== 'none') {
-            _dessinerPostes(_discPostes);
+        /* Redessine le radar si visible pour appliquer les nouvelles couleurs */
+        if (_chartRadar && document.getElementById('section-radar')?.style.display !== 'none') {
+            _dessinerRadar(_discRadar || 'FU');
         }
+        sauvegarderParams();
     }
 
     function appliquerParamsAuDemarrage() {
@@ -3292,6 +3262,518 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     ========================================================= */
     function ouvrirChoixDisc() {
         document.getElementById('modal-disc').style.display = 'flex';
+    }
+
+    /* =========================================================
+       EXPORT PDF — RAPPORTS
+    ========================================================= */
+    const PDF_COLORS = {
+        ACCENT: '#f39c12',
+        DARK_NAVY: '#2c3e50',
+        DARKER_NAVY: '#1a252f',
+        SOFT_GRAY: '#ecf0f1',
+        MEDIUM_GRAY: '#bdc3c7',
+        TEXT_DARK: '#2c3e50',
+        TEXT_LIGHT: '#7f8c8d',
+        GREEN: '#27ae60',
+        GREEN_LIGHT: '#2ecc71',
+        ORANGE: '#f39c12',
+        RED: '#e74c3c',
+        BLUE: '#3498db'
+    };
+
+    function genererRapportMensuel() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const nom = currentTireur;
+        const series = db.eleves[nom] || [];
+        const today = new Date().toLocaleDateString('fr-FR');
+        
+        // Filtrer les 30 derniers jours
+        const ilY30jours = new Date();
+        ilY30jours.setDate(ilY30jours.getDate() - 30);
+        const seriesMois = series.filter(s => {
+            const parts = s.date.split('/');
+            const d = new Date(parts[2], parts[1]-1, parts[0]);
+            return d >= ilY30jours;
+        });
+
+        // ========== HEADER ==========
+        doc.setFillColor(PDF_COLORS.DARKER_NAVY);
+        doc.rect(0, 0, 210, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('BALL-TRAP MASTER PRO', 105, 15, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Application de Coaching · Rapport Mensuel', 105, 23, { align: 'center' });
+
+        // ========== NOM ÉLÈVE ==========
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text(nom.toUpperCase(), 14, 45);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.text(`Rapport du ${today}`, 196, 45, { align: 'right' });
+
+        // Ligne orange
+        doc.setDrawColor(PDF_COLORS.ACCENT);
+        doc.setLineWidth(1.5);
+        doc.line(14, 50, 196, 50);
+
+        // ========== KPI ==========
+        const allScores = seriesMois.map(s => {
+            const max = s.disc === 'FU' ? 25 : 75;
+            return Math.round(parseInt(s.score) / max * 100);
+        });
+        const avg = allScores.length ? Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length) : 0;
+        const best = allScores.length ? Math.max(...allScores) : 0;
+        const nbSeries = seriesMois.length;
+
+        /* Progression dynamique : compare 1ère moitié vs 2ème moitié */
+        let progressionStr = 'N/A';
+        if (allScores.length >= 2) {
+            const mid = Math.floor(allScores.length / 2);
+            const oldAvg = Math.round(allScores.slice(mid).reduce((a,b)=>a+b,0) / (allScores.length - mid));
+            const newAvg = Math.round(allScores.slice(0, mid).reduce((a,b)=>a+b,0) / mid);
+            const delta = newAvg - oldAvg;
+            progressionStr = (delta >= 0 ? '+' : '') + delta + '%';
+        }
+
+        // Boîtes KPI
+        const kpiY = 58;
+        const kpiW = 42;
+        const kpiH = 22;
+        const kpiData = [
+            { label: 'Moyenne', value: avg + '%', x: 14 },
+            { label: 'Séries', value: nbSeries.toString(), x: 61 },
+            { label: 'Meilleur', value: best + '%', x: 108 },
+            { label: 'Progression', value: progressionStr, x: 155 }
+        ];
+
+        kpiData.forEach(kpi => {
+            doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+            doc.roundedRect(kpi.x, kpiY, kpiW, kpiH, 3, 3, 'F');
+            doc.setTextColor(PDF_COLORS.ACCENT);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(kpi.value, kpi.x + kpiW/2, kpiY + 12, { align: 'center' });
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(kpi.label, kpi.x + kpiW/2, kpiY + 18, { align: 'center' });
+        });
+
+        // ========== STATS PAR DISCIPLINE ==========
+        let y = 90;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PERFORMANCES PAR DISCIPLINE', 14, y);
+
+        y += 5;
+        const discData = [['Discipline', 'Séries', 'Moyenne', 'Meilleur', 'Tendance']];
+        ['FU', 'DTL', 'TRAP 1'].forEach(disc => {
+            const s = seriesMois.filter(x => x.disc === disc);
+            if (s.length) {
+                const max = disc === 'FU' ? 25 : 75;
+                const scores = s.map(x => Math.round(parseInt(x.score)/max*100));
+                const moy = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+                const bestD = Math.max(...scores);
+                discData.push([disc, s.length.toString(), moy + '%', bestD + '%', '↗']);
+            }
+        });
+
+        doc.autoTable({
+            startY: y,
+            head: [discData[0]],
+            body: discData.slice(1),
+            theme: 'grid',
+            headStyles: { fillColor: PDF_COLORS.DARK_NAVY, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: PDF_COLORS.SOFT_GRAY },
+            margin: { left: 14, right: 14 },
+            tableWidth: 'auto',
+            columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 25 }, 2: { cellWidth: 30 }, 3: { cellWidth: 30 }, 4: { cellWidth: 25 } }
+        });
+
+        // ========== ANALYSE PAR POSTES ==========
+        y = doc.lastAutoTable.finalY + 12;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ANALYSE PAR POSTES', 14, y);
+
+        // Calcul des stats par poste
+        const postesHits = [0,0,0,0,0];
+        const postesTotal = [0,0,0,0,0];
+        seriesMois.forEach(s => {
+            if (s.grille && s.grille.length === 25) {
+                s.grille.forEach((val, i) => {
+                    const posteReel = calculerPoste(i + 1, s.disc, s.poste);
+                    postesTotal[posteReel - 1]++;
+                    if (val > 0) postesHits[posteReel - 1]++;
+                });
+            }
+        });
+        const postesPct = postesTotal.map((t, i) => t ? Math.round(postesHits[i]/t*100) : 0);
+
+        y += 5;
+        const postesData = [
+            ['Poste', 'Taux', 'Niveau', 'Observation']
+        ];
+        const postesLabels = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        const niveaux = postesPct.map(p => p >= 80 ? 'Excellent' : p >= 70 ? 'Bon' : p >= 60 ? 'Correct' : 'À travailler');
+        postesLabels.forEach((p, i) => {
+            postesData.push([p, postesPct[i] + '%', niveaux[i], '']);
+        });
+
+        doc.autoTable({
+            startY: y,
+            head: [postesData[0]],
+            body: postesData.slice(1),
+            theme: 'grid',
+            headStyles: { fillColor: PDF_COLORS.DARK_NAVY, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: PDF_COLORS.SOFT_GRAY },
+            columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 40 }, 3: { cellWidth: 'auto' } },
+            margin: { left: 14, right: 14 }
+        });
+
+        // ========== DERNIÈRES SÉRIES ==========
+        y = doc.lastAutoTable.finalY + 12;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DERNIÈRES SÉRIES', 14, y);
+
+        y += 5;
+        const histData = [['Date', 'Disc.', 'Score', '%', 'Notes']];
+        seriesMois.slice(0, 5).forEach(s => {
+            const max = s.disc === 'FU' ? 25 : 75;
+            const pct = Math.round(parseInt(s.score)/max*100);
+            histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', (s.note || '').substring(0, 40)]);
+        });
+
+        doc.autoTable({
+            startY: y,
+            head: [histData[0]],
+            body: histData.slice(1),
+            theme: 'grid',
+            headStyles: { fillColor: PDF_COLORS.DARK_NAVY, textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: PDF_COLORS.SOFT_GRAY },
+            columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 22 }, 2: { cellWidth: 22 }, 3: { cellWidth: 18 }, 4: { cellWidth: 'auto' } },
+            margin: { left: 14, right: 14 }
+        });
+
+        // ========== RECOMMANDATIONS ==========
+        y = doc.lastAutoTable.finalY + 12;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RECOMMANDATIONS', 14, y);
+
+        y += 5;
+        // Trouver le poste le plus faible
+        const minIdx = postesPct.indexOf(Math.min(...postesPct.filter(p => p > 0)));
+        const posteFaible = postesLabels[minIdx];
+        const tauxFaible = postesPct[minIdx];
+
+        doc.setFillColor('#fce4ec');
+        doc.roundedRect(14, y, 182, 18, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.RED);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`PRIORITÉ: Poste ${posteFaible} (${tauxFaible}%)`, 18, y + 7);
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Travailler les exercices spécifiques sur ce poste.', 18, y + 13);
+
+        // ========== FOOTER ==========
+        doc.setDrawColor(PDF_COLORS.MEDIUM_GRAY);
+        doc.setLineWidth(0.5);
+        doc.line(14, 280, 196, 280);
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.setFontSize(8);
+        doc.text('Ball-Trap Master Pro — Application de Coaching', 105, 286, { align: 'center' });
+        doc.text(`Généré le ${today}`, 105, 290, { align: 'center' });
+
+        // Sauvegarder
+        doc.save(`rapport-mensuel-${nom.replace(/\s+/g, '-')}-${today.replace(/\//g, '-')}.pdf`);
+    }
+
+    function genererRapportJournee(serieData) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF(); // Format A4 pour avoir de la place pour l'analyse
+        const nom = currentTireur;
+        const today = new Date().toLocaleDateString('fr-FR');
+        const s = serieData || (db.eleves[nom] || [])[0];
+
+        if (!s) {
+            showToast('Aucune série à exporter.', 'error');
+            return;
+        }
+
+        const max = s.disc === 'FU' ? 25 : 75;
+        const pct = Math.round(parseInt(s.score) / max * 100);
+
+        // ========== HEADER ==========
+        doc.setFillColor(PDF_COLORS.DARKER_NAVY);
+        doc.rect(0, 0, 210, 28, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('BALL-TRAP MASTER PRO', 105, 12, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Rapport de Séance', 105, 20, { align: 'center' });
+
+        // ========== NOM ÉLÈVE ==========
+        let y = 40;
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text(nom.toUpperCase(), 14, y);
+        
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.setFontSize(10);
+        doc.text(`${s.date} — ${s.disc}`, 196, y, { align: 'right' });
+
+        // Ligne orange
+        doc.setDrawColor(PDF_COLORS.ACCENT);
+        doc.setLineWidth(1.5);
+        doc.line(14, y + 5, 196, y + 5);
+
+        // ========== SCORE ET GRILLE CÔTE À CÔTE ==========
+        y = 55;
+        
+        // Score encadré à gauche
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 60, 45, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(32);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${s.score}/${max}`, 44, y + 22, { align: 'center' });
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(14);
+        doc.text(`${pct}%`, 44, y + 35, { align: 'center' });
+        
+        // Niveau coloré
+        const niveau = pct >= 80 ? 'EXCELLENT' : pct >= 70 ? 'BON' : pct >= 60 ? 'CORRECT' : 'À AMÉLIORER';
+        const niveauColor = pct >= 80 ? PDF_COLORS.GREEN : pct >= 70 ? PDF_COLORS.GREEN_LIGHT : pct >= 60 ? PDF_COLORS.ORANGE : PDF_COLORS.RED;
+        doc.setTextColor(niveauColor);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(niveau, 44, y + 43, { align: 'center' });
+
+        // Grille visuelle à droite
+        if (s.grille && s.grille.length === 25) {
+            const cellSize = 10;
+            const startX = 100;
+            const colors = { 1: [39, 174, 96], 2: [243, 156, 18], 0: [231, 76, 60] };
+            
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.setFontSize(8);
+            doc.text('Grille de tir', startX, y - 3);
+            
+            for (let i = 0; i < 25; i++) {
+                const row = Math.floor(i / 5);
+                const col = i % 5;
+                const x = startX + col * cellSize;
+                const yPos = y + row * cellSize;
+                const val = s.grille[i];
+                
+                doc.setFillColor(...colors[val]);
+                doc.circle(x + cellSize/2, yPos + cellSize/2, 4, 'F');
+            }
+            
+            // Légende
+            doc.setFontSize(7);
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.text('Légende:', startX, y + 55);
+            doc.setFillColor(39, 174, 96); doc.circle(startX + 20, y + 53, 3, 'F');
+            doc.text('Touché', startX + 25, y + 55);
+            doc.setFillColor(243, 156, 18); doc.circle(startX + 50, y + 53, 3, 'F');
+            doc.text('Râteau', startX + 55, y + 55);
+            doc.setFillColor(231, 76, 60); doc.circle(startX + 80, y + 53, 3, 'F');
+            doc.text('Raté', startX + 85, y + 55);
+        }
+
+        // ========== CONDITIONS ==========
+        y = 110;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('CONDITIONS', 14, y);
+        
+        y += 5;
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 182, 18, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        let conditions = `Discipline: ${s.disc}`;
+        if (s.poste) conditions += `  |  Poste départ: P${s.poste}`;
+        if (s.vent) conditions += `  |  Vent: ${s.vent}`;
+        if (s.meteoAPI) conditions += `  |  ${s.meteoAPI.temp}°C - ${s.meteoAPI.desc}`;
+        doc.text(conditions, 18, y + 11);
+
+        // ========== ANALYSE DE LA SÉRIE ==========
+        y += 30;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ANALYSE DE LA SÉRIE', 14, y);
+
+        y += 5;
+        
+        // Analyse automatique si grille disponible
+        if (s.grille && s.grille.length === 25) {
+            // Stats par période
+            const debut = s.grille.slice(0, 8);
+            const milieu = s.grille.slice(8, 17);
+            const fin = s.grille.slice(17, 25);
+            
+            const pctDebut = Math.round(debut.filter(v => v > 0).length / 8 * 100);
+            const pctMilieu = Math.round(milieu.filter(v => v > 0).length / 9 * 100);
+            const pctFin = Math.round(fin.filter(v => v > 0).length / 8 * 100);
+            
+            // Stats par poste
+            const postesHits = [0,0,0,0,0];
+            s.grille.forEach((val, i) => {
+                const posteReel = calculerPoste(i + 1, s.disc, s.poste);
+                if (val > 0) postesHits[posteReel - 1]++;
+            });
+            const postesPct = postesHits.map(h => h * 20); // 5 tirs par poste
+            const posteFort = postesPct.indexOf(Math.max(...postesPct)) + 1;
+            const posteFaible = postesPct.indexOf(Math.min(...postesPct)) + 1;
+            
+            // Détection patterns
+            const fatigue = pctFin < pctDebut - 20;
+            const montee = pctFin > pctDebut + 20;
+            const trouMilieu = pctMilieu < pctDebut - 15 && pctMilieu < pctFin - 15;
+            const demarrageDifficile = pctDebut < pctMilieu - 15 && pctDebut < pctFin - 15;
+            
+            // Ratés consécutifs
+            let maxConsec = 0, encours = 0;
+            s.grille.forEach(v => {
+                if (v === 0) { encours++; maxConsec = Math.max(maxConsec, encours); }
+                else encours = 0;
+            });
+
+            // Tableau des stats
+            const statsData = [
+                ['Début (1-8)', 'Milieu (9-17)', 'Fin (18-25)'],
+                [`${pctDebut}%`, `${pctMilieu}%`, `${pctFin}%`]
+            ];
+            
+            doc.autoTable({
+                startY: y,
+                head: [statsData[0]],
+                body: [statsData[1]],
+                theme: 'grid',
+                headStyles: { fillColor: PDF_COLORS.DARK_NAVY, textColor: 255, fontStyle: 'bold', fontSize: 9 },
+                bodyStyles: { fontSize: 10, fontStyle: 'bold' },
+                columnStyles: { 
+                    0: { cellWidth: 58, halign: 'center', textColor: pctDebut >= 70 ? [39,174,96] : [231,76,60] },
+                    1: { cellWidth: 58, halign: 'center', textColor: pctMilieu >= 70 ? [39,174,96] : [231,76,60] },
+                    2: { cellWidth: 58, halign: 'center', textColor: pctFin >= 70 ? [39,174,96] : [231,76,60] }
+                },
+                margin: { left: 14, right: 14 }
+            });
+            
+            y = doc.lastAutoTable.finalY + 10;
+            
+            // Analyse textuelle
+            let analyseText = '';
+            if (fatigue) analyseText += '⚠️ Baisse en fin de série (fatigue possible). ';
+            if (montee) analyseText += '📈 Progression au fil de la série. ';
+            if (demarrageDifficile) analyseText += '⚠️ Démarrage difficile, échauffement à revoir. ';
+            if (trouMilieu) analyseText += '⚠️ Passage à vide en milieu de série. ';
+            if (maxConsec >= 3) analyseText += `🔴 ${maxConsec} ratés consécutifs détectés. `;
+            
+            analyseText += `\n💪 Poste fort: P${posteFort} (${postesPct[posteFort-1]}%). `;
+            analyseText += `🎯 Poste à travailler: P${posteFaible} (${postesPct[posteFaible-1]}%).`;
+            
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const lines = doc.splitTextToSize(analyseText, 182);
+            doc.text(lines, 14, y);
+            y += lines.length * 5 + 5;
+        }
+
+        // ========== NOTE DU COACH ==========
+        y += 5;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('NOTE DU COACH', 14, y);
+        
+        y += 5;
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 182, 30, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        const noteText = s.note || 'Aucune note enregistrée pour cette séance.';
+        const noteLines = doc.splitTextToSize(noteText, 175);
+        doc.text(noteLines.slice(0, 4), 18, y + 10);
+
+        // ========== RECOMMANDATIONS ==========
+        y += 40;
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RECOMMANDATIONS', 14, y);
+        
+        y += 5;
+        
+        // Générer recommandations auto
+        let reco = '';
+        if (s.grille && s.grille.length === 25) {
+            const fin = s.grille.slice(17, 25);
+            const debut = s.grille.slice(0, 8);
+            const pctFin = Math.round(fin.filter(v => v > 0).length / 8 * 100);
+            const pctDebut = Math.round(debut.filter(v => v > 0).length / 8 * 100);
+            
+            if (pctFin < pctDebut - 20) {
+                reco = 'Travailler l\'endurance mentale et le maintien de la concentration sur la durée.';
+            } else if (pct < 60) {
+                reco = 'Revoir les fondamentaux: position, montage, lâcher. Prévoir des exercices ciblés.';
+            } else if (pct >= 80) {
+                reco = 'Excellente séance! Maintenir ce niveau et travailler la régularité.';
+            } else {
+                reco = 'Progression encourageante. Continuer les exercices sur les points faibles identifiés.';
+            }
+        } else {
+            reco = 'Continuer l\'entraînement régulier pour progresser.';
+        }
+        
+        doc.setFillColor('#e8f5e9');
+        doc.roundedRect(14, y, 182, 20, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.GREEN);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('💡', 18, y + 12);
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFont('helvetica', 'normal');
+        const recoLines = doc.splitTextToSize(reco, 165);
+        doc.text(recoLines, 25, y + 12);
+
+        // ========== FOOTER ==========
+        doc.setDrawColor(PDF_COLORS.MEDIUM_GRAY);
+        doc.line(14, 280, 196, 280);
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.setFontSize(8);
+        doc.text('Ball-Trap Master Pro — Application de Coaching', 105, 286, { align: 'center' });
+        doc.text(`Généré le ${today}`, 105, 290, { align: 'center' });
+
+        // Sauvegarder
+        doc.save(`rapport-seance-${nom.replace(/\s+/g, '-')}-${s.date.replace(/\//g, '-')}.pdf`);
     }
 
     /* =========================================================
@@ -3440,4 +3922,3 @@ self.addEventListener('message', e => {
 </script>
 </body>
 </html>
-
