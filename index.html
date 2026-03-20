@@ -2099,6 +2099,61 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         }
         
         texte += `→ ${conseilPrincipal}\n`;
+
+        // --- 🎯 AJOUT DE LA PRÉCISION IA (SANS RIEN SUPPRIMER) ---
+        let complementsIA = "";
+        
+        // Stress du début
+        if (s.grille.slice(0, 3).filter(v => v === 0).length >= 2) {
+            complementsIA += "\n⚠️ DÉMARRAGE : Le stress de début de série te pénalise.";
+        }
+        // Syndrome du dernier plateau
+        if (s.grille[24] === 0 && s.grille[23] > 0) {
+            complementsIA += "\n⚠️ FINITION : Attention au syndrome du dernier plateau (25ème).";
+        }
+        // Mental
+        if (maxConsec >= 2) {
+            complementsIA += "\n🧠 MENTAL : " + maxConsec + " ratés consécutifs. Apprends à oublier un zéro immédiatement.";
+        }
+        // Réactivité DTL
+        if (s.disc !== 'FU' && s.grille.filter(v => v === 2).length >= 4) {
+            complementsIA += "\n⚡ RÉACTIVITÉ : Trop de tirs au 2ème coup. Acquisition lente.";
+        }
+
+        // Poste critique (analyse géographique)
+        const ratésParPoste = [0, 0, 0, 0, 0];
+        let totalRatés = 0;
+        s.grille.forEach((val, i) => {
+            if (val === 0) {
+                const p = calculerPoste(i + 1, s.disc, s.poste);
+                ratésParPoste[p - 1]++;
+                totalRatés++;
+            }
+        });
+        if (totalRatés > 2) {
+            const maxRatésPoste = Math.max(...ratésParPoste);
+            const posteCoupable = ratésParPoste.indexOf(maxRatésPoste) + 1;
+            const ratioPoste = (maxRatésPoste / totalRatés) * 100;
+            if (ratioPoste >= 40) {
+                complementsIA += "\n📍 POSTE CRITIQUE : " + Math.round(ratioPoste) + "% de tes ratés sont au Poste " + posteCoupable + ". Vérifie ton placement de pieds.";
+            }
+        }
+
+        // Rattrapage chanceux (dépendance au 2ème coup)
+        if (s.disc !== 'FU') {
+            const deuxiemes = s.grille.filter(v => v === 2).length;
+            const totalHits = s.grille.filter(v => v > 0).length;
+            if (totalHits > 0) {
+                const ratioChance = (deuxiemes / totalHits) * 100;
+                if (deuxiemes >= 5 || ratioChance >= 25) {
+                    complementsIA += `\n⚡ RAPPEL TECHNIQUE : ${deuxiemes} tirs sauvés au 2ème coup (${Math.round(ratioChance)}% de tes réussites). Ton score est flatteur mais ta réactivité au 1er coup est insuffisante. Travaille ton agressivité à la sortie du plateau.`;
+                }
+            }
+        }
+
+        if (complementsIA !== "") {
+            texte += "\n--- ANALYSE TECHNIQUE ---" + complementsIA + "\n";
+        }
         
         // Objectif chiffré si historique dispo
         if (statsEleve && statsEleve.nbSeries >= 3) {
@@ -3267,6 +3322,62 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     /* =========================================================
        EXPORT PDF — RAPPORTS
     ========================================================= */
+
+    /* =========================================================
+       PDF HELPERS — encodage et pagination
+    ========================================================= */
+    function stripEmojis(str) {
+        // Remplace les emojis par des prefixes texte lisibles dans jsPDF
+        return (str || '')
+            .replace(/⚠️/g, '[!]')
+            .replace(/📍/g, '[P]')
+            .replace(/🧠/g, '[M]')
+            .replace(/⚡/g, '[>]')
+            .replace(/💪/g, '[+]')
+            .replace(/🎯/g, '[o]')
+            .replace(/📈/g, '[^]')
+            .replace(/🔴/g, '[x]')
+            .replace(/✅/g, '[v]')
+            .replace(/❌/g, '[x]')
+            .replace(/☀️/g, 'Soleil')
+            .replace(/⛅/g, 'Nuageux')
+            .replace(/💨/g, 'Vent')
+            .replace(/🌧️/g, 'Pluie')
+            .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+            .replace(/[\u{2600}-\u{27FF}]/gu, '')
+            .replace(/[^\x00-\xFF]/g, '')
+            .trim();
+    }
+
+    function pdfText(doc, text, x, y, opts) {
+        doc.text(stripEmojis(text), x, y, opts || {});
+    }
+
+    function pdfAddSectionWithPageBreak(doc, y, neededHeight, margin) {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const footerH = 20;
+        if (y + neededHeight > pageHeight - footerH) {
+            doc.addPage();
+            return (margin || 20);
+        }
+        return y;
+    }
+
+    function pdfFooter(doc, today) {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setDrawColor(PDF_COLORS.MEDIUM_GRAY);
+            doc.setLineWidth(0.5);
+            doc.line(14, 280, 196, 280);
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Ball-Trap Master Pro — Application de Coaching', 105, 286, { align: 'center' });
+            doc.text('Généré le ' + today + '  |  Page ' + i + '/' + pageCount, 105, 291, { align: 'center' });
+        }
+    }
+
     const PDF_COLORS = {
         ACCENT: '#f39c12',
         DARK_NAVY: '#2c3e50',
@@ -3375,7 +3486,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         doc.text('PERFORMANCES PAR DISCIPLINE', 14, y);
 
         y += 5;
-        const discData = [['Discipline', 'Séries', 'Moyenne', 'Meilleur', 'Tendance']];
+        const discData = [['Discipline', 'Series', 'Moyenne', 'Meilleur', 'Tendance']];
         ['FU', 'DTL', 'TRAP 1'].forEach(disc => {
             const s = seriesMois.filter(x => x.disc === disc);
             if (s.length) {
@@ -3383,7 +3494,15 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                 const scores = s.map(x => Math.round(parseInt(x.score)/max*100));
                 const moy = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
                 const bestD = Math.max(...scores);
-                discData.push([disc, s.length.toString(), moy + '%', bestD + '%', '↗']);
+                /* Tendance calculée et encodée sans flèche Unicode */
+                let tendStr = '=';
+                if (s.length >= 2) {
+                    const mid = Math.floor(s.length/2);
+                    const o = Math.round(scores.slice(mid).reduce((a,b)=>a+b,0)/(s.length-mid));
+                    const n = Math.round(scores.slice(0,mid).reduce((a,b)=>a+b,0)/mid);
+                    tendStr = n > o+3 ? '[+]' : n < o-3 ? '[-]' : '[=]';
+                }
+                discData.push([disc, s.length.toString(), moy + '%', bestD + '%', tendStr]);
             }
         });
 
@@ -3453,7 +3572,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         seriesMois.slice(0, 5).forEach(s => {
             const max = s.disc === 'FU' ? 25 : 75;
             const pct = Math.round(parseInt(s.score)/max*100);
-            histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', (s.note || '').substring(0, 40)]);
+            histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', stripEmojis((s.note || '').substring(0, 40))]);
         });
 
         doc.autoTable({
@@ -3469,37 +3588,50 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
 
         // ========== RECOMMANDATIONS ==========
         y = doc.lastAutoTable.finalY + 12;
+        y = pdfAddSectionWithPageBreak(doc, y, 35, 20);
         doc.setTextColor(PDF_COLORS.ACCENT);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('RECOMMANDATIONS', 14, y);
 
         y += 5;
-        // Trouver le poste le plus faible
         const minIdx = postesPct.indexOf(Math.min(...postesPct.filter(p => p > 0)));
-        const posteFaible = postesLabels[minIdx];
-        const tauxFaible = postesPct[minIdx];
+        const posteFaible = postesLabels[minIdx >= 0 ? minIdx : 0];
+        const tauxFaible  = postesPct[minIdx >= 0 ? minIdx : 0];
 
-        doc.setFillColor('#fce4ec');
+        doc.setFillColor(252, 228, 236);
         doc.roundedRect(14, y, 182, 18, 3, 3, 'F');
         doc.setTextColor(PDF_COLORS.RED);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text(`PRIORITÉ: Poste ${posteFaible} (${tauxFaible}%)`, 18, y + 7);
+        doc.text('PRIORITE: Poste ' + posteFaible + ' (' + tauxFaible + '%)', 18, y + 7);
         doc.setTextColor(PDF_COLORS.TEXT_DARK);
         doc.setFont('helvetica', 'normal');
-        doc.text('Travailler les exercices spécifiques sur ce poste.', 18, y + 13);
+        doc.text('Travailler les exercices specifiques sur ce poste.', 18, y + 13);
 
-        // ========== FOOTER ==========
-        doc.setDrawColor(PDF_COLORS.MEDIUM_GRAY);
-        doc.setLineWidth(0.5);
-        doc.line(14, 280, 196, 280);
-        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
-        doc.setFontSize(8);
-        doc.text('Ball-Trap Master Pro — Application de Coaching', 105, 286, { align: 'center' });
-        doc.text(`Généré le ${today}`, 105, 290, { align: 'center' });
+        /* Analyse globale coach (si disponible) */
+        const analyseGlobaleMensuel = db.analysesCoach?.[nom] || '';
+        if (analyseGlobaleMensuel) {
+            y += 26;
+            y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
+            doc.setTextColor(PDF_COLORS.ACCENT);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ANALYSE COACH', 14, y);
+            y += 6;
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const bilanLines = doc.splitTextToSize(stripEmojis(analyseGlobaleMensuel), 178);
+            bilanLines.forEach(line => {
+                y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                doc.text(line, 16, y);
+                y += 5;
+            });
+        }
 
-        // Sauvegarder
+        // ========== FOOTER sur toutes les pages ==========
+        pdfFooter(doc, today);
         doc.save(`rapport-mensuel-${nom.replace(/\s+/g, '-')}-${today.replace(/\//g, '-')}.pdf`);
     }
 
@@ -3615,10 +3747,11 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         doc.setFont('helvetica', 'normal');
         
         let conditions = `Discipline: ${s.disc}`;
-        if (s.poste) conditions += `  |  Poste départ: P${s.poste}`;
+        if (s.poste) conditions += `  |  Poste depart: P${s.poste}`;
         if (s.vent) conditions += `  |  Vent: ${s.vent}`;
-        if (s.meteoAPI) conditions += `  |  ${s.meteoAPI.temp}°C - ${s.meteoAPI.desc}`;
-        doc.text(conditions, 18, y + 11);
+        if (s.meteoAPI) conditions += `  |  ${s.meteoAPI.temp}C - ${stripEmojis(s.meteoAPI.desc || '')}`;
+        if (s.meteo && s.meteo !== 'soleil') conditions += `  |  Meteo: ${s.meteo}`;
+        doc.text(stripEmojis(conditions), 18, y + 11);
 
         // ========== ANALYSE DE LA SÉRIE ==========
         y += 30;
@@ -3686,45 +3819,65 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             
             y = doc.lastAutoTable.finalY + 10;
             
-            // Analyse textuelle
+            // Analyse textuelle — sans emojis
             let analyseText = '';
-            if (fatigue) analyseText += '⚠️ Baisse en fin de série (fatigue possible). ';
-            if (montee) analyseText += '📈 Progression au fil de la série. ';
-            if (demarrageDifficile) analyseText += '⚠️ Démarrage difficile, échauffement à revoir. ';
-            if (trouMilieu) analyseText += '⚠️ Passage à vide en milieu de série. ';
-            if (maxConsec >= 3) analyseText += `🔴 ${maxConsec} ratés consécutifs détectés. `;
-            
-            analyseText += `\n💪 Poste fort: P${posteFort} (${postesPct[posteFort-1]}%). `;
-            analyseText += `🎯 Poste à travailler: P${posteFaible} (${postesPct[posteFaible-1]}%).`;
+            if (fatigue) analyseText += '[!] Baisse en fin de serie (fatigue possible). ';
+            if (montee) analyseText += '[^] Progression au fil de la serie. ';
+            if (demarrageDifficile) analyseText += '[!] Demarrage difficile, echauffement a revoir. ';
+            if (trouMilieu) analyseText += '[!] Passage a vide en milieu de serie. ';
+            if (maxConsec >= 3) analyseText += '[x] ' + maxConsec + ' rates consecutifs detectes. ';
+            analyseText += '\nPoste fort: P' + posteFort + ' (' + postesPct[posteFort-1] + '%). ';
+            analyseText += 'Poste a travailler: P' + posteFaible + ' (' + postesPct[posteFaible-1] + '%).';
             
             doc.setTextColor(PDF_COLORS.TEXT_DARK);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            const lines = doc.splitTextToSize(analyseText, 182);
+            const lines = doc.splitTextToSize(stripEmojis(analyseText), 182);
+            y = pdfAddSectionWithPageBreak(doc, y, lines.length * 5 + 5, 20);
             doc.text(lines, 14, y);
             y += lines.length * 5 + 5;
+
+            /* Analyse coach sauvegardée (si disponible) */
+            const analyseCoach = db.analysesCoach?.['serie_' + s.id] || '';
+            if (analyseCoach) {
+                y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
+                doc.setTextColor(PDF_COLORS.ACCENT);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ANALYSE COACH', 14, y);
+                y += 6;
+                doc.setTextColor(PDF_COLORS.TEXT_DARK);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                const analyseLines = doc.splitTextToSize(stripEmojis(analyseCoach), 178);
+                analyseLines.forEach(line => {
+                    y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                    doc.text(line, 16, y);
+                    y += 5;
+                });
+                y += 5;
+            }
         }
 
         // ========== NOTE DU COACH ==========
-        y += 5;
+        y = pdfAddSectionWithPageBreak(doc, y, 30, 20);
         doc.setTextColor(PDF_COLORS.ACCENT);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.text('NOTE DU COACH', 14, y);
         
-        y += 5;
+        y += 6;
+        const noteRaw = stripEmojis(s.note || 'Aucune note enregistree pour cette seance.');
+        const noteLines = doc.splitTextToSize(noteRaw, 175);
+        const noteH = Math.max(20, noteLines.length * 5 + 10);
+        y = pdfAddSectionWithPageBreak(doc, y, noteH + 5, 20);
         doc.setFillColor(PDF_COLORS.SOFT_GRAY);
-        doc.roundedRect(14, y, 182, 30, 3, 3, 'F');
+        doc.roundedRect(14, y, 182, noteH, 3, 3, 'F');
         doc.setTextColor(PDF_COLORS.TEXT_DARK);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        
-        const noteText = s.note || 'Aucune note enregistrée pour cette séance.';
-        const noteLines = doc.splitTextToSize(noteText, 175);
-        doc.text(noteLines.slice(0, 4), 18, y + 10);
-
-        // ========== RECOMMANDATIONS ==========
-        y += 40;
+        doc.text(noteLines, 18, y + 8);
+        y += noteH + 8;
         doc.setTextColor(PDF_COLORS.ACCENT);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
@@ -3753,26 +3906,41 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             reco = 'Continuer l\'entraînement régulier pour progresser.';
         }
         
-        doc.setFillColor('#e8f5e9');
+        y = pdfAddSectionWithPageBreak(doc, y, 35, 20);
+        doc.setFillColor(233, 245, 233);
         doc.roundedRect(14, y, 182, 20, 3, 3, 'F');
         doc.setTextColor(PDF_COLORS.GREEN);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('💡', 18, y + 12);
+        doc.text('[>]', 18, y + 12);
         doc.setTextColor(PDF_COLORS.TEXT_DARK);
         doc.setFont('helvetica', 'normal');
-        const recoLines = doc.splitTextToSize(reco, 165);
-        doc.text(recoLines, 25, y + 12);
+        const recoLines = doc.splitTextToSize(stripEmojis(reco), 165);
+        doc.text(recoLines, 25, y + 9);
 
-        // ========== FOOTER ==========
-        doc.setDrawColor(PDF_COLORS.MEDIUM_GRAY);
-        doc.line(14, 280, 196, 280);
-        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
-        doc.setFontSize(8);
-        doc.text('Ball-Trap Master Pro — Application de Coaching', 105, 286, { align: 'center' });
-        doc.text(`Généré le ${today}`, 105, 290, { align: 'center' });
+        /* Analyse globale coach (si disponible) */
+        const analyseGlobale = db.analysesCoach?.[nom] || '';
+        if (analyseGlobale) {
+            y += 28;
+            y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
+            doc.setTextColor(PDF_COLORS.ACCENT);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('BILAN COACH', 14, y);
+            y += 6;
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            const bilanLines = doc.splitTextToSize(stripEmojis(analyseGlobale), 178);
+            bilanLines.forEach(line => {
+                y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                doc.text(line, 16, y);
+                y += 5;
+            });
+        }
 
-        // Sauvegarder
+        // ========== FOOTER sur toutes les pages ==========
+        pdfFooter(doc, today);
         doc.save(`rapport-seance-${nom.replace(/\s+/g, '-')}-${s.date.replace(/\//g, '-')}.pdf`);
     }
 
