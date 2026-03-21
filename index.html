@@ -3327,25 +3327,36 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
        PDF HELPERS — encodage et pagination
     ========================================================= */
     function stripEmojis(str) {
-        // Remplace les emojis par des prefixes texte lisibles dans jsPDF
         return (str || '')
-            .replace(/⚠️/g, '[!]')
-            .replace(/📍/g, '[P]')
-            .replace(/🧠/g, '[M]')
-            .replace(/⚡/g, '[>]')
-            .replace(/💪/g, '[+]')
-            .replace(/🎯/g, '[o]')
-            .replace(/📈/g, '[^]')
-            .replace(/🔴/g, '[x]')
-            .replace(/✅/g, '[v]')
-            .replace(/❌/g, '[x]')
+            .replace(/🌟/g, '')
+            .replace(/🔥/g, '')
+            .replace(/📈/g, '')
+            .replace(/📊/g, '')
+            .replace(/🏆/g, '')
+            .replace(/⚠️/g, '! ')
+            .replace(/⚠/g, '! ')
+            .replace(/📍/g, '> ')
+            .replace(/🧠/g, '> ')
+            .replace(/⚡/g, '> ')
+            .replace(/💪/g, '')
+            .replace(/🎯/g, '')
+            .replace(/🔴/g, '! ')
+            .replace(/✅/g, '')
+            .replace(/❌/g, '')
+            .replace(/✓/g, '')
+            .replace(/✗/g, '')
+            .replace(/►/g, '>')
+            .replace(/★/g, '')
+            .replace(/●/g, '-')
+            .replace(/↑/g, '')
             .replace(/☀️/g, 'Soleil')
             .replace(/⛅/g, 'Nuageux')
-            .replace(/💨/g, 'Vent')
+            .replace(/💨\s*/g, '')
             .replace(/🌧️/g, 'Pluie')
             .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
             .replace(/[\u{2600}-\u{27FF}]/gu, '')
-            .replace(/[^\x00-\xFF]/g, '')
+            .replace(/[^\x00-\xFF\n]/g, '')
+            .replace(/[ \t]{2,}/g, ' ')
             .trim();
     }
 
@@ -3495,7 +3506,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                 const moy = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
                 const bestD = Math.max(...scores);
                 /* Tendance calculée et encodée sans flèche Unicode */
-                let tendStr = '=';
+                let tendStr = '[=]';
                 if (s.length >= 2) {
                     const mid = Math.floor(s.length/2);
                     const o = Math.round(scores.slice(mid).reduce((a,b)=>a+b,0)/(s.length-mid));
@@ -3572,7 +3583,13 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         seriesMois.slice(0, 5).forEach(s => {
             const max = s.disc === 'FU' ? 25 : 75;
             const pct = Math.round(parseInt(s.score)/max*100);
-            histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', stripEmojis((s.note || '').substring(0, 40))]);
+            /* Nettoie les préfixes météo auto de la note */
+            const noteClean = stripEmojis((s.note || '')
+                .replace(/\[[^\]]*°[^\]]*\]/g, '')
+                .replace(/\[\s*[Vv]ent[^\]]*\]/g, '')
+                .replace(/\[\s*\]/g, '')
+                .trim()).substring(0, 40) || '-';
+            histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', noteClean]);
         });
 
         doc.autoTable({
@@ -3622,11 +3639,16 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             doc.setTextColor(PDF_COLORS.TEXT_DARK);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            const bilanLines = doc.splitTextToSize(stripEmojis(analyseGlobaleMensuel), 178);
-            bilanLines.forEach(line => {
-                y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
-                doc.text(line, 16, y);
-                y += 5;
+            const bilanParasMensuel = stripEmojis(analyseGlobaleMensuel)
+                .split(/\\n|\n/);
+            bilanParasMensuel.forEach(para => {
+                if (!para.trim()) { y += 3; return; }
+                const bl = doc.splitTextToSize(para.trim(), 178);
+                bl.forEach(line => {
+                    y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                    doc.text(line, 16, y);
+                    y += 5;
+                });
             });
         }
 
@@ -3836,27 +3858,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             y = pdfAddSectionWithPageBreak(doc, y, lines.length * 5 + 5, 20);
             doc.text(lines, 14, y);
             y += lines.length * 5 + 5;
-
-            /* Analyse coach sauvegardée (si disponible) */
-            const analyseCoach = db.analysesCoach?.['serie_' + s.id] || '';
-            if (analyseCoach) {
-                y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
-                doc.setTextColor(PDF_COLORS.ACCENT);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('ANALYSE COACH', 14, y);
-                y += 6;
-                doc.setTextColor(PDF_COLORS.TEXT_DARK);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                const analyseLines = doc.splitTextToSize(stripEmojis(analyseCoach), 178);
-                analyseLines.forEach(line => {
-                    y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
-                    doc.text(line, 16, y);
-                    y += 5;
-                });
-                y += 5;
-            }
         }
 
         // ========== NOTE DU COACH ==========
@@ -3867,8 +3868,14 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         doc.text('NOTE DU COACH', 14, y);
         
         y += 6;
-        const noteRaw = stripEmojis(s.note || 'Aucune note enregistree pour cette seance.');
-        const noteLines = doc.splitTextToSize(noteRaw, 175);
+        /* Sépare la météo préfixée de la vraie note du coach */
+        const noteComplete = s.note || '';
+        const noteCoach = stripEmojis(noteComplete
+            .replace(/\[[^\]]*°[^\]]*\]/g, '')
+            .replace(/\[\s*[Vv]ent[^\]]*\]/g, '')
+            .replace(/\[\s*\]/g, '')
+            .trim()) || 'Aucune note enregistree pour cette seance.';
+        const noteLines = doc.splitTextToSize(noteCoach, 175);
         const noteH = Math.max(20, noteLines.length * 5 + 10);
         y = pdfAddSectionWithPageBreak(doc, y, noteH + 5, 20);
         doc.setFillColor(PDF_COLORS.SOFT_GRAY);
@@ -3878,6 +3885,37 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         doc.setFont('helvetica', 'normal');
         doc.text(noteLines, 18, y + 8);
         y += noteH + 8;
+
+        // ========== ANALYSE FINE IA (depuis la sauvegarde) ==========
+        const analyseFineSerie = db.analysesCoach?.['serie_' + s.id] || '';
+        if (analyseFineSerie) {
+            y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
+            doc.setTextColor(PDF_COLORS.ACCENT);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ANALYSE COACH', 14, y);
+            y += 6;
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            /* Découpe par \n d'abord, puis splitTextToSize pour chaque paragraphe */
+            const paragraphes = stripEmojis(analyseFineSerie)
+                .replace(/►/g, '>').replace(/●/g, '-')
+                .split(/\\n|\n/);
+            paragraphes.forEach(para => {
+                if (!para.trim()) { y += 3; return; }
+                const paraLines = doc.splitTextToSize(para.trim(), 178);
+                paraLines.forEach(line => {
+                    y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                    doc.text(line, 16, y);
+                    y += 5;
+                });
+            });
+            y += 3;
+        }
+
+        // ========== RECOMMANDATIONS ==========
+        y = pdfAddSectionWithPageBreak(doc, y, 45, 20);
         doc.setTextColor(PDF_COLORS.ACCENT);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
@@ -3892,36 +3930,38 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             const debut = s.grille.slice(0, 8);
             const pctFin = Math.round(fin.filter(v => v > 0).length / 8 * 100);
             const pctDebut = Math.round(debut.filter(v => v > 0).length / 8 * 100);
-            
             if (pctFin < pctDebut - 20) {
-                reco = 'Travailler l\'endurance mentale et le maintien de la concentration sur la durée.';
+                reco = 'Travailler l\'endurance mentale et le maintien de la concentration sur la duree.';
             } else if (pct < 60) {
-                reco = 'Revoir les fondamentaux: position, montage, lâcher. Prévoir des exercices ciblés.';
+                reco = 'Revoir les fondamentaux: position, montage, lacher. Prevoir des exercices cibles.';
             } else if (pct >= 80) {
-                reco = 'Excellente séance! Maintenir ce niveau et travailler la régularité.';
+                reco = 'Excellente seance! Maintenir ce niveau et travailler la regularite.';
             } else {
-                reco = 'Progression encourageante. Continuer les exercices sur les points faibles identifiés.';
+                reco = 'Progression encourageante. Continuer les exercices sur les points faibles identifies.';
             }
         } else {
-            reco = 'Continuer l\'entraînement régulier pour progresser.';
+            reco = 'Continuer l\'entrainement regulier pour progresser.';
         }
         
-        y = pdfAddSectionWithPageBreak(doc, y, 35, 20);
+        y = pdfAddSectionWithPageBreak(doc, y, 25, 20);
+        const recoLines = doc.splitTextToSize('> ' + stripEmojis(reco).replace(/►/g,'>'), 174);
+        const recoH = Math.max(18, recoLines.length * 5 + 8);
         doc.setFillColor(233, 245, 233);
-        doc.roundedRect(14, y, 182, 20, 3, 3, 'F');
+        doc.roundedRect(14, y, 182, recoH, 3, 3, 'F');
         doc.setTextColor(PDF_COLORS.GREEN);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('[>]', 18, y + 12);
-        doc.setTextColor(PDF_COLORS.TEXT_DARK);
-        doc.setFont('helvetica', 'normal');
-        const recoLines = doc.splitTextToSize(stripEmojis(reco), 165);
-        doc.text(recoLines, 25, y + 9);
+        doc.text(recoLines[0], 18, y + 9);
+        if (recoLines.length > 1) {
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFont('helvetica', 'normal');
+            doc.text(recoLines.slice(1), 18, y + 14);
+        }
+        y += recoH + 8;
 
-        /* Analyse globale coach (si disponible) */
+        /* Bilan coach global (si disponible) */
         const analyseGlobale = db.analysesCoach?.[nom] || '';
         if (analyseGlobale) {
-            y += 28;
             y = pdfAddSectionWithPageBreak(doc, y, 20, 20);
             doc.setTextColor(PDF_COLORS.ACCENT);
             doc.setFontSize(11);
@@ -3931,11 +3971,16 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             doc.setTextColor(PDF_COLORS.TEXT_DARK);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            const bilanLines = doc.splitTextToSize(stripEmojis(analyseGlobale), 178);
-            bilanLines.forEach(line => {
-                y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
-                doc.text(line, 16, y);
-                y += 5;
+            const bilanParas = stripEmojis(analyseGlobale)
+                .split(/\\n|\n/);
+            bilanParas.forEach(para => {
+                if (!para.trim()) { y += 3; return; }
+                const bl = doc.splitTextToSize(para.trim(), 178);
+                bl.forEach(line => {
+                    y = pdfAddSectionWithPageBreak(doc, y, 6, 20);
+                    doc.text(line, 16, y);
+                    y += 5;
+                });
             });
         }
 
