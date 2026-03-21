@@ -1788,10 +1788,9 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         
         if (series.length < 2) return null;
         
-        // Analyser les zones faibles récurrentes
-        const zonesTaux = [0, 0, 0, 0, 0]; // 1-5, 6-10, 11-15, 16-20, 21-25
+        // --- Zones faibles récurrentes (groupes de 5) ---
+        const zonesTaux = [0, 0, 0, 0, 0];
         const zonesTotal = [0, 0, 0, 0, 0];
-        
         series.forEach(s => {
             for (let g = 0; g < 5; g++) {
                 for (let i = g * 5; i < g * 5 + 5; i++) {
@@ -1800,13 +1799,58 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
                 }
             }
         });
-        
         const zonesPct = zonesTaux.map((h, i) => Math.round(h / zonesTotal[i] * 100));
         const zoneFaible = zonesPct.indexOf(Math.min(...zonesPct));
-        const zoneForte = zonesPct.indexOf(Math.max(...zonesPct));
+        const zoneForte  = zonesPct.indexOf(Math.max(...zonesPct));
         const zonesLabels = ['1-5', '6-10', '11-15', '16-20', '21-25'];
-        
-        // Analyser les ratés consécutifs récurrents
+
+        // --- Tirs récurrents ratés (tir précis raté dans 60%+ des séries) ---
+        const tirsRatesFreq = [];
+        for (let i = 0; i < 25; i++) {
+            const nbRates = series.filter(s => s.grille[i] === 0).length;
+            const freq = Math.round((nbRates / series.length) * 100);
+            if (freq >= 60) tirsRatesFreq.push({ tir: i + 1, freq });
+        }
+        tirsRatesFreq.sort((a, b) => b.freq - a.freq);
+
+        // --- Corrélation poste réel / ratés ---
+        const postesRates = [0, 0, 0, 0, 0];
+        const postesTotal = [0, 0, 0, 0, 0];
+        series.forEach(s => {
+            s.grille.forEach((val, i) => {
+                const p = calculerPoste(i + 1, disc, s.poste) - 1;
+                if (p >= 0 && p < 5) {
+                    postesTotal[p]++;
+                    if (val === 0) postesRates[p]++;
+                }
+            });
+        });
+        const postesTaux = postesTotal.map((t, i) => t > 0 ? Math.round((postesRates[i] / t) * 100) : 0);
+        const posteCritique = postesTaux.indexOf(Math.max(...postesTaux));
+        const posteCritiquePct = postesTaux[posteCritique];
+
+        // --- Comparaison météo / performance ---
+        const seriesVent = { faible: [], modere: [], fort: [] };
+        series.forEach(s => {
+            const v = s.vent || 'faible';
+            const p = Math.round(parseInt(s.score) / (disc === 'FU' ? 25 : 75) * 100);
+            if (seriesVent[v]) seriesVent[v].push(p);
+        });
+        const moyVent = {};
+        Object.keys(seriesVent).forEach(v => {
+            if (seriesVent[v].length >= 2)
+                moyVent[v] = Math.round(seriesVent[v].reduce((a,b)=>a+b,0)/seriesVent[v].length);
+        });
+        let impactVent = null;
+        if (moyVent.faible && moyVent.fort) {
+            const delta = moyVent.faible - moyVent.fort;
+            if (Math.abs(delta) >= 5) impactVent = { delta, meilleur: delta > 0 ? 'faible' : 'fort' };
+        } else if (moyVent.faible && moyVent.modere) {
+            const delta = moyVent.faible - moyVent.modere;
+            if (Math.abs(delta) >= 5) impactVent = { delta, meilleur: delta > 0 ? 'faible' : 'modere' };
+        }
+
+        // --- Ratés consécutifs récurrents ---
         let totalConsec = 0, nbSeriesAvecConsec = 0;
         series.forEach(s => {
             let consec = 0, maxC = 0;
@@ -1823,8 +1867,15 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             zoneForte: zonesLabels[zoneForte],
             zoneFortePct: zonesPct[zoneForte],
             zonesPct,
+            tirsRatesFreq,              // tirs précis ratés régulièrement
+            posteCritique: posteCritique + 1,
+            posteCritiquePct,
+            postesTaux,
+            impactVent,                 // impact météo/vent sur performance
+            moyVent,
             aProblemeConsec: nbSeriesAvecConsec > series.length * 0.4,
-            moyenneConsec: nbSeriesAvecConsec ? round1(totalConsec / nbSeriesAvecConsec) : 0
+            moyenneConsec: nbSeriesAvecConsec ? round1(totalConsec / nbSeriesAvecConsec) : 0,
+            nbSeries: series.length
         };
     }
 
@@ -2154,7 +2205,44 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         if (complementsIA !== "") {
             texte += "\n--- ANALYSE TECHNIQUE ---" + complementsIA + "\n";
         }
-        
+
+        // --- PATTERNS RÉCURRENTS (si historique suffisant) ---
+        if (patterns && patterns.nbSeries >= 3) {
+            let patternText = '';
+
+            // 1. Tirs précis ratés régulièrement
+            if (patterns.tirsRatesFreq.length > 0) {
+                const tirsStr = patterns.tirsRatesFreq.slice(0, 4).map(t => `tir ${t.tir} (${t.freq}%)`).join(', ');
+                patternText += `\n📊 RÉCURRENCE : Sur tes ${patterns.nbSeries} dernières séries en ${s.disc}, tu rates systématiquement : ${tirsStr}. Ce ne sont pas des accidents — c'est un problème technique à cibler.`;
+            }
+
+            // 2. Corrélation poste réel / ratés sur historique
+            if (patterns.posteCritiquePct >= 35 && patterns.nbSeries >= 3) {
+                const autresPostes = patterns.postesTaux
+                    .map((t, i) => ({ p: i+1, t }))
+                    .filter(x => x.p !== patterns.posteCritique && x.t > 0)
+                    .sort((a,b) => a.t - b.t);
+                const meilleurPoste = autresPostes[0];
+                patternText += `\n📍 HISTORIQUE POSTES : Sur l'ensemble de tes séries, le poste ${patterns.posteCritique} est ton poste le plus difficile (${patterns.posteCritiquePct}% de ratés)`;
+                if (meilleurPoste) patternText += `, contre seulement ${meilleurPoste.t}% au poste ${meilleurPoste.p}`;
+                patternText += `. Travaille spécifiquement les angles du poste ${patterns.posteCritique}.`;
+            }
+
+            // 3. Impact météo/vent sur performance
+            if (patterns.impactVent) {
+                const { delta, meilleur } = patterns.impactVent;
+                const labelsVent = { faible: 'par temps calme', modere: 'vent modéré', fort: 'vent fort' };
+                const pire = meilleur === 'faible' ? (patterns.moyVent.fort !== undefined ? 'fort' : 'modere') : 'faible';
+                if (patterns.moyVent[meilleur] && patterns.moyVent[pire]) {
+                    patternText += `\n🌤 MÉTÉO : Tes performances varient selon les conditions — ${patterns.moyVent[meilleur]}% ${labelsVent[meilleur]} contre ${patterns.moyVent[pire]}% ${labelsVent[pire]} (écart de ${Math.abs(delta)} points). Travaille ta technique par vent pour réduire cet écart.`;
+                }
+            }
+
+            if (patternText) {
+                texte += "\n--- ANALYSE HISTORIQUE ---" + patternText + "\n";
+            }
+        }
+
         // Objectif chiffré si historique dispo
         if (statsEleve && statsEleve.nbSeries >= 3) {
             const prochainObjectif = pct >= statsEleve.moyenne 
@@ -3584,11 +3672,14 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             const max = s.disc === 'FU' ? 25 : 75;
             const pct = Math.round(parseInt(s.score)/max*100);
             /* Nettoie les préfixes météo auto de la note */
-            const noteClean = stripEmojis((s.note || '')
+            /* Nettoie d'abord les emojis, puis retire les blocs météo */
+            const noteStripped = stripEmojis(s.note || '');
+            const noteClean = noteStripped
                 .replace(/\[[^\]]*°[^\]]*\]/g, '')
-                .replace(/\[\s*[Vv]ent[^\]]*\]/g, '')
+                .replace(/\[\s*[Vv]ent[^\]]*\]/gi, '')
                 .replace(/\[\s*\]/g, '')
-                .trim()).substring(0, 40) || '-';
+                .replace(/\s+/g, ' ')
+                .trim().substring(0, 40) || '-';
             histData.push([s.date, s.disc, s.score + '/' + max, pct + '%', noteClean]);
         });
 
@@ -3870,11 +3961,13 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         y += 6;
         /* Sépare la météo préfixée de la vraie note du coach */
         const noteComplete = s.note || '';
-        const noteCoach = stripEmojis(noteComplete
+        const noteStrippedCoach = stripEmojis(noteComplete);
+        const noteCoach = noteStrippedCoach
             .replace(/\[[^\]]*°[^\]]*\]/g, '')
-            .replace(/\[\s*[Vv]ent[^\]]*\]/g, '')
+            .replace(/\[\s*[Vv]ent[^\]]*\]/gi, '')
             .replace(/\[\s*\]/g, '')
-            .trim()) || 'Aucune note enregistree pour cette seance.';
+            .replace(/\s+/g, ' ')
+            .trim() || 'Aucune note enregistree pour cette seance.';
         const noteLines = doc.splitTextToSize(noteCoach, 175);
         const noteH = Math.max(20, noteLines.length * 5 + 10);
         y = pdfAddSectionWithPageBreak(doc, y, noteH + 5, 20);
