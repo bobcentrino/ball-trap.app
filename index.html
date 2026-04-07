@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Ball-Trap Master Pro</title>
 
-    <!-- PWA — manifest inline (fonctionne sans serveur) -->
     <link rel="manifest" id="pwa-manifest">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,10 +12,8 @@
     <meta name="apple-mobile-web-app-title" content="Ball-Trap">
     <meta name="theme-color" content="#f39c12">
 
-    <!-- Chart.js pour les stats avancées -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
-    <!-- jsPDF pour export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 
@@ -64,6 +61,61 @@
             /* Espacement vertical entre éléments */
             --gap:        14px;
         }
+
+        /* =====================================================
+           MODE PLEIN SOLEIL (Haute Visibilité)
+        ===================================================== */
+        :root.high-vis {
+            --bg: #ffffff;
+            --shadow-dark: #d0d0d0;
+            --shadow-light: #ffffff;
+            --text-primary: #000000;
+            --text-muted: #333333;
+            --accent: #d35400; /* Orange plus contrasté */
+            
+            --neu-out-sm: 2px 2px 0px var(--shadow-dark), -1px -1px 0px var(--shadow-light);
+            --neu-out-md: 2px 2px 0px var(--shadow-dark), -1px -1px 0px var(--shadow-light);
+            --neu-out-lg: 2px 2px 0px var(--shadow-dark), -1px -1px 0px var(--shadow-light);
+            --neu-in: inset 2px 2px 4px var(--shadow-dark);
+        }
+
+        :root.high-vis .card,
+        :root.high-vis .settings-card,
+        :root.high-vis .weather-widget,
+        :root.high-vis .wind-selector {
+            border: 1px solid #e0e0e0;
+            box-shadow: none;
+        }
+        :root.high-vis .btn-main {
+            box-shadow: 2px 2px 0px var(--shadow-dark);
+        }
+        :root.high-vis .btn-choice,
+        :root.high-vis .btn-secondary,
+        :root.high-vis .tile,
+        :root.high-vis .btn-poste,
+        :root.high-vis .meteo-btn,
+        :root.high-vis .wind-btn {
+            border: 1px solid #e0e0e0;
+            box-shadow: 2px 2px 0px var(--shadow-dark);
+            color: #000;
+        }
+
+        function updateThemeColorMeta() {
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (!themeColorMeta) return;
+
+        const isHighVis = document.documentElement.classList.contains('high-vis');
+        const isDark = document.documentElement.classList.contains('dark-mode');
+
+        if (isHighVis) {
+            themeColorMeta.setAttribute('content', '#ffffff'); // Blanc Plein Soleil
+        } else if (isDark) {
+            themeColorMeta.setAttribute('content', '#383f50'); // Anthracite Mode Sombre
+        } else {
+            themeColorMeta.setAttribute('content', '#e0e5ec'); // Gris doux Neumorphisme
+        }
+    }
+
 
         /* ---- MODE SOMBRE — anthracite doux ---- */
         :root.dark-mode {
@@ -141,8 +193,8 @@
             cursor: pointer; z-index: 5000; font-size: 1.3rem;
         }
 
-        /* ---- BOUTON PARAMÈTRES (miroir du bouton maison) ---- */
-        .btn-settings {
+        /* ---- BOUTON THÈME (miroir du bouton maison) ---- */
+        .btn-theme {
             position: absolute;
             top: max(50px, calc(env(safe-area-inset-top) + 10px));
             right: 20px;
@@ -153,7 +205,7 @@
             cursor: pointer; z-index: 5000; font-size: 1.3rem;
             display: none;
         }
-        .btn-settings:active { box-shadow: var(--neu-in); }
+        .btn-theme:active { box-shadow: var(--neu-in); }
 
         /* ---- PAGE PARAMÈTRES ---- */
         .settings-group { width: 100%; flex-shrink: 0; }
@@ -206,7 +258,7 @@
         /* ---- PAGES ---- */
         .page {
             display: none; flex: 1; flex-direction: column; align-items: center;
-            padding: 20px; padding-top: 70px; box-sizing: border-box;
+            padding: 20px; padding-top: 100px; box-sizing: border-box;
             overflow-y: auto; width: 100%;
             padding-bottom: 110px; -webkit-overflow-scrolling: touch;
             gap: var(--gap);
@@ -318,6 +370,14 @@
         .tile.v { background: var(--v-color); }
         .tile.o { background: var(--o-color); }
         .tile.r { background: var(--r-color); }
+
+        /* ---- BOUTONS DE DIRECTIONS (PSEUDO-IA) ---- */
+        .btn-dir {
+            flex: 1; height: 75px; border-radius: 12px; border: none; color: white;
+            font-size: 1.15rem; font-weight: bold; cursor: pointer;
+            box-shadow: var(--neu-out-sm); padding: 0; transition: transform 0.1s;
+        }
+        .btn-dir:active { transform: scale(0.95); box-shadow: var(--neu-in-sm); }
 
         /* ---- BOUTONS DE TIR (page-tir) ---- */
         .btn-tir {
@@ -433,6 +493,38 @@
             letter-spacing: 0.3px;
         }
         .btn-choice-sm:active { box-shadow: var(--neu-in); }
+
+        /* ---- INTERRUPTEUR (TOGGLE SWITCH) ---- */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg);
+            box-shadow: var(--neu-in);
+            transition: .3s; border-radius: 26px;
+        }
+        .toggle-slider:before {
+            position: absolute; content: "";
+            height: 18px; width: 18px; left: 4px; bottom: 4px;
+            background-color: var(--text-muted);
+            transition: .3s; border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--accent);
+            box-shadow: none;
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
 
         /* ---- INPUT TEXTE ---- */
         .input-neu {
@@ -712,16 +804,15 @@
             <div class="logo-sub">Master Coach Edition</div>
         </div>
         <button class="btn-enter" onclick="entrerApp()">Entrer</button>
-        <div class="logo-version">V 2.8 - Export PDF</div>
+        <div class="logo-version">V 2.9.1 - UI Fix</div>
     </div>
 
     <button id="global-home-btn" class="btn-home" onclick="retourAccueil()" style="display:none;">🏠</button>
+    <button id="global-theme-btn" class="btn-theme" onclick="toggleDarkModeGlobal()" style="display:none;">🌙</button>
 
-    <!-- PAGE PARAMÈTRES — 3ème onglet -->
     <div id="page-params" class="page">
         <h2>Réglages</h2>
 
-        <!-- Nom du coach -->
         <div class="settings-group">
             <span class="settings-label">Identité</span>
             <div class="settings-card">
@@ -738,7 +829,6 @@
             </div>
         </div>
 
-        <!-- Discipline favorite -->
         <div class="settings-group">
             <span class="settings-label">Discipline favorite</span>
             <div class="settings-card">
@@ -756,7 +846,6 @@
             </div>
         </div>
 
-        <!-- Thème couleur -->
         <div class="settings-group">
             <span class="settings-label">Couleur d'accent</span>
             <div class="settings-card">
@@ -773,28 +862,21 @@
                         <div class="color-dot"        data-color="#9b59b6" style="background:#9b59b6" onclick="setTheme(this)"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Mode sombre -->
-        <div class="settings-group">
-            <span class="settings-label">Affichage</span>
-            <div class="settings-card">
+                
                 <div class="settings-row">
                     <div>
-                        <span class="settings-row-label">Mode sombre</span>
-                        <span class="settings-row-sub">Interface anthracite</span>
+                        <span class="settings-row-label">Mode Plein Soleil</span>
+                        <span class="settings-row-sub">Haute visibilité en extérieur</span>
                     </div>
-                    <label style="position:relative;width:52px;height:28px;flex-shrink:0;cursor:pointer;">
-                        <input type="checkbox" id="param-dark-mode" style="opacity:0;width:0;height:0;position:absolute;" onchange="setDarkMode(this.checked)">
-                        <span id="dark-toggle-track" style="position:absolute;top:0;left:0;right:0;bottom:0;background:var(--shadow-dark);border-radius:14px;transition:background 0.3s;"></span>
-                        <span id="dark-toggle-thumb" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:white;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="checkbox-soleil" onchange="toggleModeSoleil(this.checked)">
+                        <span class="toggle-slider"></span>
                     </label>
                 </div>
+
             </div>
         </div>
 
-        <!-- Sauvegarde -->
         <div class="settings-group">
             <span class="settings-label">Sauvegarde</span>
             <div style="display:flex;flex-direction:column;gap:var(--gap);">
@@ -803,13 +885,12 @@
             </div>
         </div>
 
-        <!-- Infos app -->
         <div class="settings-group">
             <span class="settings-label">Application</span>
             <div class="settings-card">
                 <div class="settings-row">
                     <span class="settings-row-label">Version</span>
-                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.8 - Export PDF</span>
+                    <span style="color:var(--text-label);font-weight:700;font-size:0.85rem;">V 2.9.1 - UI Fix</span>
                 </div>
                 <div class="settings-row">
                     <span class="settings-row-label">Élèves enregistrés</span>
@@ -823,7 +904,6 @@
         </div>
     </div>
 
-    <!-- MODALE DISCIPLINE — étape 1 : choix discipline -->
     <div id="modal-disc" class="modal-overlay" style="z-index:11000;">
         <div id="modal-disc-inner" class="modal-box" style="display:flex;flex-direction:column;gap:8px;">
             <h3 style="margin-bottom:4px;">Discipline</h3>
@@ -834,7 +914,6 @@
         </div>
     </div>
 
-    <!-- MODALE POSTE — étape 2 : choix poste de départ -->
     <div id="modal-poste" class="modal-overlay" style="z-index:11000;">
         <div class="modal-box" style="display:flex;flex-direction:column;gap:10px;">
             <h3 style="margin-bottom:0;">Poste de départ</h3>
@@ -850,7 +929,6 @@
         </div>
     </div>
 
-    <!-- MODALE ANALYSE SÉRIE INDIVIDUELLE -->
     <div id="modal-analyse-serie" class="modal-overlay" style="z-index:13000;align-items:flex-end;">
         <div style="width:100%;background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:24px 20px 40px;box-shadow:var(--neu-out-lg);max-height:85vh;overflow-y:auto;box-sizing:border-box;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -861,13 +939,11 @@
                 <div id="modal-serie-badge" style="background:var(--accent);color:white;padding:5px 14px;border-radius:12px;font-size:0.9rem;font-weight:900;"></div>
             </div>
 
-            <!-- Chargement -->
             <div id="modal-serie-loading" style="display:none;text-align:center;padding:20px 0;">
                 <div id="modal-serie-dots" style="font-size:1.4rem;color:var(--accent);">●○○</div>
                 <div style="font-size:0.8rem;color:var(--text-label);margin-top:8px;">Analyse en cours...</div>
             </div>
 
-            <!-- Texte analyse éditable -->
             <textarea id="modal-serie-texte" class="textarea-neu"
                 placeholder="L'analyse de cette série apparaîtra ici..."
                 style="height:200px;font-size:0.88rem;line-height:1.7;"
@@ -893,11 +969,15 @@
         </div>
     </div>
 
-    <!-- MODALE AJOUT ÉLÈVE -->
     <div id="modal-ajout-eleve" class="modal-overlay">
         <div class="modal-box">
             <h3>Nouvel élève</h3>
-            <input id="input-nom-eleve" class="input-neu" type="text" maxlength="50" placeholder="Prénom Nom..." autocomplete="off">
+            <input id="input-nom-eleve" class="input-neu" type="text" maxlength="50" placeholder="Prénom Nom..." autocomplete="off" style="margin-bottom: 10px;">
+            <select id="select-profil-eleve" class="input-neu" style="margin-bottom: 10px; font-weight: bold; color: var(--accent);">
+                <option value="Débutant">🌱 Profil : Débutant</option>
+                <option value="Confirmé" selected>🎯 Profil : Confirmé</option>
+                <option value="Expert">🔥 Profil : Expert / Compétiteur</option>
+            </select>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="fermerAjoutEleve()">ANNULER</button>
                 <button class="btn-main" onclick="validerAjoutEleve()">AJOUTER</button>
@@ -905,7 +985,6 @@
         </div>
     </div>
 
-    <!-- MODALE IMPORT -->
     <div id="modal-import" class="modal-overlay">
         <div class="modal-box">
             <h3>Importer</h3>
@@ -927,18 +1006,16 @@
         </div>
     </div>
 
-    <!-- PAGE ÉLÈVES — page d'accueil principale -->
     <div id="page-eleves" class="page active">
         <h2>Mes Élèves</h2>
         <div id="liste-eleves" style="width:100%; display:flex; flex-direction:column; gap:var(--gap);"></div>
         <button class="btn-main" onclick="ajouterEleve()">+ Nouvel élève</button>
     </div>
 
-    <!-- PAGE FICHE ÉLÈVE -->
     <div id="page-fiche-eleve" class="page">
-        <h2 id="nom-fiche-eleve">Nom</h2>
+        <h2 id="nom-fiche-eleve" style="margin-bottom: 5px;">Nom</h2>
+        <div id="badge-profil-eleve" class="badge-tir" style="background:var(--bg); color:var(--accent); box-shadow:var(--neu-out-sm); cursor:pointer; margin-bottom: 15px;" onclick="changerProfilEleve()">🎯 Confirmé</div>
 
-        <!-- Résumé moyennes uniquement -->
         <div class="card">
             <div class="stat-line">
                 <div><span class="stat-disc">FU</span><span class="sub" id="e-c-fu">0 SÉRIE</span></div>
@@ -954,10 +1031,29 @@
             </div>
         </div>
 
+        <div id="zone-competition" style="width:100%; display:flex; flex-direction:column; gap:10px; margin-top:5px; margin-bottom:10px;">
+            
+            <div id="selecteur-mode-comp" style="display:flex; background:var(--bg); border-radius:var(--radius-md); box-shadow:var(--neu-in); padding:4px; gap:4px;">
+                <button id="btn-mode-0" style="flex:1; height:52px; border:none; border-radius:var(--radius-sm); font-weight:900; font-size:0.95rem; text-transform:uppercase; background:var(--accent); color:white; box-shadow:0 4px 8px rgba(0,0,0,0.15); cursor:pointer; letter-spacing:0.5px;" onclick="choisirModeComp(0)">ENTRAINEMENT</button>
+                <button id="btn-mode-100" style="flex:1; height:52px; border:none; border-radius:var(--radius-sm); font-weight:900; font-size:0.95rem; text-transform:uppercase; background:transparent; color:var(--text-muted); cursor:pointer; letter-spacing:0.5px;" onclick="choisirModeComp(100)">100 PLX</button>
+                <button id="btn-mode-200" style="flex:1; height:52px; border:none; border-radius:var(--radius-sm); font-weight:900; font-size:0.95rem; text-transform:uppercase; background:transparent; color:var(--text-muted); cursor:pointer; letter-spacing:0.5px;" onclick="choisirModeComp(200)">200 PLX</button>
+            </div>
+
+            <div id="tracker-comp" class="card" style="display:none; padding:12px 16px; border-left:5px solid var(--o-color);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:0.7rem; font-weight:800; color:var(--o-color); text-transform:uppercase;">🏆 Compétition en cours</div>
+                        <div id="tracker-comp-texte" style="font-size:1.1rem; font-weight:900; color:var(--text-primary); margin-top:2px;">DTL - 100 plateaux</div>
+                        <div id="tracker-comp-progression" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">Série 1 / 4 terminées</div>
+                    </div>
+                    <button class="btn-del" style="font-size:1.4rem;" onclick="annulerCompetitionEnCours()">✖</button>
+                </div>
+            </div>
+            
+        </div>
         <button class="btn-main" onclick="ouvrirChoixDisc()">🔥 Coacher</button>
         <button class="btn-choice" onclick="ouvrirStatsEleve()">📊 Voir les stats <span>›</span></button>
         
-        <!-- Boutons Export PDF -->
         <div style="display:flex;gap:10px;width:100%;margin-top:5px;">
             <button class="btn-choice" style="flex:1;background:#e74c3c;" onclick="genererRapportMensuel()">📄 Rapport Mensuel</button>
             <button class="btn-choice" style="flex:1;background:#3498db;" onclick="genererRapportJournee()">📋 Rapport Journée</button>
@@ -966,34 +1062,38 @@
         <button class="btn-secondary" onclick="switchTab('page-eleves', null)">RETOUR</button>
     </div>
 
-    <!-- PAGE TIR -->
-    <div id="page-tir" class="page" style="padding:8px 14px 100px; gap:10px;">
+    <div id="page-tir" class="page" style="padding:100px 14px 100px; gap:10px;">
 
-        <!-- Badge + score sur une ligne -->
         <div style="display:flex; align-items:center; justify-content:space-between; width:100%; flex-shrink:0;">
             <div id="badge-tir" class="badge-tir">NOM | DISC</div>
             <div id="score-live" class="score-live" style="font-size:2.4rem;">0</div>
         </div>
 
-        <!-- Grille : petits cercles, taille fixe -->
         <div style="background:var(--bg);border-radius:var(--radius-md);box-shadow:var(--neu-out-sm);padding:8px;width:100%;box-sizing:border-box;flex-shrink:0;">
             <div id="grid-25" style="display:grid;grid-template-columns:repeat(5,36px);justify-content:space-around;gap:6px;width:100%;"></div>
         </div>
 
-        <!-- Boutons de tir — grands, priorité absolue -->
-        <div class="btn-row btn-row-3" style="flex-shrink:0;">
-            <button class="btn-tir" style="background:var(--v-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="enregistrerCoup(1)">/</button>
-            <button class="btn-tir" style="background:var(--o-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="enregistrerCoup(2)">X</button>
-            <button class="btn-tir" style="background:var(--r-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="enregistrerCoup(0)">0</button>
+       <div style="position:relative; width:100%; min-height:80px; flex-shrink:0;">
+            <div id="etape-principale" class="btn-row btn-row-3" style="width:100%;">
+                <button class="btn-tir" style="background:var(--v-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="enregistrerDirect(1)">/</button>
+                <button class="btn-tir" style="background:var(--o-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="demanderDirection(2)">X</button>
+                <button class="btn-tir" style="background:var(--r-color);height:80px;font-size:2.2rem;border-radius:var(--radius-md);" onclick="demanderDirection(0)">0</button>
+            </div>
+            
+            <div id="etape-directions" style="display:none; gap:6px; width:100%; height:80px;">
+                <button class="btn-dir" onclick="enregistrerAvecDirection('G')">G</button>
+                <button class="btn-dir" onclick="enregistrerAvecDirection('dG')">dG</button>
+                <button class="btn-dir" onclick="enregistrerAvecDirection('C')">C</button>
+                <button class="btn-dir" onclick="enregistrerAvecDirection('dD')">dD</button>
+                <button class="btn-dir" onclick="enregistrerAvecDirection('D')">D</button>
+            </div>
         </div>
 
-        <!-- Corriger + Quitter -->
         <div class="btn-row btn-row-2" style="flex-shrink:0;">
             <button class="btn-secondary" onclick="annulerDernierCoup()">⟲ CORRIGER</button>
             <button class="btn-secondary" style="color:var(--r-color)" onclick="quitterTir()">✕ QUITTER</button>
         </div>
 
-        <!-- Widget Météo Dynamique -->
         <div class="weather-widget" id="weather-widget">
             <div class="weather-header">
                 <span class="weather-title">🌤️ Météo actuelle</span>
@@ -1004,7 +1104,6 @@
             </div>
         </div>
 
-        <!-- Sélecteur de vent (ajustement coach) -->
         <div class="wind-selector">
             <span class="wind-label">💨 Vent sur le pas de tir</span>
             <div class="wind-buttons">
@@ -1023,32 +1122,26 @@
             </div>
         </div>
 
-        <!-- Note coach -->
         <textarea id="note-coach" class="textarea-neu" placeholder="Note de coaching..." style="height:60px;flex-shrink:0;"></textarea>
 
-        <!-- Bouton enregistrer -->
         <button id="btn-valider-serie" class="btn-main" style="display:none;background:#2ecc71;flex-shrink:0;" onclick="validerSerie()">💾 ENREGISTRER</button>
     </div>
 
-    <!-- PAGE STATS -->
     <div id="page-stats" class="page">
         <h2>Historique</h2>
         <button class="btn-choice" onclick="ouvrirSelectionEleveStat()">🎓 SCORES ÉLÈVES <span>›</span></button>
         <button class="btn-choice" onclick="ouvrirSelectionEleveStats()">📊 STATS ÉLÈVES <span>›</span></button>
     </div>
 
-    <!-- PAGE SÉLECTION ÉLÈVE POUR STATS -->
     <div id="page-select-eleve-stats-avancees" class="page">
         <h2>Stats d'un élève</h2>
         <div id="liste-select-eleve-stats-avancees" style="width:100%;display:flex;flex-direction:column;gap:var(--gap);"></div>
         <button class="btn-secondary" onclick="switchTab('page-stats', null)">RETOUR</button>
     </div>
 
-    <!-- PAGE STATS AVANCÉES ÉLÈVE -->
     <div id="page-stats-eleve" class="page">
         <h2 id="stats-eleve-nom">Nom</h2>
 
-        <!-- Records -->
         <div class="stats-section" id="section-records">
             <span class="stats-titre">Records</span>
             <div class="record-grid">
@@ -1067,7 +1160,6 @@
             </div>
         </div>
 
-        <!-- NOUVEAU : Graphique Radar -->
         <div class="stats-section" id="section-radar">
             <span class="stats-titre">Profil de performance</span>
             <div class="disc-filter" id="filter-radar">
@@ -1085,7 +1177,6 @@
             </div>
         </div>
 
-        <!-- Courbe de progression -->
         <div class="stats-section" id="section-progression">
             <span class="stats-titre">Progression</span>
             <div class="disc-filter" id="filter-progression">
@@ -1101,7 +1192,6 @@
             </div>
         </div>
 
-        <!-- Analyse par poste -->
         <div class="stats-section" id="section-postes">
             <span class="stats-titre">Réussite par poste</span>
             <div class="disc-filter" id="filter-postes">
@@ -1120,13 +1210,11 @@
             Aucune série avec grille enregistrée.<br>Lance une session de coaching pour voir les stats par poste.
         </div>
 
-        <!-- Historique des séries avec graphique escalier -->
         <div class="stats-section" id="section-historique" style="display:none">
             <span class="stats-titre">Séries détaillées</span>
             <div id="liste-series-eleve" style="display:flex;flex-direction:column;gap:var(--gap);width:100%;"></div>
         </div>
 
-        <!-- Graphique escalier d'une série sélectionnée -->
         <div class="chart-card" id="card-escalier" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <div>
@@ -1138,7 +1226,6 @@
             <div class="bars-container" id="escalier-bars"></div>
         </div>
 
-        <!-- Analyse IA coach -->
         <div class="stats-section" id="section-analyse-ia" style="display:none;">
             <span class="stats-titre">Analyse coach</span>
             <div class="chart-card" style="padding:16px;">
@@ -1163,7 +1250,6 @@
         <button class="btn-secondary" onclick="switchTab('page-select-eleve-stats-avancees', null)">RETOUR</button>
     </div>
 
-    <!-- PAGE ANALYSE -->
     <div id="page-analyse" class="page">
         <h2>Bilan série</h2>
         <div class="card">
@@ -1207,6 +1293,7 @@
        CONSTANTES & ÉTAT
     ========================================================= */
     const MASTER_KEY = 'BALLTRAP_FINAL_DB';
+    const TEMP_KEY   = 'BALLTRAP_TEMP_SERIE'; // Pour la sauvegarde auto
     const DB_VERSION = 1;
 
     const SCORE_LIMITS = { 'FU': 25, 'DTL': 75, 'TRAP 1': 75 };
@@ -1219,7 +1306,10 @@
     var currentVent = 'faible';  // Vent local ajusté par le coach
     var currentMeteoAPI = null;  // Météo récupérée par l'API
     var serieEnCours = [];
+    var directionsEnCours = [];  // NOUVEAU : Stocke les trajectoires (G, dG, C, dD, D)
+    var actionEnAttente = null;  // NOUVEAU : Pour le clavier à 2 temps
     var currentAnalyseSerie = null;
+    var wakeLock = null;         // Pour garder l'écran allumé
 
     /* =========================================================
        SÉCURITÉ — SANITISATION XSS
@@ -1244,10 +1334,101 @@
     }
 
     /* =========================================================
+       WAKE LOCK API (Garder l'écran allumé)
+    ========================================================= */
+    async function requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock libéré');
+                });
+            } catch (err) {
+                console.log('Wake Lock erreur:', err);
+            }
+        }
+    }
+
+    function releaseWakeLock() {
+        if (wakeLock !== null) {
+            wakeLock.release();
+            wakeLock = null;
+        }
+    }
+
+    /* =========================================================
+       SAUVEGARDE TEMP (localStorage)
+    ========================================================= */
+    function sauvegarderSerieTemp() {
+        const temp = {
+            tireur: currentTireur,
+            disc: currentDisc,
+            poste: currentPoste,
+            serie: serieEnCours,
+            directions: directionsEnCours, // NOUVEAU
+            vent: currentVent,
+            meteoAPI: currentMeteoAPI
+        };
+        localStorage.setItem(TEMP_KEY, JSON.stringify(temp));
+    }
+
+    function effacerSerieTemp() {
+        localStorage.removeItem(TEMP_KEY);
+    }
+
+    function verifierSerieTemp() {
+        const temp = localStorage.getItem(TEMP_KEY);
+        if (temp) {
+            try {
+                const parsed = JSON.parse(temp);
+                if (parsed && parsed.serie && parsed.serie.length > 0) {
+                    showConfirm("Une série non terminée a été trouvée. Voulez-vous la reprendre ?", (ok) => {
+                        if (ok) {
+                            reprendreCoaching(parsed);
+                        } else {
+                            effacerSerieTemp();
+                        }
+                    });
+                }
+            } catch(e) { effacerSerieTemp(); }
+        }
+    }
+
+    function reprendreCoaching(data) {
+        currentTireur = data.tireur;
+        currentDisc = data.disc;
+        currentPoste = data.poste;
+        currentVent = data.vent || 'faible';
+        currentMeteoAPI = data.meteoAPI || null;
+        serieEnCours = data.serie || [];
+        directionsEnCours = data.directions || []; // NOUVEAU
+        
+        document.getElementById('note-coach').value = "";
+        if(typeof annulerDirection === 'function') annulerDirection(); // NOUVEAU
+        setVent(currentVent);
+        if (!currentMeteoAPI) chargerMeteoDynamique();
+        
+        const posteLabel = currentPoste ? ' · P' + currentPoste : '';
+        document.getElementById('badge-tir').textContent = currentTireur + " | " + currentDisc + posteLabel;
+        
+        const g = document.getElementById('grid-25');
+        g.innerHTML = "";
+        for (let i = 1; i <= 25; i++) {
+            const t = document.createElement('div');
+            t.style.cssText = 'width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;color:var(--text-muted);background:var(--bg);box-shadow:2px 2px 5px var(--shadow-dark),-2px -2px 5px var(--shadow-light);flex-shrink:0;';
+            t.textContent = calculerPoste(i, currentDisc, currentPoste);
+            g.appendChild(t);
+        }
+        
+        updateTirUI();
+        switchTab('page-tir', null);
+    }
+
+    /* =========================================================
        BASE DE DONNÉES — CHARGEMENT SÉCURISÉ
     ========================================================= */
     function getEmptyDB() {
-        return { version: DB_VERSION, eleves: {} };
+        return { version: DB_VERSION, eleves: {}, profils: {}, activeComps: {} }; 
     }
 
     function validateDB(data) {
@@ -1281,6 +1462,8 @@
                 showToast('Données restaurées depuis zéro.', 'error');
                 return getEmptyDB();
             }
+            if (!parsed.profils) parsed.profils = {}; 
+            if (!parsed.activeComps) parsed.activeComps = {}; // NOUVEAU: Patch Compétition
             return parsed;
         } catch (e) {
             console.error('Erreur lecture DB:', e);
@@ -1363,6 +1546,7 @@
     window.onload = function() {
         db = loadDB();
         appliquerParamsAuDemarrage();
+        chargerThemeSoleil(); // <-- LECTURE DU MODE SOLEIL
         renderEleves();
     };
 
@@ -1372,22 +1556,59 @@
     function entrerApp() {
         const p0 = document.getElementById('page-0');
         const homeBtn = document.getElementById('global-home-btn');
+        const themeBtn = document.getElementById('global-theme-btn');
         p0.style.transform = 'translateY(-100%)';
-        setTimeout(() => { p0.style.display = 'none'; homeBtn.style.display = 'flex'; }, 600);
+        setTimeout(() => { 
+            p0.style.display = 'none'; 
+            homeBtn.style.display = 'flex'; 
+            themeBtn.style.display = 'flex'; 
+            verifierSerieTemp(); 
+        }, 600);
     }
 
     function retourAccueil() {
+        if (document.getElementById('page-tir').style.display === 'flex' && serieEnCours.length > 0) {
+            showConfirm("Une série est en cours. Revenir à l'accueil ?", (ok) => {
+                if (ok) {
+                    effacerSerieTemp();
+                    executerRetourAccueil();
+                }
+            });
+        } else {
+            executerRetourAccueil();
+        }
+    }
+
+    function executerRetourAccueil() {
         const p0 = document.getElementById('page-0');
         const homeBtn = document.getElementById('global-home-btn');
+        const themeBtn = document.getElementById('global-theme-btn');
         p0.style.display = 'flex';
-        setTimeout(() => { p0.style.transform = 'translateY(0)'; homeBtn.style.display = 'none'; }, 10);
+        setTimeout(() => { 
+            p0.style.transform = 'translateY(0)'; 
+            homeBtn.style.display = 'none'; 
+            themeBtn.style.display = 'none'; 
+        }, 10);
     }
 
     function switchTab(id, el) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.getElementById(id).style.display = 'flex';
+        
         const homeBtn = document.getElementById('global-home-btn');
-        homeBtn.style.display = (id === 'page-tir') ? 'none' : 'flex';
+        const themeBtn = document.getElementById('global-theme-btn');
+        
+        // Affichage inconditionnel de la maison et du thème
+        homeBtn.style.display = 'flex';
+        themeBtn.style.display = 'flex'; 
+        
+        // Gestion du Wake Lock
+        if (id === 'page-tir') {
+            requestWakeLock();
+        } else {
+            releaseWakeLock();
+        }
+
         if (el) {
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
@@ -1399,9 +1620,7 @@
             document.getElementById('param-nom-coach').value = p.nomCoach || '';
             document.querySelectorAll('.disc-btn').forEach(b => b.classList.toggle('active', b.dataset.disc === p.discFav));
             document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === p.theme));
-            const cb = document.getElementById('param-dark-mode');
-            cb.checked = p.darkMode || false;
-            setDarkMode(cb.checked);
+            
             const nbEleves = Object.keys(db.eleves).length;
             const nbSeries = Object.values(db.eleves).reduce((a, s) => a + s.length, 0);
             document.getElementById('param-nb-eleves').textContent = nbEleves;
@@ -1429,6 +1648,47 @@
     }
 
     /* =========================================================
+       MODE COMPÉTITION (Logique visuelle)
+    ========================================================= */
+    var currentModeComp = 0; // 0 = Normal, 100 ou 200
+
+    function choisirModeComp(mode) {
+        currentModeComp = mode;
+        
+        // On réinitialise tous les gros boutons en gris transparent
+        const btns = [0, 100, 200];
+        btns.forEach(b => {
+            const el = document.getElementById('btn-mode-' + b);
+            if (el) {
+                el.style.background = 'transparent';
+                el.style.color = 'var(--text-muted)';
+                el.style.boxShadow = 'none';
+            }
+        });
+        
+        // On allume le bouton cliqué avec l'ombre ajustée pour sa grande taille
+        const btnActif = document.getElementById('btn-mode-' + mode);
+        if (btnActif) {
+            btnActif.style.background = 'var(--accent)';
+            btnActif.style.color = 'white';
+            btnActif.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+        }
+    }
+
+    function annulerCompetitionEnCours() {
+        showConfirm("Annuler la compétition en cours ? Les séries déjà tirées resteront dans l'historique normal.", (ok) => {
+            if (ok) {
+                if (db.activeComps && db.activeComps[currentTireur]) {
+                    delete db.activeComps[currentTireur];
+                    saveDB();
+                }
+                showToast("Compétition annulée.", "info");
+                refreshFicheEleve(); // Magie : ça recharge la vue et remet les gros boutons !
+            }
+        });
+    }
+
+    /* =========================================================
        ÉLÈVES
     ========================================================= */
     function ajouterEleve() {
@@ -1445,11 +1705,15 @@
     }
     function validerAjoutEleve() {
         const input = document.getElementById('input-nom-eleve');
+        const select = document.getElementById('select-profil-eleve'); // NOUVEAU
         const nomPropre = input.value.trim();
         if (!nomPropre) { showToast('Entrez un nom.', 'error'); return; }
         if (nomPropre.length > 50) { showToast('Nom trop long (50 car. max).', 'error'); return; }
         if (db.eleves[nomPropre]) { showToast('Cet élève existe déjà.', 'error'); return; }
+        
         db.eleves[nomPropre] = [];
+        db.profils[nomPropre] = select ? select.value : 'Confirmé'; // NOUVEAU
+        
         saveDB();
         fermerAjoutEleve();
         renderEleves();
@@ -2093,6 +2357,17 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         
         // --- PROFIL ET CONSEILS ---
         texte += `\n💡 CONSEILS PERSONNALISÉS\n`;
+
+        // 🌟 NOUVEAU : TON DU COACH SELON LE PROFIL 🌟
+        const profilTireur = (db.profils && db.profils[nom]) ? db.profils[nom] : 'Confirmé';
+        
+        if (profilTireur === 'Débutant') {
+            texte += `🌱 Note : Ton objectif principal est d'acquérir les bons automatismes. Oublie le score pour le moment, focalise-toi uniquement sur ta posture, ton placement de regard et la fluidité de ton mouvement.\n`;
+        } else if (profilTireur === 'Expert') {
+            if (pct < 75) texte += `🔥 Note : Prestation très insuffisante pour ton niveau. Tu es complètement sorti de ton match. Le haut niveau exige une rigueur absolue, ressaisis-toi immédiatement sur ta routine.\n`;
+            else if (pct >= 92) texte += `🔥 Note : C'est exactement le niveau d'exigence attendu. Reste intraitable sur ton protocole, aucune baisse de garde n'est permise.\n`;
+            else texte += `🔥 Note : Série correcte, mais tu dois aller chercher les quelques points qui font la différence. Sois plus tranchant et agressif sur tes attaques.\n`;
+        }
         
         // Déterminer le conseil principal
         let conseilPrincipal = '';
@@ -2153,6 +2428,39 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
 
         // --- 🎯 AJOUT DE LA PRÉCISION IA (SANS RIEN SUPPRIMER) ---
         let complementsIA = "";
+
+        // 🌟 NOUVEAU MOTEUR DIRECTIONS (PSEUDO-IA) 🌟
+        if (s.directions && s.directions.length === 25) {
+            let statsDir = { 'X': { 'G': 0, 'dG': 0, 'C': 0, 'dD': 0, 'D': 0 }, '0': { 'G': 0, 'dG': 0, 'C': 0, 'dD': 0, 'D': 0 } };
+            let totalDir0 = 0, totalDirX = 0;
+            
+            s.grille.forEach((val, i) => {
+                const dir = s.directions[i];
+                if (dir) {
+                    if (val === 2) { statsDir['X'][dir] = (statsDir['X'][dir] || 0) + 1; totalDirX++; }
+                    else if (val === 0) { statsDir['0'][dir] = (statsDir['0'][dir] || 0) + 1; totalDir0++; }
+                }
+            });
+
+            let defautsDir = [
+                { poids: statsDir['0']['G'] + statsDir['0']['D'], texte: "Gros blocage mécanique sur les angles extrêmes (Gauche/Droite). Vérifie ton placement de pieds au départ, tu es probablement 'enfermé' et tu bloques ta rotation du bassin." },
+                { poids: statsDir['X']['G'] + statsDir['X']['D'], texte: "Tu rattrapes tes extrêmes au second coup, ce qui prouve que tu es en retard sur l'attaque. Ne jette pas tes canons, verrouille ta trajectoire avant de tirer." },
+                { poids: statsDir['0']['dG'] + statsDir['0']['dD'], texte: "Les demi-angles te posent problème. C'est souvent une erreur d'anticipation : tu pars trop fort en pensant que c'est un extrême, et tu passes devant. Ralentis ton attaque." },
+                { poids: statsDir['X']['dG'] + statsDir['X']['dD'], texte: "Beaucoup de corrections sur les demi-angles. Tu hésites sur la lecture de la trajectoire au premier coup. Fais confiance à tes yeux." },
+                { poids: statsDir['0']['C'], texte: "Attention aux pertes de points sur les fuyants de face. Tu as tendance à arrêter ton fusil au moment du tir ou à décoller la joue de la crosse. Traverse ton plateau !" },
+                { poids: statsDir['X']['C'], texte: "Tu te fais surprendre par la vitesse des fuyants de face. Ton premier coup est souvent en dessous. Attaque-les plus franchement." }
+            ];
+
+            defautsDir.sort((a, b) => b.poids - a.poids);
+
+            if (totalDir0 >= 3 && (statsDir['0']['D'] + statsDir['0']['dD']) === totalDir0) {
+                complementsIA += "\n🎯 DIAGNOSTIC : Ton problème est asymétrique. Ta rotation à droite est complètement bloquée. Avance légèrement ton pied gauche pour libérer ton bassin.";
+            } else if (totalDir0 >= 3 && (statsDir['0']['G'] + statsDir['0']['dG']) === totalDir0) {
+                complementsIA += "\n🎯 DIAGNOSTIC : Ton problème est asymétrique. Ta rotation à gauche coince. Ouvre un peu plus ton pied droit pour libérer ton bassin.";
+            } else if (defautsDir[0].poids >= 2) {
+                complementsIA += "\n🎯 DIAGNOSTIC : " + defautsDir[0].texte;
+            }
+        }
         
         // Stress du début
         if (s.grille.slice(0, 3).filter(v => v === 0).length >= 2) {
@@ -2255,6 +2563,42 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             }
             texte += `\n`;
         }
+
+        // --- 📋 L'ORDONNANCE D'ENTRAÎNEMENT (Exercice ciblé) ---
+        let exercice = "";
+        
+        // On récupère les stats de directions pour la prescription
+        let nbRatésDroite = 0, nbRatésGauche = 0, nbRatésCentre = 0;
+        if (s.directions && s.directions.length === 25) {
+            s.grille.forEach((val, i) => {
+                if (val === 0) {
+                    if (s.directions[i] === 'D' || s.directions[i] === 'dD') nbRatésDroite++;
+                    if (s.directions[i] === 'G' || s.directions[i] === 'dG') nbRatésGauche++;
+                    if (s.directions[i] === 'C') nbRatésCentre++;
+                }
+            });
+        }
+
+        // L'arbre de décision du Coach (Priorité du défaut le plus grave au moins grave)
+        if (nbRatésDroite >= 3 && nbRatésGauche === 0) {
+            exercice = "📍 Blocage à Droite : Place-toi au poste 3, oriente tes pieds de 30 degrés vers la droite pour forcer ton bassin à s'ouvrir. Tire 10 plateaux d'affilée dans cette posture pour mémoriser le mouvement.";
+        } else if (nbRatésGauche >= 3 && nbRatésDroite === 0) {
+            exercice = "📍 Blocage à Gauche : Place-toi au poste 3, oriente tes pieds de 30 degrés vers la gauche pour libérer ton bassin. Tire 10 plateaux d'affilée dans cette posture pour mémoriser le mouvement.";
+        } else if (nbRatésCentre >= 3) {
+            exercice = "🎯 Le Suivi : Tire 10 fuyants de face d'affilée. Règle d'or : tu dois garder la joue collée à la crosse et le fusil pointé vers les éclats pendant 2 secondes entières APRÈS avoir tiré.";
+        } else if (maxConsec >= 2) {
+            exercice = "🧠 Reset Mental : La pause forcée. À la prochaine séance, impose-toi cette règle : après chaque raté, tu dois casser ton fusil, le poser sur la pointe de la chaussure, souffler un grand coup (5 sec), et refaire ta routine à 100%.";
+        } else if (deuxiemeCoup && deuxiemeCoup.length >= 3) {
+            exercice = "👀 Anticipation visuelle : Entraînement 'à blanc'. Épaule ton fusil (vide). Demande 5 plateaux. Contente-toi de suivre la trajectoire avec tes canons sans appuyer sur la détente. Apprends à ton œil à accrocher la cible AVANT que le fusil ne bouge.";
+        } else if (fatigue) {
+            exercice = "🔋 Endurance : La série rallongée. Charge tes poches avec 30 cartouches au lieu de 25. Tire une série de 30 plateaux pour habituer ton cerveau à rester sous tension au-delà de la limite habituelle des 25.";
+        } else if (pct < 70) {
+            exercice = "🏗️ Les Fondations : Reviens aux bases. Ne tire que des plateaux simples (fuyants centraux) pendant 2 séries pour reprendre confiance dans ton épaulé et ton swing, sans te soucier du score ni des angles complexes.";
+        } else {
+            exercice = "🏆 La Pression : Match play. Fais un duel avec un autre tireur de ton niveau sur une série d'entraînement. Le perdant paie le café. Apprends à tirer sous pression pour reproduire la tension de la compétition.";
+        }
+
+        texte += `\n📋 ORDONNANCE D'ENTRAÎNEMENT\nExercice prescrit : ${exercice}\n`;
         
         return texte;
     }
@@ -2296,7 +2640,30 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     /* =========================================================
        FICHE ÉLÈVE — résumé uniquement
     ========================================================= */
+    // NOUVEAU : Fonction pour cliquer sur le badge et changer le niveau
+    function changerProfilEleve() {
+        if (!db.profils) db.profils = {};
+        const profilsDispos = ['Débutant', 'Confirmé', 'Expert'];
+        let actuel = db.profils[currentTireur] || 'Confirmé';
+        let index = profilsDispos.indexOf(actuel);
+        let suivant = profilsDispos[(index + 1) % profilsDispos.length];
+        
+        db.profils[currentTireur] = suivant;
+        saveDB();
+        refreshFicheEleve();
+        showToast('Passage en profil : ' + suivant, 'success');
+    }
+
     function refreshFicheEleve() {
+        // Mise à jour visuelle du badge
+        if (!db.profils) db.profils = {};
+        const profil = db.profils[currentTireur] || 'Confirmé';
+        const badge = document.getElementById('badge-profil-eleve');
+        if(badge) {
+            const emojis = { 'Débutant': '🌱', 'Confirmé': '🎯', 'Expert': '🔥' };
+            badge.textContent = emojis[profil] + ' Profil : ' + profil;
+        }
+
         const scores = db.eleves[currentTireur] || [];
         ['FU', 'DTL', 'TRAP 1'].forEach(d => {
             const list = scores.filter(s => s.disc === d);
@@ -2308,6 +2675,31 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             document.getElementById('e-c-' + id).textContent =
                 list.length + ' SÉRIE' + (list.length > 1 ? 'S' : '');
         });
+        // --- 🌟 NOUVEAU : GESTION AFFICHAGE COMPÉTITION ---
+        if (!db.activeComps) db.activeComps = {};
+        const comp = db.activeComps[currentTireur];
+        
+        const divSelecteur = document.getElementById('selecteur-mode-comp');
+        const divTracker = document.getElementById('tracker-comp');
+        
+        if (comp) {
+            // Une comp est en cours -> On affiche le Tracker
+            if (divSelecteur) divSelecteur.style.display = 'none';
+            if (divTracker) divTracker.style.display = 'block';
+            
+            const nbTirees = comp.series ? comp.series.length : 0;
+            const total = comp.mode === 100 ? 4 : 8;
+            
+            const txtTitre = document.getElementById('tracker-comp-texte');
+            const txtProg = document.getElementById('tracker-comp-progression');
+            if (txtTitre) txtTitre.textContent = comp.disc + ' - ' + comp.mode + ' plateaux';
+            if (txtProg) txtProg.textContent = 'Série ' + nbTirees + ' / ' + total + ' terminées';
+        } else {
+            // Pas de comp -> On affiche le Sélecteur
+            if (divSelecteur) divSelecteur.style.display = 'flex';
+            if (divTracker) divTracker.style.display = 'none';
+            choisirModeComp(0); // On remet le bouton sur NORMAL par défaut
+        }
     }
 
     function ouvrirStatsEleve() {
@@ -3067,6 +3459,28 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     function lancerCoaching(disc) {
         currentDisc = disc;
         serieEnCours = [];
+        directionsEnCours = [];  // NOUVEAU
+        if(typeof annulerDirection === 'function') annulerDirection(); // NOUVEAU
+        // --- 🌟 NOUVEAU : CRÉATION DU DOSSIER COMPÉTITION ---
+        if (!db.activeComps) db.activeComps = {};
+        
+        // Si on a cliqué sur 100 ou 200, et qu'il n'y a pas déjà de comp en cours
+        if (currentModeComp > 0 && !db.activeComps[currentTireur]) {
+            db.activeComps[currentTireur] = {
+                id: Date.now(),
+                mode: currentModeComp,
+                disc: disc,
+                series: [] // On stockera les scores ici plus tard
+            };
+            saveDB();
+        }
+        
+        // Sécurité : Si une comp est DÉJÀ en cours, on force la discipline
+        if (db.activeComps[currentTireur]) {
+            currentDisc = db.activeComps[currentTireur].disc;
+            disc = currentDisc;
+        }
+        // --- FIN NOUVEAU ---
         currentVent = 'faible';  // Réinitialisation
         document.getElementById('note-coach').value = "";
         chargerMeteoDynamique();
@@ -3081,21 +3495,69 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             t.textContent = calculerPoste(i, disc, currentPoste);
             g.appendChild(t);
         }
+        
+        sauvegarderSerieTemp(); // Initialise la sauvegarde temp
+        requestWakeLock();      // Demande le maintien de l'écran allumé
+        
         updateTirUI();
         switchTab('page-tir', null);
     }
 
     function quitterTir() {
         showConfirm("Abandonner la série en cours ?", (ok) => {
-            if (ok) switchTab('page-fiche-eleve', null);
+            if (ok) {
+                effacerSerieTemp();
+                switchTab('page-fiche-eleve', null);
+            }
         });
     }
 
-    function enregistrerCoup(t) {
-        if (serieEnCours.length < 25) { serieEnCours.push(t); updateTirUI(); }
+    // --- NOUVELLE LOGIQUE DE SAISIE À 2 TEMPS ---
+    function enregistrerDirect(t) {
+        if (serieEnCours.length < 25) { 
+            serieEnCours.push(t); 
+            directionsEnCours.push(null); // Pas de direction si cassé au 1er coup
+            sauvegarderSerieTemp(); 
+            updateTirUI(); 
+        }
     }
 
-    function annulerDernierCoup() { serieEnCours.pop(); updateTirUI(); }
+    function demanderDirection(t) {
+        if (serieEnCours.length >= 25) return;
+        actionEnAttente = t;
+        document.getElementById('etape-principale').style.display = 'none';
+        document.getElementById('etape-directions').style.display = 'flex';
+        
+        // Colore les boutons en orange (2) ou rouge (0)
+        const color = t === 2 ? 'var(--o-color)' : 'var(--r-color)';
+        document.querySelectorAll('.btn-dir').forEach(btn => btn.style.background = color);
+    }
+
+    function enregistrerAvecDirection(dir) {
+        if (serieEnCours.length < 25 && actionEnAttente !== null) {
+            serieEnCours.push(actionEnAttente);
+            directionsEnCours.push(dir);
+            sauvegarderSerieTemp();
+            updateTirUI();
+        }
+        annulerDirection();
+    }
+
+    function annulerDirection() {
+        actionEnAttente = null;
+        const divDir = document.getElementById('etape-directions');
+        const divPrin = document.getElementById('etape-principale');
+        if(divDir) divDir.style.display = 'none';
+        if(divPrin) divPrin.style.display = 'flex';
+    }
+
+    function annulerDernierCoup() { 
+        serieEnCours.pop(); 
+        directionsEnCours.pop(); // NOUVEAU
+        sauvegarderSerieTemp();
+        annulerDirection();      // NOUVEAU : Ferme le tiroir si on s'est trompé
+        updateTirUI(); 
+    }
 
     function updateTirUI() {
         const tiles  = document.querySelectorAll('#grid-25 div');
@@ -3139,18 +3601,58 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         }
         const noteFinal = meteoNote + note;
 
-        db.eleves[currentTireur].unshift({
+        // 1. On crée l'objet de la série tirée
+        const nouvelleSerie = {
             id: Date.now(), disc: currentDisc, score: scoreVal,
             date: new Date().toLocaleDateString('fr-FR'),
             note: noteFinal,
             poste: currentPoste,
             vent: currentVent,
             meteoAPI: currentMeteoAPI,
-            grille: [...serieEnCours], tireur: currentTireur
-        });
+            grille: [...serieEnCours], 
+            directions: [...directionsEnCours], 
+            tireur: currentTireur
+        };
+
+        // 2. On l'ajoute à l'historique général (pour les stats globales)
+        db.eleves[currentTireur].unshift(nouvelleSerie);
+
+        // --- 🌟 3. NOUVEAU : GESTION DU REMPLISSAGE DE LA COMPÉTITION ---
+        let msgToast = 'Série enregistrée !';
+        
+        if (db.activeComps && db.activeComps[currentTireur]) {
+            const comp = db.activeComps[currentTireur];
+            comp.series.push(nouvelleSerie.id); // On glisse le numéro de la série dans le dossier
+            
+            const totalRequis = comp.mode === 100 ? 4 : 8;
+            
+            if (comp.series.length >= totalRequis) {
+                // 🏆 LE CONCOURS EST TERMINÉ !
+                msgToast = `🏆 Compétition terminée (${totalRequis}/${totalRequis}) !`;
+                
+                // On ferme le dossier de compétition (ce qui remettra l'interface à zéro)
+                delete db.activeComps[currentTireur];
+                
+                // On déclenche une alerte de victoire (qui lancera le PDF plus tard)
+                setTimeout(() => {
+                    showConfirm("🏆 Concours terminé avec succès ! Voulez-vous générer le Bilan PDF de la compétition ?", (ok) => {
+                        if (ok) {
+                            showToast("Génération du Super-PDF bientôt disponible ! 🚀", "info");
+                        }
+                    });
+                }, 600);
+
+            } else {
+                // ⏳ LE CONCOURS CONTINUE
+                msgToast = `Série compétition ajoutée (${comp.series.length} / ${totalRequis})`;
+            }
+        }
+        
+        effacerSerieTemp();
         saveDB();
-        showToast('Série enregistrée !', 'success');
-        switchTab('page-fiche-eleve', null);
+        
+        showToast(msgToast, 'success');
+        switchTab('page-fiche-eleve', null); // Retour à la fiche élève (le tracker va se mettre à jour tout seul !)
     }
 
     /* =========================================================
@@ -3324,11 +3826,12 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
     }
 
     function sauvegarderParams() {
+        const isDark = document.documentElement.classList.contains('dark-mode');
         const p = {
             nomCoach: document.getElementById('param-nom-coach').value.trim(),
             discFav:  document.querySelector('.disc-btn.active')?.dataset.disc || 'FU',
             theme:    document.querySelector('.color-dot.active')?.dataset.color || '#f39c12',
-            darkMode: document.getElementById('param-dark-mode')?.checked || false
+            darkMode: isDark
         };
         localStorage.setItem(PARAMS_KEY, JSON.stringify(p));
         appliquerTheme(p.theme);
@@ -3350,6 +3853,11 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         sauvegarderParams();
     }
 
+    function toggleDarkModeGlobal() {
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        setDarkMode(!isDark);
+    }
+
     function setDarkMode(on) {
         if (on) {
             document.documentElement.classList.add('dark-mode');
@@ -3358,24 +3866,56 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             document.documentElement.classList.remove('dark-mode');
             document.body.classList.remove('dark-mode');
         }
-        const track = document.getElementById('dark-toggle-track');
-        const thumb  = document.getElementById('dark-toggle-thumb');
-        if (track) track.style.background = on ? 'var(--accent)' : 'var(--shadow-dark)';
-        if (thumb) thumb.style.transform  = on ? 'translateX(24px)' : 'translateX(0)';
+        
+        const btnTheme = document.getElementById('global-theme-btn');
+        if (btnTheme) btnTheme.textContent = on ? '☀️' : '🌙';
+
         /* Redessine le radar si visible pour appliquer les nouvelles couleurs */
         if (_chartRadar && document.getElementById('section-radar')?.style.display !== 'none') {
             _dessinerRadar(_discRadar || 'FU');
         }
+        
         sauvegarderParams();
+        updateThemeColorMeta();
+
+    }
+    /* =========================================================
+       GESTION DU MODE PLEIN SOLEIL
+    ========================================================= */
+    function toggleModeSoleil(actif) {
+        const root = document.documentElement;
+        if (actif) {
+            root.classList.add('high-vis');
+            localStorage.setItem('theme_soleil', 'oui');
+            showToast("Mode Plein Soleil activé 🌞", "success");
+        } else {
+            root.classList.remove('high-vis');
+            localStorage.setItem('theme_soleil', 'non');
+            showToast("Mode normal restauré ☁️", "info");
+        }
+        updateThemeColorMeta();
+    }
+
+    function chargerThemeSoleil() {
+        const themeSauve = localStorage.getItem('theme_soleil');
+        const checkbox = document.getElementById('checkbox-soleil');
+        
+        if (themeSauve === 'oui') {
+            document.documentElement.classList.add('high-vis');
+            if (checkbox) checkbox.checked = true;
+        } else {
+            document.documentElement.classList.remove('high-vis');
+            if (checkbox) checkbox.checked = false;
+        }
+        
+        // On met à jour la couleur de la barre système dans TOUS les cas
+        updateThemeColorMeta();
     }
 
     function appliquerParamsAuDemarrage() {
         const p = loadParams();
         appliquerTheme(p.theme);
-
-        if (p.darkMode) {
-            document.documentElement.classList.add('dark-mode');
-        }
+        setDarkMode(p.darkMode || false);
 
         const discFav = p.discFav;
         const ordre   = [discFav, ...['FU','DTL','TRAP 1'].filter(d => d !== discFav)];
@@ -4086,7 +4626,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
        PWA — SERVICE WORKER INLINE (Blob URL)
     ========================================================= */
     const SW_CODE = `
-const CACHE = 'balltrap-v1';
+const CACHE = 'balltrap-v2';
 const SHELL = [location.href];
 
 self.addEventListener('install', e => {
