@@ -410,6 +410,42 @@
         .hist-date   { font-weight: 800; font-size: 0.9rem; color: var(--text-primary); }
         .hist-score  { font-size: var(--font-label); color: var(--accent); font-weight: 900; text-transform: uppercase; }
 
+        /* ---- NOUVEAU LAYOUT DES SCORES ---- */
+        .score-layout {
+            justify-content: space-between;
+            padding: 12px 18px;
+        }
+        .score-principal {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--accent);
+            width: 25%;
+            text-align: left;
+        }
+        .score-infos {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 50%;
+        }
+        .score-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .score-type {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text-primary);
+        }
+        .corbeille-droite {
+            width: 25%;
+            text-align: right;
+            font-size: 1.4rem;
+            padding: 0;
+            margin: 0;
+        }
         /* ---- GRAPHE ---- */
         .bars-container {
             display: flex; align-items: flex-end; gap: 3px;
@@ -964,7 +1000,7 @@
             <p id="confirm-msg">Confirmer ?</p>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="repondreConfirm(false)">ANNULER</button>
-                <button class="btn-main" style="background:var(--r-color)" onclick="repondreConfirm(true)">SUPPRIMER</button>
+                <button id="btn-confirm-action" class="btn-main" style="background:var(--r-color)" onclick="repondreConfirm(true)">SUPPRIMER</button>
             </div>
         </div>
     </div>
@@ -1051,6 +1087,7 @@
             </div>
             
         </div>
+        <div id="zone-archives-comps" style="width:100%;"></div>
         <button class="btn-main" onclick="ouvrirChoixDisc()">🔥 Coacher</button>
         <button class="btn-choice" onclick="ouvrirStatsEleve()">📊 Voir les stats <span>›</span></button>
         
@@ -1261,7 +1298,7 @@
             <div id="analyse-bars" class="bars-container"></div>
         </div>
         <div class="card" id="analyse-note-card">
-            <span class="sub">Commentaire coach</span>
+            <span class="sub">Le mot de la fin</span>
             <p id="analyse-note-text" style="font-size:0.95rem;color:var(--text-primary);margin:10px 0 0;line-height:1.6;font-style:italic;"></p>
         </div>
         <button class="btn-main" style="background:#3498db" onclick="partagerBilan()">✉ PARTAGER LE BILAN</button>
@@ -1463,7 +1500,8 @@
                 return getEmptyDB();
             }
             if (!parsed.profils) parsed.profils = {}; 
-            if (!parsed.activeComps) parsed.activeComps = {}; // NOUVEAU: Patch Compétition
+            if (!parsed.activeComps) parsed.activeComps = {}; 
+            if (!parsed.archivesComps) parsed.archivesComps = {}; // Tiroir pour les archives
             return parsed;
         } catch (e) {
             console.error('Erreur lecture DB:', e);
@@ -1489,8 +1527,13 @@
        MODALE CONFIRMATION (remplace confirm())
     ========================================================= */
     var _confirmCallback = null;
-    function showConfirm(msg, cb) {
+    function showConfirm(msg, cb, actionText = 'SUPPRIMER', actionColor = 'var(--r-color)') {
         document.getElementById('confirm-msg').textContent = msg;
+        const btnAction = document.getElementById('btn-confirm-action');
+        if (btnAction) {
+            btnAction.textContent = actionText;
+            btnAction.style.background = actionColor;
+        }
         document.getElementById('modal-confirm').style.display = 'flex';
         _confirmCallback = cb;
     }
@@ -2403,9 +2446,9 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             conseilPrincipal = conseilsZone[patterns.zoneFaible];
         } else if (deuxiemeCoup.length >= 3) {
             const conseilsAnticipation = [
-                `Trop de deuxièmes coups = problème d'anticipation. Ton œil doit partir vers la cible AVANT le bruit de la machine. Exercice : visualise la trajectoire pendant l'annonce.`,
-                `Tu es en retard sur ta lecture. Prochain entraînement : demande à faire des "tirs à blanc" (sans cartouche) pour travailler uniquement ta prise d'avance visuelle.`,
-                `Les rattrapages montrent que tu réagis au lieu d'anticiper. Ralentis ta routine d'annonce et visualise la trajectoire AVANT de dire "pull".`
+                `Trop de deuxièmes coups : attention à ne pas "jeter tes canons" à l'appel. Tu pars probablement sur une trajectoire imaginaire avant d'avoir lu le plateau. Verrouille ton fusil, appelle, lis la trajectoire, puis attaque.`,
+                `Beaucoup de rattrapages. Le défaut classique : tu déclenches ton mouvement en même temps que tu dis "pull". Attends impérativement de VOIR le plateau sortir avant de bouger tes canons.`,
+                `Les tirs au second coup montrent souvent une anticipation erronée. Tu pars "à l'aveugle" au moment de l'appel. Laisse le plateau sortir de la fosse, identifie sa direction exacte, et lance ton swing seulement après.`
             ];
             conseilPrincipal = pick(conseilsAnticipation);
         } else if (pct >= 85) {
@@ -2462,21 +2505,27 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             }
         }
         
-        // Stress du début
+        // Stress du début (Le démarrage à froid)
         if (s.grille.slice(0, 3).filter(v => v === 0).length >= 2) {
-            complementsIA += "\n⚠️ DÉMARRAGE : Le stress de début de série te pénalise.";
+            complementsIA += "\n⚠️ DÉMARRAGE : Problème d'entrée dans la série. Ne rentre pas dans la fosse en touriste. Avant d'appeler ton premier plateau, fais ton tir à sec mentalement, visualise ta zone de cassure et verrouille ta respiration.";
         }
-        // Syndrome du dernier plateau
+        // Syndrome du dernier plateau (Le 25ème)
         if (s.grille[24] === 0 && s.grille[23] > 0) {
-            complementsIA += "\n⚠️ FINITION : Attention au syndrome du dernier plateau (25ème).";
+            complementsIA += "\n⚠️ FINITION : Le fameux 25ème plateau... Tu as relâché ta tension mentale en pensant déjà au score. Règle d'or : la série ne s'arrête pas au 25ème plateau, elle s'arrête quand ton fusil est ouvert et vide.";
         }
-        // Mental
+        // Mental (La spirale de l'échec)
         if (maxConsec >= 2) {
             complementsIA += "\n🧠 MENTAL : " + maxConsec + " ratés consécutifs. Apprends à oublier un zéro immédiatement.";
         }
-        // Réactivité DTL
-        if (s.disc !== 'FU' && s.grille.filter(v => v === 2).length >= 4) {
-            complementsIA += "\n⚡ RÉACTIVITÉ : Trop de tirs au 2ème coup. Acquisition lente.";
+        // Le jargon spécifique DTL vs TRAP 1
+        if (s.disc === 'DTL' && s.grille.filter(v => v === 2).length >= 4) {
+            complementsIA += "\n⚡ DTL : L'assurance du 2ème coup ne suffit pas, il te coûte des points précieux. Tu dois être plus tranchant et agressif sur ton premier coup. Ton swing doit exploser le plateau, pas le suivre.";
+        } else if (s.disc === 'TRAP 1' && s.grille.filter(v => v === 2).length >= 4) {
+            complementsIA += "\n⚡ RÉACTIVITÉ : Trop de tirs au 2ème coup. Acquisition lente, ton œil doit accrocher la cible plus vite.";
+        }
+        // La balistique selon le vent (NOUVEAU)
+        if (s.vent === 'fort') {
+            complementsIA += "\n🌀 BALISTIQUE : Conditions ventées. N'oublie pas que le vent modifie les trajectoires (un vent de face fait monter les plateaux, un vent de dos les plaque au sol). Adapte ta bande et ton point d'attaque en conséquence, ne subis pas la météo !";
         }
 
         // Poste critique (analyse géographique)
@@ -2698,8 +2747,53 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             // Pas de comp -> On affiche le Sélecteur
             if (divSelecteur) divSelecteur.style.display = 'flex';
             if (divTracker) divTracker.style.display = 'none';
-            choisirModeComp(0); // On remet le bouton sur NORMAL par défaut
+            choisirModeComp(0); 
         }
+
+        // --- AFFICHAGE DU PALMARÈS ---
+        let htmlArchives = "";
+        let archives = (db.archivesComps && db.archivesComps[currentTireur]) ? db.archivesComps[currentTireur] : [];
+
+        // 🧹 NOUVEAU : Nettoyage automatique des tiroirs vides (Anti-Bug)
+        const toutesLesSeriesEleve = db.eleves[currentTireur] || [];
+        const archivesValides = archives.filter(c => {
+            const seriesExistantes = c.series.map(id => toutesLesSeriesEleve.find(s => s.id === id)).filter(Boolean);
+            return seriesExistantes.length > 0; // Garde l'archive s'il reste au moins 1 série
+        });
+
+        if (archivesValides.length !== archives.length) {
+            db.archivesComps[currentTireur] = archivesValides;
+            saveDB();
+            archives = archivesValides;
+        }
+
+        if (archives.length > 0) {
+            htmlArchives = `<div class="stats-titre" style="margin-top:15px;">Palmarès Compétitions</div>`;
+            archives.forEach((c, index) => {
+                htmlArchives += `
+                    <div class="card" style="padding:12px 16px; margin-bottom:10px; border-left:5px solid var(--accent);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:0.9rem; font-weight:900;">${c.disc} - ${c.mode} PLX</div>
+                                <div class="sub">${c.dateFin || 'Terminé'}</div>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button class="btn-secondary" style="width:auto; padding:0 12px; height:35px; font-size:0.7rem;" 
+                                    onclick="event.stopPropagation(); genererSuperPDF('${currentTireur}', db.archivesComps['${currentTireur}'][${index}])">
+                                    📄 PDF
+                                </button>
+                                <button class="btn-del" style="font-size:1.3rem; padding:4px;" 
+                                    onclick="event.stopPropagation(); supprimerArchive('${currentTireur}', ${index})">
+                                    🗑
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+        
+        const zoneArchives = document.getElementById('zone-archives-comps');
+        if (zoneArchives) zoneArchives.innerHTML = htmlArchives;
     }
 
     function ouvrirStatsEleve() {
@@ -3627,20 +3721,24 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             const totalRequis = comp.mode === 100 ? 4 : 8;
             
             if (comp.series.length >= totalRequis) {
-                // 🏆 LE CONCOURS EST TERMINÉ !
-                msgToast = `🏆 Compétition terminée (${totalRequis}/${totalRequis}) !`;
+                msgToast = `🏆 Compétition terminée !`;
+                const compDataPourPDF = JSON.parse(JSON.stringify(comp)); 
                 
-                // On ferme le dossier de compétition (ce qui remettra l'interface à zéro)
+                // --- ARCHIVAGE ---
+                if (!db.archivesComps) db.archivesComps = {};
+                if (!db.archivesComps[currentTireur]) db.archivesComps[currentTireur] = [];
+                
+                compDataPourPDF.dateFin = new Date().toLocaleDateString('fr-FR');
+                db.archivesComps[currentTireur].unshift(compDataPourPDF);
+                
                 delete db.activeComps[currentTireur];
                 
-                // On déclenche une alerte de victoire (qui lancera le PDF plus tard)
-                setTimeout(() => {
-                    showConfirm("🏆 Concours terminé avec succès ! Voulez-vous générer le Bilan PDF de la compétition ?", (ok) => {
-                        if (ok) {
-                            showToast("Génération du Super-PDF bientôt disponible ! 🚀", "info");
-                        }
-                    });
-                }, 600);
+              setTimeout(() => {
+                    // On demande le bouton "GÉNÉRER PDF" en orange (--accent)
+                    showConfirm("🏆 Concours terminé ! Générer le Super-PDF ?", (ok) => {
+                        if (ok) genererSuperPDF(currentTireur, compDataPourPDF);
+                    }, "GÉNÉRER PDF", "var(--accent)");
+                }, 600);  
 
             } else {
                 // ⏳ LE CONCOURS CONTINUE
@@ -3739,23 +3837,36 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         cont.innerHTML = "";
         data.forEach(s => {
             const card = document.createElement('div');
-            card.className = "hist-card clickable";
+            card.className = "hist-card clickable score-layout"; // Ajout de score-layout
             card.style.borderLeftColor = color;
             card.onclick = () => ouvrirAnalyse(s.id);
+            
             const max = (s.disc === 'FU') ? 25 : 75;
+
+            // 1. Le score à gauche
+            const scoreDiv = document.createElement('div');
+            scoreDiv.className = 'score-principal';
+            scoreDiv.textContent = s.score + "/" + max;
+
+            // 2. Les infos au centre
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'score-infos';
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'score-date';
+            dateSpan.textContent = s.date;
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'score-type';
+            typeSpan.textContent = s.disc + (s.poste ? ' · P' + s.poste : '');
+            infoDiv.append(dateSpan, typeSpan);
+
+            // 3. La corbeille à droite
             const btnDel = document.createElement('button');
-            btnDel.className = 'btn-del';
+            btnDel.className = 'btn-del corbeille-droite';
             btnDel.textContent = '🗑';
             btnDel.onclick = (e) => { e.stopPropagation(); supprimerScore(s.id); };
-            const header = document.createElement('div');
-            header.className = 'hist-header';
-            const bold = document.createElement('b');
-            bold.textContent = s.date + " — " + s.disc + (s.poste ? ' · P' + s.poste : '');
-            const scoreSpan = document.createElement('span');
-            scoreSpan.className = 'hist-score';
-            scoreSpan.textContent = s.score + "/" + max;
-            header.append(bold, scoreSpan);
-            card.append(btnDel, header);
+
+            // On assemble le tout
+            card.append(scoreDiv, infoDiv, btnDel);
             cont.appendChild(card);
         });
         switchTab('page-view-stats', null);
@@ -3768,6 +3879,17 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             saveDB();
             renderFilteredStats("Scores de " + currentTireur, db.eleves[currentTireur], "#94a3b8");
             showToast('Score supprimé.', 'info');
+        });
+    }
+    function supprimerArchive(tireur, index) {
+        showConfirm("Supprimer ce dossier de compétition ? (Vos séries resteront intactes dans l'historique global)", (ok) => {
+            if (!ok) return;
+            if (db.archivesComps && db.archivesComps[tireur]) {
+                db.archivesComps[tireur].splice(index, 1);
+                saveDB();
+                refreshFicheEleve(); // Fait disparaître le tiroir instantanément
+                showToast('Dossier de compétition supprimé.', 'info');
+            }
         });
     }
 
@@ -4031,6 +4153,392 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         RED: '#e74c3c',
         BLUE: '#3498db'
     };
+    function genererSuperPDF(nom, compData) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const today = new Date().toLocaleDateString('fr-FR');
+
+        // 1. Récupération des données et Stats Historiques
+        const toutesLesSeries = db.eleves[nom] || [];
+        const seriesConcours = compData.series.map(id => toutesLesSeries.find(s => s.id === id)).filter(Boolean);
+
+        if (seriesConcours.length === 0) {
+            showToast("Erreur: Séries introuvables.", "error");
+            return;
+        }
+
+        const totalPlateaux = compData.mode;
+        const maxParSerie = compData.disc === 'FU' ? 25 : 75;
+        const scoreParfait = (totalPlateaux / 25) * maxParSerie;
+        const scoreTotal = seriesConcours.reduce((a, s) => a + parseInt(s.score), 0);
+        const pctGlobal = Math.round((scoreTotal / scoreParfait) * 100);
+
+        const statsEleve = _calculerStatsEleve(nom, compData.disc);
+        let moyenneHabituelle = statsEleve ? Math.round(statsEleve.moyenne) : pctGlobal;
+
+        // ================= PAGE 1 : EN-TÊTE =================
+        doc.setFillColor(PDF_COLORS.DARKER_NAVY);
+        doc.rect(0, 0, 210, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('BILAN DE COMPÉTITION', 105, 18, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.text(`TOURNOI SUR ${totalPlateaux} PLATEAUX`, 105, 26, { align: 'center' });
+
+        let y = 50;
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(nom.toUpperCase(), 14, y);
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.setFontSize(11);
+        doc.text(`${today} — ${compData.disc}`, 196, y, { align: 'right' });
+
+        doc.setDrawColor(PDF_COLORS.ACCENT);
+        doc.setLineWidth(1.5);
+        doc.line(14, y + 5, 196, y + 5);
+
+        // LE GROS SCORE CENTRAL
+        y = 65;
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 182, 40, 4, 4, 'F');
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(42);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${scoreTotal} / ${scoreParfait}`, 105, y + 18, { align: 'center' });
+        
+        let couleurPct = pctGlobal >= 80 ? '#2ecc71' : (pctGlobal >= 60 ? '#f39c12' : '#e74c3c');
+        doc.setTextColor(couleurPct);
+        doc.setFontSize(16);
+        doc.text(`${pctGlobal}% de réussite globale`, 105, y + 30, { align: 'center' });
+
+        // TABLEAU DES SÉRIES
+        y += 55;
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DÉTAIL DES SÉRIES', 14, y);
+
+        const tableDataOrdered = [['Série', 'Score', '%', 'Poste', 'Météo']];
+        seriesConcours.forEach((s, idx) => {
+            const pctSerie = Math.round((parseInt(s.score) / maxParSerie) * 100);
+            tableDataOrdered.push([
+                `Série ${idx + 1}`,
+                `${s.score} / ${maxParSerie}`,
+                `${pctSerie}%`,
+                s.poste ? `P${s.poste}` : '-',
+                s.vent ? (s.vent === 'fort' ? 'Vent fort' : s.vent === 'modere' ? 'Vent mod.' : 'Calme') : '-'
+            ]);
+        });
+
+        doc.autoTable({
+            startY: y + 5,
+            head: [tableDataOrdered[0]],
+            body: tableDataOrdered.slice(1),
+            theme: 'grid',
+            headStyles: { fillColor: PDF_COLORS.DARK_NAVY, textColor: 255, fontSize: 10 },
+            bodyStyles: { fontSize: 10, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: PDF_COLORS.SOFT_GRAY },
+            columnStyles: { 
+                0: { cellWidth: 35 }, 1: { cellWidth: 35 }, 2: { cellWidth: 30 },
+                3: { cellWidth: 30 }, 4: { cellWidth: 'auto' }
+            }
+        });
+
+        // ================= 🧠 ANALYSE DE LA VARIANCE PAR SÉRIE =================
+        // 🔧 CORRECTION : Ajout de la vérification de saut de page (45px requis)
+        y = doc.lastAutoTable.finalY + 15;
+        y = pdfAddSectionWithPageBreak(doc, y, 45, 20);
+        
+        const scoresS = seriesConcours.map(s => parseInt(s.score));
+        const bestScore = Math.max(...scoresS);
+        const worstScore = Math.min(...scoresS);
+        const diffScore = bestScore - worstScore;
+        const diffPct = Math.round((diffScore / maxParSerie) * 100);
+
+        const bestSeriesIdx = scoresS.map((s, i) => s === bestScore ? i + 1 : null).filter(Boolean).join(', ');
+        const worstSeriesIdx = scoresS.map((s, i) => s === worstScore ? i + 1 : null).filter(Boolean).join(', ');
+
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ANALYSE INDIVIDUELLE DES SÉRIES', 14, y);
+        y += 7;
+
+        doc.setFontSize(10);
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFont('helvetica', 'normal');
+
+        if (diffScore === 0) {
+             doc.text(`• Constance absolue : Toutes tes séries ont été tirées au même score (${bestScore}/${maxParSerie}).`, 18, y);
+             y += 10;
+        } else {
+             doc.text(`• Meilleure(s) : Série(s) ${bestSeriesIdx} avec un score de ${bestScore}/${maxParSerie}.`, 18, y);
+             y += 6;
+             doc.text(`• Plus difficile(s) : Série(s) ${worstSeriesIdx} avec un score de ${worstScore}/${maxParSerie}.`, 18, y);
+             y += 6;
+             
+             let comVariance = `• Écart de performance : ${diffScore} plateau(x) de différence entre ta meilleure et ta pire série. `;
+             
+             if (diffPct <= 8) {
+                 comVariance += `Excellente régularité, ton niveau est resté très homogène sur l'ensemble des postes.`;
+             } else if (diffPct <= 16) {
+                 comVariance += `Une variance classique. La série la plus faible t'a coûté quelques points, mais pas de gros décrochage.`;
+             } else {
+                 comVariance += `L'écart est important. La série ${worstSeriesIdx} a lourdement pénalisé ton bilan. Il faudra isoler ce qui a causé ce décrochage (météo, fatigue, relâchement mental ?).`;
+             }
+             
+             const varLines = doc.splitTextToSize(comVariance, 175);
+             doc.text(varLines, 18, y);
+             y += varLines.length * 5 + 5;
+        }
+
+       // ================= 📊 DASHBOARD : PROGRESSION & ZONES =================
+        y = pdfAddSectionWithPageBreak(doc, y, 70, 20); 
+
+        // Dessin des deux boîtes côte à côte
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 88, 55, 3, 3, 'F'); // Boîte Gauche
+        doc.roundedRect(108, y, 88, 55, 3, 3, 'F'); // Boîte Droite
+
+        // --- GAUCHE : COURBE DE PROGRESSION ---
+        doc.setFontSize(10);
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFont('helvetica', 'bold');
+        doc.text("COURBE DES SCORES", 58, y + 8, { align: 'center' });
+
+        const graphX = 20;
+        const graphY = y + 20;
+        const graphW = 76;
+        const graphH = 16;
+        const minScoreScale = Math.max(0, worstScore - (maxParSerie * 0.1));
+        const amplitude = maxParSerie - minScoreScale || 1;
+
+        const pts = scoresS.map((score, i) => ({
+            x: graphX + (graphW / (scoresS.length + 1)) * (i + 1),
+            y: graphY + graphH - ((score - minScoreScale) / amplitude) * graphH,
+            score: score
+        }));
+
+        // La ligne
+        doc.setDrawColor(PDF_COLORS.ACCENT);
+        doc.setLineWidth(1);
+        for(let i=0; i < pts.length - 1; i++) {
+            doc.line(pts[i].x, pts[i].y, pts[i+1].x, pts[i+1].y);
+        }
+
+        // Les points et labels
+        pts.forEach((pt, i) => {
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(PDF_COLORS.ACCENT);
+            doc.setLineWidth(0.6);
+            doc.circle(pt.x, pt.y, 2, 'FD');
+            
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(PDF_COLORS.DARK_NAVY);
+            doc.text(`${pt.score}`, pt.x, pt.y - 3, { align: 'center' });
+            
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.text(`S${i+1}`, pt.x, graphY + graphH + 5, { align: 'center' });
+        });
+
+        // --- DROITE : ANALYSE DES ZONES ---
+        doc.setFontSize(10);
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFont('helvetica', 'bold');
+        doc.text("ANALYSE DES ZONES", 152, y + 8, { align: 'center' });
+
+        const avecGrille = seriesConcours.filter(s => s.grille && s.grille.length === 25);
+        let totalRates = 0;
+        let deuxiemesCoups = 0;
+        const zonesPct = [0, 0, 0, 0, 0];
+        const zonesLabels = ['1-5', '6-10', '11-15', '16-20', '21-25'];
+        let maxI = 0, minI = 0;
+
+        if (avecGrille.length > 0) {
+            const zonesHits = [0, 0, 0, 0, 0];
+            const zonesTotal = [0, 0, 0, 0, 0];
+
+            avecGrille.forEach(s => {
+                s.grille.forEach((val, i) => {
+                    const groupe = Math.floor(i / 5);
+                    zonesTotal[groupe]++;
+                    if (val > 0) zonesHits[groupe]++;
+                    if (val === 0) totalRates++;
+                    if (val === 2) deuxiemesCoups++;
+                });
+            });
+
+            zonesHits.forEach((h, i) => { zonesPct[i] = Math.round((h / zonesTotal[i]) * 100); });
+            maxI = zonesPct.indexOf(Math.max(...zonesPct));
+            minI = zonesPct.indexOf(Math.min(...zonesPct));
+
+            let zoneY = y + 16;
+            zonesPct.forEach((pct, i) => {
+                doc.setFontSize(8);
+                doc.setTextColor(PDF_COLORS.TEXT_DARK);
+                doc.setFont('helvetica', 'bold');
+                doc.text(zonesLabels[i], 112, zoneY + 3);
+
+                doc.setFillColor(236, 240, 241);
+                doc.roundedRect(128, zoneY - 1, 46, 5, 2, 2, 'F');
+
+                let barColor = pct >= 80 ? '#2ecc71' : (pct >= 60 ? '#f39c12' : '#e74c3c');
+                doc.setFillColor(barColor);
+                let w = Math.max((46 * pct) / 100, 1.5);
+                doc.roundedRect(128, zoneY - 1, w, 5, 2, 2, 'F');
+
+                doc.text(`${pct}%`, 178, zoneY + 3);
+                zoneY += 7.5;
+            });
+        } else {
+            doc.setFontSize(8);
+            doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+            doc.setFont('helvetica', 'italic');
+            doc.text("Aucune donnée de zone.", 152, y + 30, { align: 'center' });
+        }
+
+        y += 60; // On descend sous le double-dashboard
+        
+        // --- TEXTE DE CONCLUSION ZONES ---
+        if (avecGrille.length > 0) {
+            doc.setFontSize(9);
+            doc.setTextColor(PDF_COLORS.TEXT_DARK);
+            doc.setFont('helvetica', 'normal');
+            if (Math.min(...zonesPct) === 100) {
+                doc.text(`• Perfection absolue : Toutes les zones sont à 100% de réussite.`, 14, y);
+            } else {
+                doc.text(`• Point fort : Tirs ${zonesLabels[maxI]} (${zonesPct[maxI]}%)  |  • Zone fragile : Tirs ${zonesLabels[minI]} (${zonesPct[minI]}%)`, 14, y);
+            }
+            y += 6;
+            
+            doc.setFillColor(253, 242, 233);
+            doc.roundedRect(14, y, 182, compData.disc !== 'FU' ? 14 : 9, 2, 2, 'F');
+            doc.setTextColor(PDF_COLORS.ACCENT);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total plateaux manqués purs sur la compétition : ${totalRates}`, 18, y + 6);
+            if (compData.disc !== 'FU') {
+                doc.text(`Total plateaux sauvés au 2ème coup : ${deuxiemesCoups}`, 18, y + 11);
+            }
+            y += (compData.disc !== 'FU' ? 22 : 16);
+        }
+
+        // ================= ENDURANCE =================
+        y = pdfAddSectionWithPageBreak(doc, y, 75, 20);
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("ENDURANCE ET RÉGULARITÉ", 14, y);
+
+        const mid = Math.floor(seriesConcours.length / 2);
+        const firstHalf = seriesConcours.slice(0, mid);
+        const secondHalf = seriesConcours.slice(mid);
+        const score1 = firstHalf.reduce((a,s)=>a+parseInt(s.score),0);
+        const score2 = secondHalf.reduce((a,s)=>a+parseInt(s.score),0);
+        const maxHalf = mid * maxParSerie;
+        
+        let pct1 = maxHalf > 0 ? Math.round(score1/maxHalf*100) : 0;
+        let pct2 = maxHalf > 0 ? Math.round(score2/maxHalf*100) : 0;
+
+        y += 8;
+        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
+        doc.roundedRect(14, y, 88, 25, 3, 3, 'F');
+        doc.roundedRect(108, y, 88, 25, 3, 3, 'F');
+
+        doc.setFontSize(9);
+        doc.setTextColor(PDF_COLORS.TEXT_LIGHT);
+        doc.text("PREMIÈRE MOITIÉ", 58, y + 7, { align: 'center' });
+        doc.text("SECONDE MOITIÉ", 152, y + 7, { align: 'center' });
+
+        doc.setFontSize(18);
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${score1} / ${maxHalf}`, 58, y + 16, { align: 'center' });
+        doc.text(`${score2} / ${maxHalf}`, 152, y + 16, { align: 'center' });
+
+        doc.setFontSize(11);
+        doc.setTextColor(pct1 >= 80 ? '#2ecc71' : (pct1 >= 60 ? '#f39c12' : '#e74c3c'));
+        doc.text(`${pct1}%`, 58, y + 22, { align: 'center' });
+        doc.setTextColor(pct2 >= 80 ? '#2ecc71' : (pct2 >= 60 ? '#f39c12' : '#e74c3c'));
+        doc.text(`${pct2}%`, 152, y + 22, { align: 'center' });
+
+        y += 32;
+        let enduranceText = "";
+        const delta = score2 - score1;
+        const margeErreur = Math.round(maxHalf * 0.05); 
+
+        if (pctGlobal === 100) enduranceText = "Physique et mental d'acier. Tenir la perfection sur l'intégralité du concours prouve une endurance de très haut niveau.";
+        else if (delta < -margeErreur) enduranceText = "Baisse de régime sur la deuxième partie du concours. La fatigue mentale ou physique a pesé sur tes dernières séries. L'endurance sera l'axe de travail principal.";
+        else if (delta > margeErreur) enduranceText = "Superbe remontée ! Tu as mis du temps à entrer dans ton match, mais tu as su élever ton niveau pour finir beaucoup plus fort.";
+        else enduranceText = "Une régularité impressionnante du début à la fin. Ton rythme est resté constant sur la totalité du concours.";
+
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        const endLines = doc.splitTextToSize(enduranceText, 175);
+        doc.text(endLines, 14, y);
+        y += endLines.length * 5 + 10;
+
+        // ================= DÉBRIEFING INTELLIGENT DE L'IA =================
+        y = pdfAddSectionWithPageBreak(doc, y, 70, 20);
+        doc.setTextColor(PDF_COLORS.DARK_NAVY);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ANALYSE GLOBALE DU COACH', 14, y);
+
+        y += 8;
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+
+        let debrief = "";
+        const diffMoyenne = pctGlobal - moyenneHabituelle;
+
+        if (pctGlobal === 100) {
+            debrief = `Une masterclass absolue. Clôturer un tournoi de ${totalPlateaux} plateaux sans trembler et avec un score parfait de ${scoreTotal}/${scoreParfait} relève de l'exploit sportif. \n\nL'endurance mentale, la rigueur de la routine et l'agressivité visuelle ont été maintenues du premier au dernier plateau. Ce n'est plus de la chance à ce niveau, c'est de la maîtrise totale. Range le fusil et savoure.`;
+        } else {
+            if (statsEleve && statsEleve.nbSeries >= 4) {
+                if (diffMoyenne >= 5) debrief += `Un tournoi exceptionnel qui se solde par une performance bien supérieure à ta moyenne habituelle (${moyenneHabituelle}%). Tu as su élever ton niveau de jeu au bon moment. `;
+                else if (diffMoyenne <= -5) debrief += `Un concours difficile, en deçà de tes standards habituels (${moyenneHabituelle}%). La pression ou la fatigue ont perturbé ta routine. `;
+                else debrief += `Une performance solide, parfaitement alignée avec ton niveau moyen actuel (${moyenneHabituelle}%). `;
+            } else {
+                debrief += `Clôturer un tournoi de ${totalPlateaux} plateaux est toujours un marathon mental exigeant. `;
+            }
+
+            if (pctGlobal >= 90) debrief += `Avec ${pctGlobal}% de réussite, tu maintiens un niveau de concentration digne des podiums. `;
+            else if (pctGlobal >= 75) debrief += `Tu as produit de belles séries, mais la compétition sanctionne le moindre relâchement. Les quelques "trous d'air" coûtent cher au classement général. `;
+            else debrief += `Le bilan comptable est sévère, mais c'est une excellente base de travail pour identifier tes priorités d'entraînement. `;
+
+            if (totalRates > 0 && Math.min(...zonesPct) < 100) {
+                debrief += `\n\nTechniquement, l'analyse montre que les tirs ${zonesLabels[minI]} (${zonesPct[minI]}% de réussite) constituent ton angle mort sur la durée. C'est l'accumulation de ces petites erreurs géographiques qui creuse l'écart avec la perfection. `;
+            }
+
+            if (compData.disc !== 'FU' && deuxiemesCoups >= (totalPlateaux * 0.15)) {
+                debrief += `\n\nAttention également à la réactivité : avec ${deuxiemesCoups} plateaux sauvés au 2ème coup, tu t'exposes trop. Ton premier coup manque d'anticipation ou de tranchant. En compétition, on ne peut pas compter indéfiniment sur la cartouche de rattrapage.`;
+            } else if (pctGlobal < 100) {
+                debrief += `\n\nLe mot d'ordre pour la suite : consolider la routine sur les zones d'inconfort pour éviter de donner des points faciles.`;
+            }
+        }
+
+        const debriefLines = doc.splitTextToSize(stripEmojis(debrief), 174);
+        const debriefHeight = debriefLines.length * 5 + 8;
+        
+        doc.setFillColor(255, 248, 225); 
+        doc.setDrawColor(PDF_COLORS.ACCENT);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(14, y-4, 182, debriefHeight, 3, 3, 'FD');
+        doc.text(debriefLines, 18, y + 2);
+
+        pdfFooter(doc, today);
+        doc.save(`bilan-competition-${nom.replace(/\s+/g, '-')}-${today.replace(/\//g, '-')}.pdf`);
+    }
+
 
     function genererRapportMensuel() {
         const { jsPDF } = window.jspdf;
@@ -4491,33 +4999,6 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             y += lines.length * 5 + 5;
         }
 
-        // ========== NOTE DU COACH ==========
-        y = pdfAddSectionWithPageBreak(doc, y, 30, 20);
-        doc.setTextColor(PDF_COLORS.ACCENT);
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.text('NOTE DU COACH', 14, y);
-        
-        y += 6;
-        /* Sépare la météo préfixée de la vraie note du coach */
-        const noteComplete = s.note || '';
-        const noteStrippedCoach = stripEmojis(noteComplete);
-        const noteCoach = noteStrippedCoach
-            .replace(/\[[^\]]*°[^\]]*\]/g, '')
-            .replace(/\[\s*[Vv]ent[^\]]*\]/gi, '')
-            .replace(/\[\s*\]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim() || 'Aucune note enregistree pour cette seance.';
-        const noteLines = doc.splitTextToSize(noteCoach, 175);
-        const noteH = Math.max(20, noteLines.length * 5 + 10);
-        y = pdfAddSectionWithPageBreak(doc, y, noteH + 5, 20);
-        doc.setFillColor(PDF_COLORS.SOFT_GRAY);
-        doc.roundedRect(14, y, 182, noteH, 3, 3, 'F');
-        doc.setTextColor(PDF_COLORS.TEXT_DARK);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(noteLines, 18, y + 8);
-        y += noteH + 8;
 
         // ========== ANALYSE FINE IA (depuis la sauvegarde) ==========
         const analyseFineSerie = db.analysesCoach?.['serie_' + s.id] || '';
@@ -4546,6 +5027,48 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
             });
             y += 3;
         }
+        // ========== LE MOT DE LA FIN (Coach) ==========
+        y = pdfAddSectionWithPageBreak(doc, y, 30, 20);
+        doc.setTextColor(PDF_COLORS.ACCENT);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LE MOT DE LA FIN', 14, y);
+        
+        y += 6;
+        /* Sépare la météo préfixée de la vraie note du coach */
+        const noteComplete = s.note || '';
+        const noteStrippedCoach = stripEmojis(noteComplete);
+        let noteCoach = noteStrippedCoach
+            .replace(/\[[^\]]*°[^\]]*\]/g, '')
+            .replace(/\[\s*[Vv]ent[^\]]*\]/gi, '')
+            .replace(/\[\s*\]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+            
+        // 🪄 LA MAGIE : Le petit mot automatique si le coach n'a rien écrit
+        if (!noteCoach || noteCoach === '') {
+            const motsMagiques = [
+                "Excellente implication aujourd'hui. Chaque plateau tiré est une leçon apprise. Garde cette belle dynamique !",
+                "La progression passe par la régularité. Un très bon état d'esprit sur le pas de tir, continue tes efforts !",
+                "La confiance se construit pas à pas. Reste concentré sur tes objectifs, le travail finit toujours par payer.",
+                "Une séance riche en enseignements. Garde cette superbe énergie pour notre prochain entraînement !",
+                "Ton écoute et ta concentration font plaisir à voir. Les fondations sont solides, on lâche rien !"
+            ];
+            noteCoach = motsMagiques[Math.floor(Math.random() * motsMagiques.length)];
+        }
+
+        const noteLines = doc.splitTextToSize(noteCoach, 175);
+        const noteH = Math.max(16, noteLines.length * 5 + 10);
+        y = pdfAddSectionWithPageBreak(doc, y, noteH + 5, 20);
+        
+        // Design chaleureux : fond légèrement teinté et texte en italique
+        doc.setFillColor(255, 248, 225); // Un jaune très pâle et chaleureux
+        doc.roundedRect(14, y, 182, noteH, 3, 3, 'F');
+        doc.setTextColor(PDF_COLORS.TEXT_DARK);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic'); 
+        doc.text(noteLines, 18, y + 8);
+        y += noteH + 8;
 
         // ========== RECOMMANDATIONS ==========
         y = pdfAddSectionWithPageBreak(doc, y, 45, 20);
@@ -4621,6 +5144,7 @@ Sois direct, précis, encourageant. N'utilise pas de bullet points ni de titres,
         pdfFooter(doc, today);
         doc.save(`rapport-seance-${nom.replace(/\s+/g, '-')}-${s.date.replace(/\//g, '-')}.pdf`);
     }
+    
 
     /* =========================================================
        PWA — SERVICE WORKER INLINE (Blob URL)
